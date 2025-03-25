@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block titre %}{% endblock %}</title>
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css'>
+    <link rel="stylesheet" href="css/styleAdmin.css">
+</head>
+<body>
+    {% macro is_active_route(current_route, target_route) %}
+        {% if current_route == target_route %}active{% endif %}
+    {% endmacro %}
+    <div class="page-container">
+    {% block navigation %}
+        <div id="nav-bar">
+            <input id="nav-toggle" type="checkbox"/>
+            <div id="nav-header"><a id="nav-title" href="{{ path('admin_dashboard') }}"><i class="fab fa-codepen"></i>DMIN</a>
+                <label for="nav-toggle"><span id="nav-toggle-burger"></span></label>
+                <hr/>
+            </div>
+            <div id="nav-content">
+                <a href="{{ path('admin_dashboard') }}" class="nav-button {{ app.request.get('_route') == 'admin_dashboard' ? 'active' : '' }}">
+                    <i class="fas fa-tachometer-alt"></i><span>Dashboard</span>
+                </a>
+                <a href="{{ path('admin_reclamation') }}" class="nav-button {{ app.request.get('_route') == 'admin_reclamation' ? 'active' : '' }}">
+                    <i class="fas fa-exclamation-circle"></i><span>Reclamations</span>
+                </a>
+                <a href="{{ path('admin_reservations') }}" class="nav-button {{ app.request.get('_route') == 'admin_reservations' ? 'active' : '' }}">
+                    <i class="fas fa-calendar-check"></i><span>Reservations</span>
+                </a>
+                <hr/>
+                <a href="{{ path('admin_voyages') }}" class="nav-button {{ app.request.get('_route') == 'admin_voyages' ? 'active' : '' }}">
+                    <i class="fas fa-suitcase-rolling"></i><span>Voyages</span>
+                </a>
+                <a href="{{ path('admin_hebergements') }}" class="nav-button {{ app.request.get('_route') == 'admin_hebergements' ? 'active' : '' }}">
+                    <i class="fas fa-hotel"></i><span>Hebergements</span>
+                </a>
+                <a href="{{ path('admin_transports') }}" class="nav-button {{ app.request.get('_route') == 'admin_transports' ? 'active' : '' }}">
+                    <i class="fas fa-bus"></i><span>Transports</span>
+                </a>
+                <hr/>
+                <a href="{{ path('admin_publications') }}" class="nav-button {{ app.request.get('_route') == 'admin_publications' ? 'active' : '' }}">
+                    <i class="fas fa-newspaper"></i><span>Publications</span>
+                </a>
+                <div id="nav-content-highlight"></div>
+            </div>
+        </div>
+    {% endblock %}
+
+        <div class="content-area">
+    {% block content %}{% endblock %}
+        </div>
+
+    </div>
+<script src="js/mainAdmin.js"></script>
+</body>
+</html>
