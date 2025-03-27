@@ -1,0 +1,89 @@
+
+
+{% block title %}Inscription{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="text-center">Inscription</h1>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                        <div class="mb-3">
+                            {{ form_label(form.email, 'Email') }}
+                            {{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.email) }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form_label(form.password, 'Mot de passe') }}
+                            {{ form_widget(form.password, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.password) }}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form_label(form.nom, 'Nom') }}
+                                {{ form_widget(form.nom, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.nom) }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form_label(form.prenom, 'Prénom') }}
+                                {{ form_widget(form.prenom, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.prenom) }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form_label(form.numTel, 'Numéro de téléphone') }}
+                            {{ form_widget(form.numTel, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.numTel) }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form_label(form.address, 'Adresse') }}
+                            {{ form_widget(form.address, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.address) }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form_label(form.role, 'Rôle') }}
+                            {{ form_widget(form.role, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.role) }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form_label(form.nomagence, 'Nom de l\'agence') }}
+                            {{ form_widget(form.nomagence, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.nomagence) }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form_label(form.typeAgence, 'Type d\'agence') }}
+                            {{ form_widget(form.typeAgence, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.typeAgence) }}
+                        </div>
+                         
+                        <div class="mb-3">
+                            {{ form_label(form.username, 'username') }}
+                            {{ form_widget(form.username, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.username) }}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">S'inscrire</button>
+                        </div>
+                    {{ form_end(form) }}
+                    
+                    <div class="mt-3 text-center">
+                        <p>Déjà inscrit ? <a href="{{ path('app_login') }}">Connectez-vous</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

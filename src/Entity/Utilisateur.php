@@ -6,9 +6,12 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
 use App\Entity\Voyage;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity]
-class Utilisateur
+
+class Utilisateur implements PasswordAuthenticatedUserInterface,UserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: "AUTO")]
@@ -504,5 +507,29 @@ class Utilisateur
             }
         }
         return $this;
+    }
+
+    /**
+     * Returns the roles granted to the user.
+     *
+     * @return string[] An array of roles
+     */
+    public function getRoles(): array
+    {
+        // Ensure the role is returned as an array
+        return [$this->role];
+    }
+
+    /**
+     * Removes sensitive data from the user.
+     */
+    public function eraseCredentials(): void
+    {
+        // If you store any temporary, sensitive data on the user, clear it here
+        // For example, $this->plainPassword = null;
+    }
+    public function getUserIdentifier(): string
+    {
+        return $this->email;
     }
 }
