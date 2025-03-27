@@ -1,5 +1,279 @@
 {% extends "baseAdmin.html.twig" %}
 
-{% block titre %} Dashboard {% endblock %}
+{% block titre %}Dashboard Admin{% endblock %}
 
-{% block content %} dashboard d'admin {% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .user-card {
+            transition: all 0.3s;
+            border-radius: 15px;
+            overflow: hidden;
+            border: none;
+        }
+        
+        .user-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .avatar-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: -50px auto 10px;
+            border: 5px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .card-top-banner {
+            height: 80px;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .user-info {
+            padding: 15px 20px;
+        }
+        
+        .user-info-item {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-info-item i {
+            width: 25px;
+            margin-right: 10px;
+            color: #666;
+        }
+        
+        .action-buttons {
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .action-buttons .btn {
+            border-radius: 20px;
+            padding: 5px 15px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .stats-card {
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        
+        .stats-card:hover {
+            transform: scale(1.03);
+        }
+        
+        .stats-card .card-body {
+            padding: 20px;
+        }
+        
+        .stats-icon {
+            font-size: 2.5rem;
+            opacity: 0.8;
+        }
+        
+        .section-title {
+            font-weight: 600;
+            font-size: 1.5rem;
+            position: relative;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+        }
+        
+        .section-title:after {
+            content: '';
+            position: absolute;
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(to right, #4e73df, #36b9cc);
+            bottom: 0;
+            left: 0;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+{% for label, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+{% endfor %}
+<div class="container-fluid py-4">
+    <h1 class="mb-4">Dashboard Administration</h1>
+
+    <!-- Statistics Row - Enhanced design -->
+    <div class="row mb-5">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card stats-card border-0 shadow-sm">
+                <div class="card-body bg-gradient-primary text-white">
+                    <div class="row">
+                        <div class="col-8">
+                            <h5 class="card-title font-weight-bold">Total Utilisateurs</h5>
+                            <p class="card-text display-4 mb-0">{{ utilisateurs|length }}</p>
+                        </div>
+                        <div class="col-4 text-right">
+                            <div class="stats-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card stats-card border-0 shadow-sm">
+                <div class="card-body bg-gradient-success text-white">
+                    <div class="row">
+                        <div class="col-8">
+                            <h5 class="card-title font-weight-bold">Agences</h5>
+                            <p class="card-text display-4 mb-0">{{ utilisateurs|filter(u => u.role == 'AGENCE')|length }}</p>
+                        </div>
+                        <div class="col-4 text-right">
+                            <div class="stats-icon">
+                                <i class="fas fa-building"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card stats-card border-0 shadow-sm">
+                <div class="card-body bg-gradient-info text-white">
+                    <div class="row">
+                        <div class="col-8">
+                            <h5 class="card-title font-weight-bold">Clients</h5>
+                            <p class="card-text display-4 mb-0">{{ utilisateurs|filter(u => u.role == 'CLIENT')|length }}</p>
+                        </div>
+                        <div class="col-4 text-right">
+                            <div class="stats-icon">
+                                <i class="fas fa-user-friends"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card stats-card border-0 shadow-sm">
+                <div class="card-body bg-gradient-danger text-white">
+                    <div class="row">
+                        <div class="col-8">
+                            <h5 class="card-title font-weight-bold">Admins</h5>
+                            <p class="card-text display-4 mb-0">{{ utilisateurs|filter(u => u.role == 'ADMIN')|length }}</p>
+                        </div>
+                        <div class="col-4 text-right">
+                            <div class="stats-icon">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Users List Section -->
+    <h2 class="section-title">Liste des utilisateurs enregistrés</h2>
+    
+    {% if utilisateurs|length > 0 %}
+        <div class="row">
+            {% for utilisateur in utilisateurs %}
+                <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+                    <div class="card user-card shadow-sm">
+                        <!-- Banner colored top based on role -->
+                        <div class="card-top-banner" 
+                            style="background: 
+                            {% if utilisateur.role == 'ADMIN' %}linear-gradient(135deg, #e74a3b, #be2617)
+                            {% elseif utilisateur.role == 'AGENCE' %}linear-gradient(135deg, #1cc88a, #169d68)
+                            {% else %}linear-gradient(135deg, #36b9cc, #258391){% endif %}">
+                        </div>
+                        
+                        <!-- Avatar -->
+                        <div class="avatar-circle" 
+                            style="background: 
+                            {% if utilisateur.role == 'ADMIN' %}linear-gradient(45deg, #e74a3b, #be2617)
+                            {% elseif utilisateur.role == 'AGENCE' %}linear-gradient(45deg, #1cc88a, #169d68)
+                            {% else %}linear-gradient(45deg, #36b9cc, #258391){% endif %}">
+                            <span class="text-white h3">{{ utilisateur.prenom|first|upper }}{{ utilisateur.nom|first|upper }}</span>
+                        </div>
+                        
+                        <!-- User Identity -->
+                        <div class="text-center my-3">
+                            <h5 class="mb-0">{{ utilisateur.prenom }} {{ utilisateur.nom }}</h5>
+                            <p class="text-muted">@{{ utilisateur.username }}</p>
+                            <span class="badge 
+                                {% if utilisateur.role == 'ADMIN' %}bg-danger
+                                {% elseif utilisateur.role == 'AGENCE' %}bg-success
+                                {% else %}bg-info{% endif %}">
+                                {{ utilisateur.role }}
+                            </span>
+                        </div>
+                        
+                        <!-- User Information -->
+                        <div class="user-info">
+                            <div class="user-info-item">
+                                <i class="fas fa-envelope"></i>
+                                <span>{{ utilisateur.email }}</span>
+                            </div>
+                            
+                            {% if utilisateur.role == 'AGENCE' %}
+                            <div class="user-info-item">
+                                <i class="fas fa-building"></i>
+                                <span>{{ utilisateur.nomagence ?? 'Non spécifié' }}</span>
+                            </div>
+                            <div class="user-info-item">
+                                <i class="fas fa-tag"></i>
+                                <span>{{ utilisateur.typeAgence ?? 'Non spécifié' }}</span>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="user-info-item">
+                                <i class="fas fa-id-card"></i>
+                                <span>ID: {{ utilisateur.id }}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons - Version simplifiée -->
+                        <div class="action-buttons d-flex justify-content-around">
+                            <a href="#" class="btn btn-primary">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
+                            <a href="#" class="btn btn-warning text-white">
+                                <i class="fas fa-edit"></i> Modifier
+                            </a>
+                            <a href="{{ path('admin_user_delete', {'id': utilisateur.id}) }}" 
+                               class="btn btn-danger"
+                               onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur?');">
+                                <i class="fas fa-trash"></i> Supprimer
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info shadow-sm">
+            <i class="fas fa-info-circle me-2"></i> Aucun utilisateur trouvé dans la base de données
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

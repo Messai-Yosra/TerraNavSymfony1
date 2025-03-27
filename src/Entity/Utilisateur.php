@@ -170,7 +170,7 @@ class Utilisateur implements PasswordAuthenticatedUserInterface,UserInterface
         return $this;
     }
 
-    public function getRole(): string
+    public function getRole(): ?string
     {
         return $this->role;
     }
@@ -516,8 +516,25 @@ class Utilisateur implements PasswordAuthenticatedUserInterface,UserInterface
      */
     public function getRoles(): array
     {
-        // Ensure the role is returned as an array
-        return [$this->role];
+        // Forcer un format cohérent
+        $roles = ['ROLE_USER'];
+        
+        // Utiliser le rôle directement de la base de données
+        $dbRole = $this->getRole();
+        
+        // Ajouter du débogage
+        dump("Rôle dans DB: " . $dbRole);
+        
+        // Conversion selon votre convention
+        if ($dbRole === 'admin') {
+            $roles[] = 'ROLE_ADMIN';
+        } elseif ($dbRole === 'Agence') {
+            $roles[] = 'ROLE_AGENCE';
+        } elseif ($dbRole === 'CLIENT') {
+            $roles[] = 'ROLE_CLIENT';
+        }
+        
+        return array_unique($roles);
     }
 
     /**

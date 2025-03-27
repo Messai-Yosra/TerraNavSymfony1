@@ -22,7 +22,8 @@ security:
             form_login:
                 login_path: app_login
                 check_path: app_login_check
-                default_target_path: app_profile
+                default_target_path: app_home  # Doit pointer vers la route '/' qui vérifie les rôles
+                always_use_default_target_path: true  # Important pour forcer la redirection
 
             logout:
                 path: app_logout
@@ -39,7 +40,8 @@ security:
         - { path: ^/signup, roles: PUBLIC_ACCESS }
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/login_check, roles: PUBLIC_ACCESS }
-        - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/DashboardClient, roles: PUBLIC_ACCESS }  # Temporairement pour déboguer
+        - { path: ^/admin/user, roles: PUBLIC_ACCESS }  # Temporairement pour déboguer
         - { path: ^/profile, roles: ROLE_USER }
         - { path: ^/, roles: IS_AUTHENTICATED_ANONYMOUSLY }
 
