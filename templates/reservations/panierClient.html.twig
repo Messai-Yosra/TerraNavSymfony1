@@ -1,3 +1,347 @@
 {% extends "baseClient.html.twig" %}
 
 {% block titre %} Panier {% endblock %}
+
+{% block content %}
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirmer la suppression</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Êtes-vous sûr de vouloir supprimer cette réservation ?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <form id="deleteForm" method="post" action="{{ path('app_reservation_delete', {'id': 'RESERVATION_ID'}) }}">
+                        <input type="hidden" name="_token" value="">
+                        <button type="submit" class="btn btn-danger">Supprimer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailsModalLabel">Détails de la réservation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="reservationCarousel" class="carousel slide mb-4" data-bs-ride="carousel">
+                        <div class="carousel-indicators" id="carouselIndicators"></div>
+                        <div class="carousel-inner rounded" id="carouselImages" style="height: 300px;"></div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#reservationCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#reservationCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+
+                    <div class="reservation-details">
+                        <h4 id="reservationTitle" class="mb-3"></h4>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p><strong>Type:</strong> <span id="reservationType"></span></p>
+                                <p><strong>Prix:</strong> <span id="reservationPrice"></span>€</p>
+                                <p><strong>Date:</strong> <span id="reservationDate"></span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Statut:</strong> <span id="reservationStatus"></span></p>
+                                <p><strong>Nombre de places:</strong> <span id="reservationPlaces"></span></p>
+                                <p id="specificDetail1"></p>
+                                <p id="specificDetail2"></p>
+                            </div>
+                        </div>
+                        <div class="additional-details" id="additionalDetails"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+                <h6 class="section-title text-center text-primary text-uppercase">Votre Panier #{{ panierId }}</h6>
+                <h1 class="mb-5">Vos <span class="text-primary text-uppercase">Réservations</span></h1>
+            </div>
+
+            {% for message in app.flashes('success') %}
+                <div class="alert alert-success">{{ message }}</div>
+            {% endfor %}
+            {% for message in app.flashes('error') %}
+                <div class="alert alert-danger">{{ message }}</div>
+            {% endfor %}
+
+            <!-- Voyages Section -->
+            {% if reservations.voyage is not empty %}
+                <div class="mb-5 wow fadeInUp" data-wow-delay="0.1s">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="text-primary mb-0">
+                            <i class="fa fa-plane me-2"></i>
+                            Voyages ({{ reservations.voyage|length }})
+                        </h3>
+                        <button class="btn btn-sm btn-outline-primary toggle-reservations" data-target="voyages-reservations">
+                            <i class="fa fa-chevron-down"></i> Afficher/Masquer
+                        </button>
+                    </div>
+                    <div class="row g-4" id="voyages-reservations">
+                        {% for reservation in reservations.voyage %}
+                            <div class="col-lg-4 col-md-6">
+                                <div class="room-item shadow rounded overflow-hidden h-100">
+                                    <div class="position-relative">
+                                        <img class="img-fluid w-100" src="{{ static_images.voyage[0] }}" alt="Voyage" style="height: 200px; object-fit: cover;">
+                                        <small class="position-absolute start-0 top-100 translate-middle-y bg-primary text-white rounded py-1 px-3 ms-4">{{ reservation.prix }}€</small>
+                                    </div>
+                                    <div class="p-4 mt-2">
+                                        <div class="d-flex justify-content-between mb-3">
+                                            <h5 class="mb-0">Voyage #{{ reservation.id }}</h5>
+                                            <div class="ps-2">
+                                                <small class="fa fa-star text-primary"></small>
+                                                <small class="fa fa-star text-primary"></small>
+                                                <small class="fa fa-star text-primary"></small>
+                                                <small class="fa fa-star text-primary"></small>
+                                                <small class="fa fa-star text-primary"></small>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex mb-3">
+                                            <small class="border-end me-3 pe-3">
+                                                <i class="fa fa-calendar text-primary me-2"></i>
+                                                {{ reservation.date_reservation|date('d/m/Y') }}
+                                            </small>
+                                            <small class="border-end me-3 pe-3">
+                                                <i class="fa fa-users text-primary me-2"></i>
+                                                {{ reservation.nb_places }} places
+                                            </small>
+                                            <small>
+                                                <i class="fa fa-map-marker text-primary me-2"></i>
+                                                {{ reservation.id_voyage ? reservation.id_voyage.destination : 'N/A' }}
+                                            </small>
+                                        </div>
+                                        <div class="d-flex justify-content-between mt-auto">
+                                            <button class="btn btn-sm btn-primary rounded py-2 px-4 details-btn"
+                                                    data-reservation-id="{{ reservation.id }}"
+                                                    data-reservation-type="voyage"
+                                                    data-images='{{ static_images.voyage|json_encode|raw }}'
+                                                    data-title="Voyage #{{ reservation.id }}"
+                                                    data-price="{{ reservation.prix }}"
+                                                    data-date="{{ reservation.date_reservation|date('d/m/Y') }}"
+                                                    data-status="{{ reservation.Etat }}"
+                                                    data-places="{{ reservation.nb_places }}"
+                                                    data-destination="{{ reservation.id_voyage ? reservation.id_voyage.destination : 'N/A' }}">
+                                                Détails
+                                            </button>
+                                            <a class="btn btn-sm btn-warning rounded py-2 px-4" href="#">Modifier</a>
+                                            <button class="btn btn-sm btn-danger rounded py-2 px-4 delete-btn"
+                                                    data-reservation-id="{{ reservation.id }}"
+                                                    data-csrf-token="{{ csrf_token('delete' ~ reservation.id) }}">
+                                                Supprimer
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Chambres Section -->
+            {% if reservations.chambre is not empty %}
+                <div class="mb-5 wow fadeInUp" data-wow-delay="0.2s">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="text-primary mb-0">
+                            <i class="fa fa-hotel me-2"></i>
+                            Hébergements ({{ reservations.chambre|length }})
+                        </h3>
+                        <button class="btn btn-sm btn-outline-primary toggle-reservations" data-target="chambres-reservations">
+                            <i class="fa fa-chevron-down"></i> Afficher/Masquer
+                        </button>
+                    </div>
+                    <div class="row g-4" id="chambres-reservations">
+                        {% for reservation in reservations.chambre %}
+                            <div class="col-lg-4 col-md-6">
+                                <div class="room-item shadow rounded overflow-hidden h-100">
+                                    <div class="position-relative">
+                                        <img class="img-fluid w-100" src="{{ static_images.chambre[0] }}" alt="Chambre" style="height: 200px; object-fit: cover;">
+                                        <small class="position-absolute start-0 top-100 translate-middle-y bg-primary text-white rounded py-1 px-3 ms-4">{{ reservation.prix }}€</small>
+                                    </div>
+                                    <div class="p-4 mt-2">
+                                        <div class="d-flex justify-content-between mb-3">
+                                            <h5 class="mb-0">Chambre #{{ reservation.id }}</h5>
+                                            <div class="ps-2">
+                                                <small class="fa fa-star text-primary"></small>
+                                                <small class="fa fa-star text-primary"></small>
+                                                <small class="fa fa-star text-primary"></small>
+                                                <small class="fa fa-star text-primary"></small>
+                                                <small class="fa fa-star text-primary"></small>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex mb-3">
+                                            <small class="border-end me-3 pe-3">
+                                                <i class="fa fa-calendar text-primary me-2"></i>
+                                                {{ reservation.date_reservation|date('d/m/Y') }}
+                                            </small>
+                                            <small class="border-end me-3 pe-3">
+                                                <i class="fa fa-bed text-primary me-2"></i>
+                                                {{ reservation.nbJoursHebergement }} jours
+                                            </small>
+                                            <small>
+                                                <i class="fa fa-users text-primary me-2"></i>
+                                                {{ reservation.nb_places }} personnes
+                                            </small>
+                                        </div>
+                                        <div class="d-flex justify-content-between mt-auto">
+                                            <button class="btn btn-sm btn-primary rounded py-2 px-4 details-btn"
+                                                    data-reservation-id="{{ reservation.id }}"
+                                                    data-reservation-type="chambre"
+                                                    data-images='{{ static_images.chambre|json_encode|raw }}'
+                                                    data-title="Chambre #{{ reservation.id }}"
+                                                    data-price="{{ reservation.prix }}"
+                                                    data-date="{{ reservation.date_reservation|date('d/m/Y') }}"
+                                                    data-status="{{ reservation.Etat }}"
+                                                    data-places="{{ reservation.nb_places }}"
+                                                    data-duration="{{ reservation.nbJoursHebergement }} jours">
+                                                Détails
+                                            </button>
+                                            <a class="btn btn-sm btn-warning rounded py-2 px-4" href="#">Modifier</a>
+                                            <button class="btn btn-sm btn-danger rounded py-2 px-4 delete-btn"
+                                                    data-reservation-id="{{ reservation.id }}"
+                                                    data-csrf-token="{{ csrf_token('delete' ~ reservation.id) }}">
+                                                Supprimer
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Transports Section -->
+            {% if reservations.transport is not empty %}
+                <div class="wow fadeInUp" data-wow-delay="0.3s">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="text-primary mb-0">
+                            <i class="fa fa-car me-2"></i>
+                            Transports ({{ reservations.transport|length }})
+                        </h3>
+                        <button class="btn btn-sm btn-outline-primary toggle-reservations" data-target="transports-reservations">
+                            <i class="fa fa-chevron-down"></i> Afficher/Masquer
+                        </button>
+                    </div>
+                    <div class="row g-4" id="transports-reservations">
+                        {% for reservation in reservations.transport %}
+                            <div class="col-lg-4 col-md-6">
+                                <div class="room-item shadow rounded overflow-hidden h-100">
+                                    <div class="position-relative">
+                                        <img class="img-fluid w-100" src="{{ static_images.transport }}" alt="Transport" style="height: 200px; object-fit: cover;">
+                                        <small class="position-absolute start-0 top-100 translate-middle-y bg-primary text-white rounded py-1 px-3 ms-4">{{ reservation.prix }}€</small>
+                                    </div>
+                                    <div class="p-4 mt-2">
+                                        <div class="d-flex justify-content-between mb-3">
+                                            <h5 class="mb-0">Transport #{{ reservation.id }}</h5>
+                                            <div class="ps-2">
+                                                <small class="fa fa-star text-primary"></small>
+                                                <small class="fa fa-star text-primary"></small>
+                                                <small class="fa fa-star text-primary"></small>
+                                                <small class="fa fa-star text-primary"></small>
+                                                <small class="fa fa-star text-primary"></small>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex mb-3">
+                                            <small class="border-end me-3 pe-3">
+                                                <i class="fa fa-calendar text-primary me-2"></i>
+                                                {{ reservation.dateAffectation ? reservation.dateAffectation|date('d/m/Y') : 'N/A' }}
+                                            </small>
+                                            <small class="border-end me-3 pe-3">
+                                                <i class="fa fa-car text-primary me-2"></i>
+                                                {{ reservation.nb_places }} places
+                                            </small>
+                                        </div>
+                                        <div class="d-flex justify-content-between mt-auto">
+                                            <button class="btn btn-sm btn-primary rounded py-2 px-4 details-btn"
+                                                    data-reservation-id="{{ reservation.id }}"
+                                                    data-reservation-type="transport"
+                                                    data-images='["{{ static_images.transport }}"]'
+                                                    data-title="Transport #{{ reservation.id }}"
+                                                    data-price="{{ reservation.prix }}"
+                                                    data-date="{{ reservation.dateAffectation ? reservation.dateAffectation|date('d/m/Y') : 'N/A' }}"
+                                                    data-status="{{ reservation.Etat }}"
+                                                    data-places="{{ reservation.nb_places }}">
+                                                Détails
+                                            </button>
+                                            <a class="btn btn-sm btn-warning rounded py-2 px-4" href="#">Modifier</a>
+                                            <button class="btn btn-sm btn-danger rounded py-2 px-4 delete-btn"
+                                                    data-reservation-id="{{ reservation.id }}"
+                                                    data-csrf-token="{{ csrf_token('delete' ~ reservation.id) }}">
+                                                Supprimer
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Order Summary -->
+            <div class="mt-5 wow fadeInUp" data-wow-delay="0.4s">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0 pt-1 pb-1">Récapitulatif</h4>
+                    </div>
+                    <div class="card-body">
+                        {% if reservations.voyage is not empty %}
+                            <div class="d-flex justify-content-between mb-3">
+                                <h6>Voyages</h6>
+                                <h6>{{ reservations.voyage|reduce((sum, item) => sum + item.prix, 0) }}€</h6>
+                            </div>
+                        {% endif %}
+
+                        {% if reservations.chambre is not empty %}
+                            <div class="d-flex justify-content-between mb-3">
+                                <h6>Hébergements</h6>
+                                <h6>{{ reservations.chambre|reduce((sum, item) => sum + item.prix, 0) }}€</h6>
+                            </div>
+                        {% endif %}
+
+                        {% if reservations.transport is not empty %}
+                            <div class="d-flex justify-content-between mb-3">
+                                <h6>Transports</h6>
+                                <h6>{{ reservations.transport|reduce((sum, item) => sum + item.prix, 0) }}€</h6>
+                            </div>
+                        {% endif %}
+
+                        <hr>
+                        <div class="d-flex justify-content-between mb-3">
+                            <h5>Total</h5>
+                            <h5>{{ total }}€</h5>
+                        </div>
+                        <div class="text-center mt-4">
+                            <a class="btn btn-primary py-3 px-5 me-3" href="#">Continuer vos achats</a>
+                            <a class="btn btn-success py-3 px-5" href="#">Procéder au paiement</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ asset('js/reservations/panierClient.js') }}"></script>
+{% endblock %}
