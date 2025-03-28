@@ -1,4 +1,4 @@
-{% extends "baseAdmin.html.twig" %}
+{% extends 'baseAdmin.html.twig' %}
 
 {% block titre %}Dashboard Admin{% endblock %}
 
@@ -101,34 +101,433 @@
             bottom: 0;
             left: 0;
         }
+        
+        /* Styles du modal */
+        .edit-modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+        
+        .edit-modal-card {
+            background: white;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 800px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s;
+            position: relative;
+        }
+        
+        .edit-modal-header {
+            background: linear-gradient(45deg, #5e72e4, #825ee4);
+            color: white;
+            padding: 20px 30px;
+            position: relative;
+        }
+        
+        .edit-modal-header h3 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.5rem;
+        }
+        
+        .edit-modal-header p {
+            margin: 5px 0 0;
+            opacity: 0.8;
+        }
+        
+        .edit-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .edit-modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        .edit-modal-body {
+            padding: 30px;
+        }
+        
+        .edit-form-group {
+            margin-bottom: 20px;
+        }
+        
+        .edit-form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .edit-form-input-wrapper {
+            position: relative;
+        }
+        
+        .edit-form-input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6B7280;
+        }
+        
+        .edit-form-input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+        
+        .edit-form-input:focus {
+            border-color: #5e72e4;
+            box-shadow: 0 0 0 3px rgba(94, 114, 228, 0.2);
+            outline: none;
+        }
+        
+        .edit-form-select {
+            padding-right: 40px;
+            background-position: right 15px center;
+        }
+        
+        .edit-form-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 30px;
+            gap: 15px;
+        }
+        
+        .edit-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .edit-btn i {
+            margin-right: 8px;
+        }
+        
+        .edit-btn-primary {
+            background: linear-gradient(45deg, #5e72e4, #825ee4);
+            color: white;
+            box-shadow: 0 4px 10px rgba(94, 114, 228, 0.3);
+        }
+        
+        .edit-btn-primary:hover {
+            box-shadow: 0 6px 15px rgba(94, 114, 228, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .edit-btn-secondary {
+            background: #f8fafc;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .edit-btn-secondary:hover {
+            background: #f1f5f9;
+            color: #334155;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Styles des cartes utilisateurs */
+        .user-card {
+            transition: all 0.3s;
+            border-radius: 15px;
+            overflow: hidden;
+            border: none;
+            margin-bottom: 1.5rem;
+        }
+        
+        .user-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        /* Formulaire d'édition */
+        .edit-form-container {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            animation: slideDown 0.3s forwards;
+        }
+        
+        .edit-form-header {
+            background: linear-gradient(45deg, #5e72e4, #825ee4);
+            margin: -20px -20px 20px;
+            padding: 15px 20px;
+            color: white;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .edit-form-header h4 {
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .form-input-wrapper {
+            position: relative;
+        }
+        
+        .form-input-icon {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6B7280;
+            z-index: 5;
+        }
+        
+        .form-control {
+            display: block;
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: #5e72e4;
+            box-shadow: 0 0 0 3px rgba(94, 114, 228, 0.2);
+            outline: none;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #5e72e4, #825ee4);
+            color: white;
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            box-shadow: 0 4px 10px rgba(94, 114, 228, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #f8fafc;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .btn-secondary:hover {
+            background: #f1f5f9;
+        }
+        
+        @keyframes slideDown {
+            from { 
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Styles pour l'affichage horizontal des statistiques */
+        .stats-horizontal-container {
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stats-card-wrapper {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-horizontal-container {
+                overflow-x: auto;
+                padding-bottom: 15px;
+            }
+        }
+
+        /* Styles renforcés pour affichage horizontal des statistiques */
+        .stats-card {
+            min-width: 250px; 
+            flex: 1;
+            border-radius: 15px;
+            margin-right: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .stats-card:last-child {
+            margin-right: 0;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+        }
+
+        .text-end {
+            text-align: right !important;
+        }
+
+        @media (max-width: 768px) {
+            .stats-card {
+                min-width: 220px;
+            }
+        }
     </style>
 {% endblock %}
 
 {% block content %}
-{% for label, messages in app.flashes %}
-    {% for message in messages %}
-        <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
     {% endfor %}
-{% endfor %}
-<div class="container-fluid py-4">
-    <h1 class="mb-4">Dashboard Administration</h1>
-
-    <!-- Statistics Row - Enhanced design -->
-    <div class="row mb-5">
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card stats-card border-0 shadow-sm">
-                <div class="card-body bg-gradient-primary text-white">
-                    <div class="row">
-                        <div class="col-8">
-                            <h5 class="card-title font-weight-bold">Total Utilisateurs</h5>
-                            <p class="card-text display-4 mb-0">{{ utilisateurs|length }}</p>
+    
+    <div class="container-fluid py-4">
+        <h1 class="mb-4">Dashboard Administration</h1>
+        
+        <!-- Statistics Row - Version renforcée pour l'affichage horizontal -->
+        <div class="container-fluid mb-5">
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex flex-row flex-nowrap overflow-auto" style="gap: 15px;">
+                        <!-- Total Utilisateurs -->
+                        <div class="card stats-card border-0 shadow-sm" style="min-width: 250px; flex: 1;">
+                            <div class="card-body bg-gradient-primary text-white">
+                                <div class="row">
+                                    <div class="col-8">
+                                        <h5 class="card-title font-weight-bold">Total Utilisateurs</h5>
+                                        <p class="card-text display-4 mb-0">{{ utilisateurs|length }}</p>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        <div class="stats-icon">
+                                            <i class="fas fa-users fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-4 text-right">
-                            <div class="stats-icon">
-                                <i class="fas fa-users"></i>
+                        
+                        <!-- Agences -->
+                        <div class="card stats-card border-0 shadow-sm" style="min-width: 250px; flex: 1;">
+                            <div class="card-body bg-gradient-success text-white">
+                                <div class="row">
+                                    <div class="col-8">
+                                        <h5 class="card-title font-weight-bold">Agences</h5>
+                                        <p class="card-text display-4 mb-0">{{ utilisateurs|filter(u => u.role == 'AGENCE')|length }}</p>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        <div class="stats-icon">
+                                            <i class="fas fa-building fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Clients -->
+                        <div class="card stats-card border-0 shadow-sm" style="min-width: 250px; flex: 1;">
+                            <div class="card-body bg-gradient-info text-white">
+                                <div class="row">
+                                    <div class="col-8">
+                                        <h5 class="card-title font-weight-bold">Clients</h5>
+                                        <p class="card-text display-4 mb-0">{{ utilisateurs|filter(u => u.role == 'CLIENT')|length }}</p>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        <div class="stats-icon">
+                                            <i class="fas fa-user-friends fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Admins -->
+                        <div class="card stats-card border-0 shadow-sm" style="min-width: 250px; flex: 1;">
+                            <div class="card-body bg-gradient-danger text-white">
+                                <div class="row">
+                                    <div class="col-8">
+                                        <h5 class="card-title font-weight-bold">Admins</h5>
+                                        <p class="card-text display-4 mb-0">{{ utilisateurs|filter(u => u.role == 'ADMIN')|length }}</p>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        <div class="stats-icon">
+                                            <i class="fas fa-user-shield fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -136,144 +535,255 @@
             </div>
         </div>
         
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card stats-card border-0 shadow-sm">
-                <div class="card-body bg-gradient-success text-white">
-                    <div class="row">
-                        <div class="col-8">
-                            <h5 class="card-title font-weight-bold">Agences</h5>
-                            <p class="card-text display-4 mb-0">{{ utilisateurs|filter(u => u.role == 'AGENCE')|length }}</p>
-                        </div>
-                        <div class="col-4 text-right">
-                            <div class="stats-icon">
-                                <i class="fas fa-building"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Users List Section -->
+        <h2 class="section-title">Liste des utilisateurs enregistrés</h2>
         
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card stats-card border-0 shadow-sm">
-                <div class="card-body bg-gradient-info text-white">
-                    <div class="row">
-                        <div class="col-8">
-                            <h5 class="card-title font-weight-bold">Clients</h5>
-                            <p class="card-text display-4 mb-0">{{ utilisateurs|filter(u => u.role == 'CLIENT')|length }}</p>
-                        </div>
-                        <div class="col-4 text-right">
-                            <div class="stats-icon">
-                                <i class="fas fa-user-friends"></i>
+        {% if utilisateurs|length > 0 %}
+            <div class="row">
+                {% for utilisateur in utilisateurs %}
+                    <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+                        <div class="card user-card shadow-sm">
+                            <!-- Banner colored top based on role -->
+                            <div class="card-top-banner" 
+                                style="background: 
+                                {% if utilisateur.role == 'ADMIN' %}linear-gradient(135deg, #e74a3b, #be2617)
+                                {% elseif utilisateur.role == 'AGENCE' %}linear-gradient(135deg, #1cc88a, #169d68)
+                                {% else %}linear-gradient(135deg, #36b9cc, #258391){% endif %}">
+                            </div>
+                            
+                            <!-- Avatar -->
+                            <div class="avatar-circle" 
+                                style="background: 
+                                {% if utilisateur.role == 'ADMIN' %}linear-gradient(45deg, #e74a3b, #be2617)
+                                {% elseif utilisateur.role == 'AGENCE' %}linear-gradient(45deg, #1cc88a, #169d68)
+                                {% else %}linear-gradient(45deg, #36b9cc, #258391){% endif %}">
+                                <span class="text-white h3">{{ utilisateur.prenom|first|upper }}{{ utilisateur.nom|first|upper }}</span>
+                            </div>
+                            
+                            <!-- User Identity -->
+                            <div class="text-center my-3">
+                                <h5 class="mb-0">{{ utilisateur.prenom }} {{ utilisateur.nom }}</h5>
+                                <p class="text-muted">@{{ utilisateur.username }}</p>
+                                <span class="badge 
+                                    {% if utilisateur.role == 'ADMIN' %}bg-danger
+                                    {% elseif utilisateur.role == 'AGENCE' %}bg-success
+                                    {% else %}bg-info{% endif %}">
+                                    {{ utilisateur.role }}
+                                </span>
+                            </div>
+                            
+                            <!-- User Information -->
+                            <div class="user-info">
+                                <div class="user-info-item">
+                                    <i class="fas fa-envelope"></i>
+                                    <span>{{ utilisateur.email }}</span>
+                                </div>
+                                
+                                {% if utilisateur.role == 'AGENCE' %}
+                                <div class="user-info-item">
+                                    <i class="fas fa-building"></i>
+                                    <span>{{ utilisateur.nomagence ?? 'Non spécifié' }}</span>
+                                </div>
+                                <div class="user-info-item">
+                                    <i class="fas fa-tag"></i>
+                                    <span>{{ utilisateur.typeAgence ?? 'Non spécifié' }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Action Buttons - Corrigé -->
+                            <div class="action-buttons d-flex justify-content-around">
+                                <button 
+                                    class="btn btn-primary btn-sm"
+                                    onclick="openEditModal({{ utilisateur.id }}, '{{ utilisateur.prenom }}', '{{ utilisateur.nom }}', '{{ utilisateur.email }}', '{{ utilisateur.role }}')"
+                                >
+                                    <i class="fas fa-edit"></i> Modifier
+                                </button>
+                                <a href="{{ path('admin_user_delete', {'id': utilisateur.id}) }}" 
+                                   class="btn btn-danger"
+                                   onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur?');">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </a>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card stats-card border-0 shadow-sm">
-                <div class="card-body bg-gradient-danger text-white">
-                    <div class="row">
-                        <div class="col-8">
-                            <h5 class="card-title font-weight-bold">Admins</h5>
-                            <p class="card-text display-4 mb-0">{{ utilisateurs|filter(u => u.role == 'ADMIN')|length }}</p>
+                    
+                    <!-- Formulaire d'édition (caché par défaut) -->
+                    <div id="edit-form-{{ utilisateur.id }}" class="edit-form-container">
+                        <div class="edit-form-header">
+                            <h4>Modifier {{ utilisateur.prenom }} {{ utilisateur.nom }}</h4>
                         </div>
-                        <div class="col-4 text-right">
-                            <div class="stats-icon">
-                                <i class="fas fa-user-shield"></i>
+                        
+                        <form method="post" action="{{ path('admin_user_update', {'id': utilisateur.id}) }}" class="user-edit-form">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Prénom</label>
+                                        <div class="form-input-wrapper">
+                                            <i class="fas fa-user form-input-icon"></i>
+                                            <input type="text" name="prenom" class="form-control" value="{{ utilisateur.prenom }}" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Nom</label>
+                                        <div class="form-input-wrapper">
+                                            <i class="fas fa-user form-input-icon"></i>
+                                            <input type="text" name="nom" class="form-control" value="{{ utilisateur.nom }}" required>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Email</label>
+                                        <div class="form-input-wrapper">
+                                            <i class="fas fa-envelope form-input-icon"></i>
+                                            <input type="email" name="email" class="form-control" value="{{ utilisateur.email }}" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Rôle</label>
+                                        <div class="form-input-wrapper">
+                                            <i class="fas fa-shield-alt form-input-icon"></i>
+                                            <select name="role" class="form-control">
+                                                {% if app.user and app.user.role == 'ADMIN' %}
+                                                    <option value="ADMIN" {% if utilisateur.role == 'ADMIN' %}selected{% endif %}>Admin</option>
+                                                {% endif %}
+                                                <option value="AGENCE" {% if utilisateur.role == 'AGENCE' %}selected{% endif %}>Agence</option>
+                                                <option value="CLIENT" {% if utilisateur.role == 'CLIENT' %}selected{% endif %}>Client</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" onclick="toggleEditForm({{ utilisateur.id }})">
+                                    <i class="fas fa-times"></i> Annuler
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Enregistrer
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                </div>
+                {% endfor %}
             </div>
-        </div>
+        {% else %}
+            <div class="alert alert-info shadow-sm">
+                <i class="fas fa-info-circle me-2"></i> Aucun utilisateur trouvé dans la base de données
+            </div>
+        {% endif %}
     </div>
+
     
-    <!-- Users List Section -->
-    <h2 class="section-title">Liste des utilisateurs enregistrés</h2>
-    
-    {% if utilisateurs|length > 0 %}
-        <div class="row">
-            {% for utilisateur in utilisateurs %}
-                <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
-                    <div class="card user-card shadow-sm">
-                        <!-- Banner colored top based on role -->
-                        <div class="card-top-banner" 
-                            style="background: 
-                            {% if utilisateur.role == 'ADMIN' %}linear-gradient(135deg, #e74a3b, #be2617)
-                            {% elseif utilisateur.role == 'AGENCE' %}linear-gradient(135deg, #1cc88a, #169d68)
-                            {% else %}linear-gradient(135deg, #36b9cc, #258391){% endif %}">
-                        </div>
-                        
-                        <!-- Avatar -->
-                        <div class="avatar-circle" 
-                            style="background: 
-                            {% if utilisateur.role == 'ADMIN' %}linear-gradient(45deg, #e74a3b, #be2617)
-                            {% elseif utilisateur.role == 'AGENCE' %}linear-gradient(45deg, #1cc88a, #169d68)
-                            {% else %}linear-gradient(45deg, #36b9cc, #258391){% endif %}">
-                            <span class="text-white h3">{{ utilisateur.prenom|first|upper }}{{ utilisateur.nom|first|upper }}</span>
-                        </div>
-                        
-                        <!-- User Identity -->
-                        <div class="text-center my-3">
-                            <h5 class="mb-0">{{ utilisateur.prenom }} {{ utilisateur.nom }}</h5>
-                            <p class="text-muted">@{{ utilisateur.username }}</p>
-                            <span class="badge 
-                                {% if utilisateur.role == 'ADMIN' %}bg-danger
-                                {% elseif utilisateur.role == 'AGENCE' %}bg-success
-                                {% else %}bg-info{% endif %}">
-                                {{ utilisateur.role }}
-                            </span>
-                        </div>
-                        
-                        <!-- User Information -->
-                        <div class="user-info">
-                            <div class="user-info-item">
-                                <i class="fas fa-envelope"></i>
-                                <span>{{ utilisateur.email }}</span>
-                            </div>
-                            
-                            {% if utilisateur.role == 'AGENCE' %}
-                            <div class="user-info-item">
-                                <i class="fas fa-building"></i>
-                                <span>{{ utilisateur.nomagence ?? 'Non spécifié' }}</span>
-                            </div>
-                            <div class="user-info-item">
-                                <i class="fas fa-tag"></i>
-                                <span>{{ utilisateur.typeAgence ?? 'Non spécifié' }}</span>
-                            </div>
-                            {% endif %}
-                            
-                            <div class="user-info-item">
-                                <i class="fas fa-id-card"></i>
-                                <span>ID: {{ utilisateur.id }}</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Action Buttons - Version simplifiée -->
-                        <div class="action-buttons d-flex justify-content-around">
-                            <a href="#" class="btn btn-primary">
-                                <i class="fas fa-eye"></i> Voir
-                            </a>
-                            <a href="#" class="btn btn-warning text-white">
-                                <i class="fas fa-edit"></i> Modifier
-                            </a>
-                            <a href="{{ path('admin_user_delete', {'id': utilisateur.id}) }}" 
-                               class="btn btn-danger"
-                               onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur?');">
-                                <i class="fas fa-trash"></i> Supprimer
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="alert alert-info shadow-sm">
-            <i class="fas fa-info-circle me-2"></i> Aucun utilisateur trouvé dans la base de données
-        </div>
-    {% endif %}
-</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // Ouvrir le modal avec les données de l'utilisateur
+        function openEditModal(id, prenom, nom, email, role) {
+            document.getElementById('userId').value = id;
+            document.getElementById('userPrenom').value = prenom;
+            document.getElementById('userNom').value = nom;
+            document.getElementById('userEmail').value = email;
+            document.getElementById('userRole').value = role;
+            
+            document.getElementById('editModal').style.display = 'flex';
+        }
+        
+        // Fermer le modal
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+        
+        // Soumettre le formulaire
+        document.getElementById('editUserForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const userId = document.getElementById('userId').value;
+            const formData = new FormData(this);
+            
+            // Envoyer les données au serveur via AJAX
+            fetch('/admin/user/' + userId + '/update', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Afficher un message de succès
+                    alert('Utilisateur modifié avec succès');
+                    
+                    // Fermer le modal
+                    closeEditModal();
+                    
+                    // Recharger la page pour voir les modifications
+                    window.location.reload();
+                } else {
+                    // Afficher un message d'erreur
+                    alert('Erreur: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Une erreur est survenue: ' + error);
+            });
+        });
+
+        // Fonction pour afficher/masquer le formulaire d'édition
+        function toggleEditForm(userId) {
+            const formId = 'edit-form-' + userId;
+            const form = document.getElementById(formId);
+            
+            if (form.style.display === 'block') {
+                form.style.display = 'none';
+            } else {
+                // Fermer tous les autres formulaires ouverts
+                document.querySelectorAll('.edit-form-container').forEach(function(el) {
+                    el.style.display = 'none';
+                });
+                
+                // Afficher le formulaire actuel
+                form.style.display = 'block';
+            }
+        }
+        
+        // Soumettre les formulaires via AJAX
+        document.querySelectorAll('.user-edit-form').forEach(function(form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const url = this.getAttribute('action');
+                
+                fetch(url, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Afficher message de succès et recharger
+                        alert('Utilisateur modifié avec succès');
+                        window.location.reload();
+                    } else {
+                        alert('Erreur: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Erreur lors de la modification');
+                    console.error(error);
+                });
+            });
+        });
+    </script>
 {% endblock %}

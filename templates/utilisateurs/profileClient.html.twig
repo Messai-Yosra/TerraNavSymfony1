@@ -1,3 +1,324 @@
 {% extends "baseClient.html.twig" %}
 
 {% block titre %} Profile {% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .profile-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 15px;
+        }
+
+        .profile-header {
+            background: linear-gradient(120deg, #2193b0, #6dd5ed);
+            color: white;
+            padding: 40px 0;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 20px rgba(33, 147, 176, 0.2);
+        }
+        
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #2193b0, #6dd5ed);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            color: white;
+            border: 5px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            margin: 0 auto 20px;
+        }
+        
+        .profile-username {
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .profile-email {
+            text-align: center;
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+        
+        .profile-role-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .profile-card {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            border: none;
+            transition: all 0.3s ease;
+        }
+        
+        .profile-card:hover {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transform: translateY(-5px);
+        }
+        
+        .profile-card-header {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .profile-card-header h3 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.3rem;
+            color: #4a5568;
+        }
+        
+        .profile-form-control {
+            transition: all 0.3s;
+        }
+        
+        .profile-form-control:focus {
+            border-color: #2193b0;
+            box-shadow: 0 0 0 3px rgba(33, 147, 176, 0.2);
+        }
+        
+        .profile-form-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6B7280;
+        }
+        
+        .profile-form-input {
+            padding-left: 45px;
+        }
+        
+        .profile-submit-btn {
+            background: linear-gradient(45deg, #2193b0, #6dd5ed);
+            border: none;
+            padding: 12px 25px;
+            font-weight: 500;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(33, 147, 176, 0.3);
+            transition: all 0.3s;
+            color: white;
+        }
+        
+        .profile-submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(33, 147, 176, 0.4);
+        }
+        
+        .profile-info-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .profile-info-label {
+            color: #6B7280;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .profile-info-value {
+            font-weight: 500;
+            color: #1F2937;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="profile-container">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+        
+        <!-- Header du profil -->
+        <div class="profile-header">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-md-8 text-center">
+                        <div class="profile-avatar">
+                            {{ app.user.prenom|first|upper }}{{ app.user.nom|first|upper }}
+                        </div>
+                        <h1 class="profile-username">{{ app.user.prenom }} {{ app.user.nom }}</h1>
+                        <p class="profile-email">{{ app.user.email }}</p>
+                        <div class="profile-role-badge">{{ app.user.role }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <!-- Informations du profil -->
+            <div class="col-lg-4 mb-4">
+                <div class="card profile-card">
+                    <div class="profile-card-header">
+                        <h3><i class="fas fa-user me-2"></i> Mes informations</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">Email</div>
+                            <div class="profile-info-value">{{ app.user.email }}</div>
+                        </div>
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">Téléphone</div>
+                            <div class="profile-info-value">{{ app.user.numTel ?: 'Non renseigné' }}</div>
+                        </div>
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">CIN</div>
+                            <div class="profile-info-value">{{ app.user.cin ?: 'Non renseigné' }}</div>
+                        </div>
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">Adresse</div>
+                            <div class="profile-info-value">{{ app.user.address ?: 'Non renseignée' }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activité récente (optionnel) -->
+                <div class="card profile-card">
+                    <div class="profile-card-header">
+                        <h3><i class="fas fa-history me-2"></i> Activité récente</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">Dernière connexion</div>
+                            <div class="profile-info-value">{{ "now"|date("d/m/Y H:i") }}</div>
+                        </div>
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">Voyages réservés</div>
+                            <div class="profile-info-value">{{ app.user.voyages|length }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Formulaire de modification -->
+            <div class="col-lg-8">
+                <div class="card profile-card">
+                    <div class="profile-card-header d-flex justify-content-between align-items-center">
+                        <h3><i class="fas fa-edit me-2"></i> Modifier mon profil</h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="{{ path('user_profile_update') }}" class="profile-form">
+                            <div class="row mb-4">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Prénom</label>
+                                    <div class="position-relative">
+                                        <i class="fas fa-user profile-form-icon"></i>
+                                        <input type="text" name="prenom" class="form-control profile-form-control profile-form-input" value="{{ app.user.prenom }}" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Nom</label>
+                                    <div class="position-relative">
+                                        <i class="fas fa-user profile-form-icon"></i>
+                                        <input type="text" name="nom" class="form-control profile-form-control profile-form-input" value="{{ app.user.nom }}" required>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Email</label>
+                                    <div class="position-relative">
+                                        <i class="fas fa-envelope profile-form-icon"></i>
+                                        <input type="email" name="email" class="form-control profile-form-control profile-form-input" value="{{ app.user.email }}" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Numéro de téléphone</label>
+                                    <div class="position-relative">
+                                        <i class="fas fa-phone profile-form-icon"></i>
+                                        <input type="text" name="numTelephone" class="form-control profile-form-control profile-form-input" value="{{ app.user.numTel }}">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">CIN</label>
+                                    <div class="position-relative">
+                                        <i class="fas fa-id-card profile-form-icon"></i>
+                                        <input type="text" name="cin" class="form-control profile-form-control profile-form-input" value="{{ app.user.cin }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Adresse</label>
+                                    <div class="position-relative">
+                                        <i class="fas fa-map-marker-alt profile-form-icon"></i>
+                                        <input type="text" name="adresse" class="form-control profile-form-control profile-form-input" value="{{ app.user.address }}">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-end mt-4">
+                                <button type="submit" class="profile-submit-btn">
+                                    <i class="fas fa-save me-2"></i> Enregistrer les modifications
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Changer le mot de passe -->
+                <div class="card profile-card">
+                    <div class="profile-card-header">
+                        <h3><i class="fas fa-lock me-2"></i> Changer mon mot de passe</h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="{{ path('user_password_update') }}">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Mot de passe actuel</label>
+                                    <div class="position-relative">
+                                        <i class="fas fa-lock profile-form-icon"></i>
+                                        <input type="password" name="currentPassword" class="form-control profile-form-control profile-form-input" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Nouveau mot de passe</label>
+                                    <div class="position-relative">
+                                        <i class="fas fa-lock profile-form-icon"></i>
+                                        <input type="password" name="newPassword" class="form-control profile-form-control profile-form-input" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Confirmer le mot de passe</label>
+                                    <div class="position-relative">
+                                        <i class="fas fa-lock profile-form-icon"></i>
+                                        <input type="password" name="confirmPassword" class="form-control profile-form-control profile-form-input" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end mt-4">
+                                <button type="submit" class="profile-submit-btn">
+                                    <i class="fas fa-key me-2"></i> Changer mon mot de passe
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -10,39 +10,47 @@ security:
                 class: App\Entity\Utilisateur
                 property: email # Use the username field for authentication
 
+    # Configuration correcte du firewall
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
             lazy: true
-            provider: utilisateur_provider
+            provider: utilisateur_provider # Assurez-vous que ce provider existe
 
             # Enable form login
             form_login:
                 login_path: app_login
                 check_path: app_login_check
-                default_target_path: app_home  # Doit pointer vers la route '/' qui vérifie les rôles
-                always_use_default_target_path: true  # Important pour forcer la redirection
-
+                # Redirection directe vers le dashboard client
+                default_target_path: admin_dashboard
+                always_use_default_target_path: true
+                use_referer: false
+                use_forward: false
+                
             logout:
                 path: app_logout
                 target: app_login
 
-            # activate different ways to authenticate
-            # https://symfony.com/doc/current/security.html#the-firewall
-
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
-
-    # Fix the access control order
+    # Réorganisation des règles d'accès
     access_control:
-        - { path: ^/signup, roles: PUBLIC_ACCESS }
-        - { path: ^/login, roles: PUBLIC_ACCESS }
-        - { path: ^/login_check, roles: PUBLIC_ACCESS }
-        - { path: ^/DashboardClient, roles: PUBLIC_ACCESS }  # Temporairement pour déboguer
-        - { path: ^/admin/user, roles: PUBLIC_ACCESS }  # Temporairement pour déboguer
+        # Routes publiques en premier
+        - { path: ^/login$, roles: PUBLIC_ACCESS }
+        - { path: ^/signup$, roles: PUBLIC_ACCESS }
+        - { path: ^/login_check$, roles: PUBLIC_ACCESS }
+        - { path: ^/logout$, roles: PUBLIC_ACCESS }
+        
+        # Routes qui nécessitent authentification
         - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/admin, roles: ROLE_ADMIN }
+        
+        # Routes temporairement ouvertes pour débogage
+        - { path: ^/DashboardClient, roles: PUBLIC_ACCESS }
+        - { path: ^/admin/user, roles: PUBLIC_ACCESS }
+        
+        # Règle générale - utilisez IS_AUTHENTICATED_ANONYMOUSLY au lieu de PUBLIC_ACCESS
+        # pour les routes qui devraient être accessibles sans authentification
         - { path: ^/, roles: IS_AUTHENTICATED_ANONYMOUSLY }
 
 when@test:

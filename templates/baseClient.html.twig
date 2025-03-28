@@ -83,17 +83,23 @@
                                         Panier
                                     </a>
                                     <div class="nav-item dropdown">
-                                        <a href="#" class="nav-link dropdown-toggle {{ app.request.get('_route') in ['app_profile', 'app_historique'] ? 'active' : '' }}"
+                                        <a href="#" class="nav-link dropdown-toggle {{ app.request.get('_route') in ['user_profile', 'app_historique'] ? 'active' : '' }}"
                                            data-bs-toggle="dropdown">
                                             Profile
                                         </a>
                                         <div class="dropdown-menu rounded-0 m-0">
-                                            <a href="{{ path('app_profile') }}"
-                                               class="dropdown-item {{ app.request.get('_route') == 'app_profile' ? 'active' : '' }}">
-                                                Paramètres
+                                            <a href="{{ path('user_profile') }}"
+                                               class="dropdown-item {{ app.request.get('_route') == 'user_profile' ? 'active' : '' }}">
+                                                <i class="fas fa-user-circle me-2"></i> Mon Profil
                                             </a>
-                                            <a href="{{ path('app_historique') }}" class="dropdown-item {{ app.request.get('_route') == 'app_historique' ? 'active' : '' }}">Historique</a>
-                                            <a href="{{ path('admin_dashboard') }}" class="dropdown-item">Se déconnecter</a>
+                                            <a href="{{ path('app_historique') }}" 
+                                               class="dropdown-item {{ app.request.get('_route') == 'app_historique' ? 'active' : '' }}">
+                                                <i class="fas fa-history me-2"></i> Historique
+                                            </a>
+                                            <div class="dropdown-divider"></div>
+                                            <a href="{{ path('app_logout') }}" class="dropdown-item">
+                                                <i class="fas fa-sign-out-alt me-2"></i> Se déconnecter
+                                            </a>
                                         </div>
                                     </div>
                                 </div>

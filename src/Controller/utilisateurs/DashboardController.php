@@ -8,6 +8,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;
+use App\Form\UtilisateurType;
 
 final class DashboardController extends AbstractController
 {
@@ -31,10 +32,28 @@ final class DashboardController extends AbstractController
     }
     
     #[Route('/admin/user/{id}/edit', name: 'admin_user_edit')]
-    public function edit(Utilisateur $utilisateur): Response
+    public function edit(Request $request, Utilisateur $utilisateur, EntityManagerInterface $entityManager): Response
     {
+        // Créer le formulaire pour l'utilisateur
+        $form = $this->createForm(UtilisateurType::class, $utilisateur);
+        $form->handleRequest($request);
+
+        // Si le formulaire est soumis et valide
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Sauvegarder les modifications
+            $entityManager->flush();
+
+            // Ajouter un message de succès
+            $this->addFlash('success', 'Utilisateur modifié avec succès!');
+
+            // Rediriger vers le dashboard
+            return $this->redirectToRoute('admin_dashboard');
+        }
+
+        // Rendre la vue du formulaire
         return $this->render('utilisateurs/edit.html.twig', [
-            'utilisateur' => $utilisateur
+            'form' => $form->createView(),
+            'utilisateur' => $utilisateur,
         ]);
     }
     
@@ -72,5 +91,30 @@ final class DashboardController extends AbstractController
         
         // Toujours rediriger vers le dashboard
         return $this->redirectToRoute('admin_dashboard');
+    }
+
+    #[Route('/admin/user/{id}/update', name: 'admin_user_update', methods: ['POST'])]
+    public function updateUser(Request $request, Utilisateur $utilisateur, EntityManagerInterface $entityManager): Response
+    {
+        // Récupérer les données du formulaire
+        $prenom = $request->request->get('prenom');
+        $nom = $request->request->get('nom');
+        $email = $request->request->get('email');
+        $role = $request->request->get('role');
+        
+        // Mettre à jour l'utilisateur
+        $utilisateur->setPrenom($prenom);
+        $utilisateur->setNom($nom);
+        $utilisateur->setEmail($email);
+        $utilisateur->setRole($role);
+        
+        // Enregistrer les modifications
+        $entityManager->flush();
+        
+        // Retourner une réponse JSON
+        return $this->json([
+            'success' => true,
+            'message' => 'Utilisateur modifié avec succès'
+        ]);
     }
 }

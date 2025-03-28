@@ -23,17 +23,18 @@ final class SecurityController extends AbstractController
     #[Route('/login', name: 'app_login')]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
-        // Si l'utilisateur est déjà connecté, rediriger vers la page d'accueil
+        // Commentez ou supprimez cette redirection pour permettre l'affichage de la page login
+        // même si l'utilisateur est déjà connecté
+        /*
         if ($this->getUser()) {
-            dump("Utilisateur déjà connecté: " . $this->getUser()->getUserIdentifier());
-            dump("Rôles:", $this->getUser()->getRoles());
-            return $this->redirectToRoute('app_home');
+            return $this->redirectToRoute('admin_dashboard');
         }
+        */
 
-        // get the login error if there is one
+        // Récupérer l'erreur d'authentification s'il y en a une
         $error = $authenticationUtils->getLastAuthenticationError();
         
-        // last username entered by the user
+        // Dernier nom d'utilisateur entré
         $lastUsername = $authenticationUtils->getLastUsername();
 
         return $this->render('security/login.html.twig', [
