@@ -23,9 +23,10 @@ security:
             form_login:
                 login_path: app_login
                 check_path: app_login_check
-                # Redirection directe vers le dashboard client
-                default_target_path: admin_dashboard
-                always_use_default_target_path: true
+                # Utilisez le success handler personnalisé au lieu de default_target_path
+                success_handler: App\Security\LoginSuccessHandler
+                # Désactivez ces options pour permettre au handler de fonctionner
+                # always_use_default_target_path: false
                 use_referer: false
                 use_forward: false
                 
@@ -33,7 +34,7 @@ security:
                 path: app_logout
                 target: app_login
 
-    # Réorganisation des règles d'accès
+    # Règles d'accès
     access_control:
         # Routes publiques en premier
         - { path: ^/login$, roles: PUBLIC_ACCESS }

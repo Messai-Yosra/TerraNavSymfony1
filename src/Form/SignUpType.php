@@ -34,7 +34,16 @@ class SignUpType extends AbstractType
                 'label' => 'Rôle'
             ])
             ->add('nomagence')
-            ->add('typeAgence')
+            ->add('typeAgence', ChoiceType::class, [
+                'choices' => [
+                    'Hébergement' => 'hebergement',
+                    'Voyage' => 'voyage',
+                    'Transport' => 'transport'
+                ],
+                'required' => false,
+                'placeholder' => 'Sélectionnez un type d\'agence',
+                'mapped' => true
+            ])
         ;
     }
 

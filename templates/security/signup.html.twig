@@ -129,6 +129,9 @@
                                     {{ form_widget(form.prenom, {'attr': {'class': 'form-control', 'placeholder': 'Votre prénom'}}) }}
                                     {{ form_errors(form.prenom) }}
                                 </div>
+
+
+
                             </div>
                             
                             <div class="mb-3">
@@ -137,7 +140,7 @@
                                 {{ form_errors(form.email) }}
                             </div>
                         </div>
-                        
+
                         <div class="form-section p-4 mb-4 bg-light rounded">
                             <h4 class="text-primary mb-3">Détails du compte</h4>
                             <div class="mb-3">
@@ -163,7 +166,7 @@
                                 {{ form_errors(form.role) }}
                             </div>
                         </div>
-                        
+
                         <!-- Agency fields section (hidden by default) -->
                         <div id="agency-fields" class="form-section p-4 mb-4 bg-light rounded" style="display:none;">
                             <h4 class="text-primary mb-3">Informations sur l'agence</h4>
@@ -179,12 +182,12 @@
                                 {{ form_errors(form.typeAgence) }}
                             </div>
                         </div>
-                        
+
                         <div class="d-grid gap-2 mt-4">
                             <button type="submit" class="btn btn-primary btn-lg">Créer mon compte</button>
                         </div>
                     {{ form_end(form) }}
-                    
+
                     <div class="mt-4 text-center">
                         <p>Déjà inscrit ? <a href="{{ path('app_login') }}" class="text-primary">Connectez-vous ici</a></p>
                     </div>
