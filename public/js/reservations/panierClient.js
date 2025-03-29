@@ -1,11 +1,14 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize all modals from the Twig template
+    // Initialize all modals
     const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
     const detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'));
     const editModal = new bootstrap.Modal(document.getElementById('editReservationModal'));
     const confirmEditModal = new bootstrap.Modal(document.getElementById('confirmEditModal'));
+    const paymentModal = new bootstrap.Modal(document.getElementById('paymentConfirmationModal'));
 
     const deleteForm = document.getElementById('deleteForm');
+    const paymentForm = document.getElementById('paymentForm');
+    const proceedToPaymentBtn = document.getElementById('proceedToPayment');
     let pendingFormData = null;
 
     // Toggle sections
@@ -39,14 +42,24 @@ document.addEventListener('DOMContentLoaded', function() {
             const reservationType = this.getAttribute('data-reservation-type');
             const images = JSON.parse(this.getAttribute('data-images'));
             const title = this.getAttribute('data-title');
+            const subtitle = this.getAttribute('data-subtitle') || '';
             const price = this.getAttribute('data-price');
             const date = this.getAttribute('data-date');
             const status = this.getAttribute('data-status');
             const places = this.getAttribute('data-places');
+            const pointDepart = this.getAttribute('data-pointdepart');
+            const destination = this.getAttribute('data-destination');
+            const description = this.getAttribute('data-description');
 
             // Set basic information
             document.getElementById('detailsModalLabel').textContent = title;
             document.getElementById('reservationTitle').textContent = title;
+            if (subtitle) {
+                document.getElementById('reservationSubtitle').textContent = subtitle;
+                document.getElementById('reservationSubtitle').style.display = 'block';
+            } else {
+                document.getElementById('reservationSubtitle').style.display = 'none';
+            }
             document.getElementById('reservationType').textContent = reservationType.charAt(0).toUpperCase() + reservationType.slice(1);
             document.getElementById('reservationPrice').textContent = price;
             document.getElementById('reservationDate').textContent = date;
@@ -90,24 +103,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (reservationType === 'voyage') {
                 specificDetail1.innerHTML = `<strong>Destination:</strong> ${this.getAttribute('data-destination') || 'N/A'}`;
+                specificDetail2.innerHTML = '';
                 additionalDetails.innerHTML = `
                     <h5 class="mt-4">Description du voyage</h5>
-                    <p>Détails supplémentaires sur ce voyage passionnant...</p>
+                    <p>${description || 'Aucune description disponible'}</p>
                 `;
             } else if (reservationType === 'chambre') {
                 specificDetail1.innerHTML = `<strong>Durée:</strong> ${this.getAttribute('data-duration') || 'N/A'}`;
+                specificDetail2.innerHTML = `<strong>Hébergement:</strong> ${this.getAttribute('data-hebergement') || 'N/A'}`;
                 additionalDetails.innerHTML = `
-                    <h5 class="mt-4">Description de l'hébergement</h5>
-                    <p>Détails supplémentaires sur cet hébergement confortable...</p>
+                    <h5 class="mt-4">Description du chambre</h5>
+                    <p>${description || 'Aucune description disponible'}</p>
                 `;
             } else if (reservationType === 'transport') {
-                specificDetail1.innerHTML = `<strong>Places:</strong> ${places}`;
+                specificDetail1.innerHTML = `<strong>Point de départ:</strong> ${pointDepart || 'N/A'}`;
+                specificDetail2.innerHTML = `<strong>Destination:</strong> ${destination || 'N/A'}`;
                 additionalDetails.innerHTML = `
                     <h5 class="mt-4">Description du transport</h5>
-                    <p>Détails supplémentaires sur ce moyen de transport...</p>
+                    <p>${description || 'Aucune description disponible'}</p>
                 `;
             }
-            specificDetail2.innerHTML = '';
 
             detailsModal.show();
         });
@@ -120,30 +135,33 @@ document.addEventListener('DOMContentLoaded', function() {
             const reservationType = this.getAttribute('data-reservation-type');
             const images = JSON.parse(this.getAttribute('data-images') || '[]');
             const title = this.getAttribute('data-title');
+            const subtitle = this.getAttribute('data-subtitle') || '';
             const price = this.getAttribute('data-price');
             const date = this.getAttribute('data-date');
             const status = this.getAttribute('data-status');
             const places = this.getAttribute('data-places');
             const nbJours = this.getAttribute('data-nb-jours');
+            const pointDepart = this.getAttribute('data-pointdepart');
             const destination = this.getAttribute('data-destination');
-            const duration = this.getAttribute('data-duration');
+            const description = this.getAttribute('data-description');
 
             // Set basic information
             document.getElementById('editReservationModalLabel').textContent = `Modifier ${title}`;
             document.getElementById('editReservationTitle').textContent = title;
-            document.getElementById('editReservationType').textContent = reservationType.charAt(0).toUpperCase() + reservationType.slice(1);
-            document.getElementById('editPrix').value = price;
-            document.getElementById('editDateReservation').value = date;
+            document.getElementById('editReservationTypeDisplay').textContent = reservationType.charAt(0).toUpperCase() + reservationType.slice(1);
+            document.getElementById('editPrix').textContent = price + '€';
+            document.getElementById('editDate').value = date;
             document.getElementById('editReservationStatus').textContent = status;
             document.getElementById('editNbPlaces').value = places;
             document.getElementById('editReservationId').value = reservationId;
+            document.getElementById('editReservationType').value = reservationType;
 
-            // Set minimum date to today
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('editDateReservation').min = today;
-
-            // Make price field read-only
-            document.getElementById('editPrix').readOnly = true;
+            if (subtitle) {
+                document.getElementById('editReservationSubtitle').textContent = subtitle;
+                document.getElementById('editReservationSubtitle').style.display = 'block';
+            } else {
+                document.getElementById('editReservationSubtitle').style.display = 'none';
+            }
 
             // Clear and rebuild carousel
             const carouselIndicators = document.getElementById('editCarouselIndicators');
@@ -178,33 +196,42 @@ document.addEventListener('DOMContentLoaded', function() {
             // Configure fields based on reservation type
             const nbPlacesContainer = document.getElementById('nbPlacesContainer');
             const nbJoursContainer = document.getElementById('editNbJoursContainer');
+            const dateContainer = document.getElementById('editDateContainer');
 
             if (reservationType === 'voyage') {
                 nbPlacesContainer.style.display = 'block';
                 nbJoursContainer.style.display = 'none';
-                document.getElementById('editSpecificDetail1').innerHTML = `
-                    <label class="form-label"><strong>Destination:</strong></label>
-                    <span class="form-control-plaintext">${destination || 'N/A'}</span>
-                `;
+                dateContainer.style.display = 'none';
             } else if (reservationType === 'chambre') {
                 nbPlacesContainer.style.display = 'none';
                 nbJoursContainer.style.display = 'block';
-                document.getElementById('editNbJours').value = nbJours;
-                document.getElementById('editSpecificDetail1').innerHTML = `
-                    <label class="form-label"><strong>Durée:</strong></label>
-                    <span class="form-control-plaintext">${duration || 'N/A'}</span>
-                `;
+                dateContainer.style.display = 'block';
+                document.getElementById('editNbJours').value = nbJours || 1;
             } else if (reservationType === 'transport') {
                 nbPlacesContainer.style.display = 'none';
                 nbJoursContainer.style.display = 'none';
-                document.getElementById('editSpecificDetail1').innerHTML = '';
+                dateContainer.style.display = 'block';
             }
 
-            document.getElementById('editSpecificDetail2').innerHTML = '';
-            document.getElementById('editAdditionalDetails').innerHTML = `
+            // Set additional details based on reservation type
+            let additionalDetailsHTML = '';
+            if (reservationType === 'transport') {
+                additionalDetailsHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Point de départ:</strong> ${pointDepart || 'N/A'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Destination:</strong> ${destination || 'N/A'}</p>
+                        </div>
+                    </div>
+                `;
+            }
+            additionalDetailsHTML += `
                 <h5 class="mt-4">Description</h5>
-                <p>Détails supplémentaires sur cette réservation...</p>
+                <p>${description || 'Aucune description disponible'}</p>
             `;
+            document.getElementById('editAdditionalDetails').innerHTML = additionalDetailsHTML;
 
             editModal.show();
         });
@@ -214,17 +241,24 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('saveReservationChanges').addEventListener('click', function() {
         const formData = new FormData(document.getElementById('editReservationForm'));
         const reservationId = document.getElementById('editReservationId').value;
-        const reservationType = document.getElementById('editReservationType').textContent.toLowerCase();
+        const reservationType = document.getElementById('editReservationType').value;
 
-        // Validate date
-        const dateInput = document.getElementById('editDateReservation');
-        const selectedDate = new Date(dateInput.value);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        // Validate date for chambre and transport
+        if (reservationType === 'chambre' || reservationType === 'transport') {
+            const dateValue = document.getElementById('editDate').value;
+            if (!dateValue) {
+                showNotification('La date est requise', 'error');
+                return;
+            }
 
-        if (selectedDate < today) {
-            showNotification('La date doit être supérieure ou égale à aujourd\'hui', 'error');
-            return;
+            const selectedDate = new Date(dateValue);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (selectedDate < today) {
+                showNotification('La date doit être aujourd\'hui ou dans le futur', 'error');
+                return;
+            }
         }
 
         // Validate type-specific fields
@@ -309,6 +343,57 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     });
 
+    // Payment button handler
+    proceedToPaymentBtn.addEventListener('click', () => {
+        paymentModal.show();
+    });
+
+    // Payment form submission
+    paymentForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const url = this.action;
+        const confirmBtn = this.querySelector('#confirmPaymentButton');
+        const originalText = confirmBtn.innerHTML;
+
+        // Show loading state
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Traitement...';
+
+        fetch(url, {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.message || 'Payment failed'); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    paymentModal.hide();
+                    showNotification(`Paiement confirmé! ${data.count} réservations mises à jour`, 'success');
+
+                    // Reload the page after a delay to show updated statuses
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    throw new Error(data.message || 'Payment confirmation failed');
+                }
+            })
+            .catch(error => {
+                console.error('Payment error:', error);
+                showNotification(`Erreur de paiement: ${error.message}`, 'error');
+            })
+            .finally(() => {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = originalText;
+            });
+    });
+
     // Handle delete form submission
     deleteForm.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -324,30 +409,45 @@ document.addEventListener('DOMContentLoaded', function() {
 
         fetch(url, {
             method: 'POST',
-            body: formData
+            body: formData,
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
         })
             .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                // First check if the response is JSON
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json();
                 }
-                return response;
+                // If not JSON but response is ok, return success
+                if (response.ok) {
+                    return { success: true };
+                }
+                // Otherwise throw error
+                throw new Error('Network response was not ok');
             })
-            .then(() => {
-                // Hide the modal
-                deleteModal.hide();
+            .then(data => {
+                if (data.success) {
+                    // Hide the modal
+                    deleteModal.hide();
 
-                // Show success notification
-                showNotification('La réservation a été annulée avec succès', 'success');
+                    // Show success notification
+                    showNotification('La réservation a été annulée avec succès', 'success');
 
-                // Reload the page after a short delay
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
+                    // Reload the page after a short delay
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    throw new Error(data.message || 'Delete failed');
+                }
             })
             .catch(error => {
                 console.error('Error:', error);
                 // Show error notification
-                showNotification('Erreur lors de l\'annulation de la réservation', 'error');
+                showNotification('Erreur lors de l\'annulation de la réservation: ' + error.message, 'error');
             })
             .finally(() => {
                 deleteButton.disabled = false;

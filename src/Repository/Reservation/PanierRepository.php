@@ -80,14 +80,27 @@ class PanierRepository extends ServiceEntityRepository
     }
 
     /**
-     * Updates the total price of a panier
+     * Updates the total price of a panier (sum of all PENDING reservations)
      */
     public function updateTotalPrice(int $panierId): void
     {
-        $this->createQueryBuilder('p')
+        // First get the sum of all PENDING reservations
+        $total = $this->createQueryBuilder('p')
             ->select('SUM(r.prix) as total')
             ->leftJoin('p.reservations', 'r')
             ->where('p.id = :panierId')
+            ->andWhere('r.Etat = :status')
+            ->setParameter('panierId', $panierId)
+            ->setParameter('status', 'PENDING')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // Then update the panier's prix_total
+        $this->createQueryBuilder('p')
+            ->update()
+            ->set('p.prix_total', ':total')
+            ->where('p.id = :panierId')
+            ->setParameter('total', (float)$total)
             ->setParameter('panierId', $panierId)
             ->getQuery()
             ->execute();
@@ -148,17 +161,19 @@ class PanierRepository extends ServiceEntityRepository
     }
 
     /**
-     * Validates a panier by setting the validation date
+     * Validates a panier by setting the validation date and resetting the total price to 0
      */
     public function validatePanier(int $panierId): void
     {
         $this->createQueryBuilder('p')
             ->update()
             ->set('p.date_validation', ':now')
+            ->set('p.prix_total', 0)
             ->where('p.id = :panierId')
             ->setParameter('now', new \DateTime())
             ->setParameter('panierId', $panierId)
             ->getQuery()
             ->execute();
     }
+
 }

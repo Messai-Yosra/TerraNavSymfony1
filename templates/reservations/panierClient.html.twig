@@ -25,6 +25,29 @@
         </div>
     </div>
 
+    <!-- Payment Confirmation Modal -->
+    <div class="modal fade" id="paymentConfirmationModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="paymentModalLabel">Confirmer le paiement</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Êtes-vous sûr de vouloir procéder au paiement pour un total de <strong>{{ total }}€</strong> ?</p>
+                    <p>Toutes vos réservations seront confirmées.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <form id="paymentForm" method="post" action="{{ path('app_panier_confirm', {'panierId': panierId}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('confirm-panier') }}">
+                        <button type="submit" class="btn btn-success" id="confirmPaymentButton">Confirmer le paiement</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Confirmation Modal -->
     <div class="modal fade" id="confirmEditModal" tabindex="-1" aria-labelledby="confirmEditModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -68,6 +91,7 @@
 
                     <div class="reservation-details">
                         <h4 id="reservationTitle" class="mb-3"></h4>
+                        <p class="text-muted" id="reservationSubtitle"></p>
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <p><strong>Type:</strong> <span id="reservationType"></span></p>
@@ -116,22 +140,24 @@
                     <form id="editReservationForm">
                         <input type="hidden" name="_token" value="{{ csrf_token('update-reservation') }}">
                         <input type="hidden" id="editReservationId" name="id">
+                        <input type="hidden" id="editReservationType" name="type">
 
                         <div class="reservation-details">
                             <h4 id="editReservationTitle" class="mb-3"></h4>
+                            <p class="text-muted" id="editReservationSubtitle"></p>
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label"><strong>Type:</strong></label>
-                                        <span id="editReservationType" class="form-control-plaintext"></span>
+                                        <span id="editReservationTypeDisplay" class="form-control-plaintext"></span>
                                     </div>
                                     <div class="mb-3">
-                                        <label for="editPrix" class="form-label"><strong>Prix:</strong></label>
-                                        <input type="number" step="0.01" min="0" class="form-control" id="editPrix" name="prix" readonly>
+                                        <label class="form-label"><strong>Prix:</strong></label>
+                                        <span id="editPrix" class="form-control-plaintext"></span>
                                     </div>
-                                    <div class="mb-3">
-                                        <label for="editDateReservation" class="form-label"><strong>Date:</strong></label>
-                                        <input type="date" class="form-control" id="editDateReservation" name="date_reservation" required>
+                                    <div class="mb-3" id="editDateContainer">
+                                        <label for="editDate" class="form-label"><strong>Date:</strong></label>
+                                        <input type="date" class="form-control" id="editDate" name="date_reservation" required>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -143,13 +169,11 @@
                                         <label for="editNbPlaces" class="form-label"><strong>Nombre de places:</strong></label>
                                         <input type="number" min="1" class="form-control" id="editNbPlaces" name="nb_places">
                                     </div>
-                                    <div class="mb-3" id="editSpecificDetail1"></div>
-                                    <div class="mb-3" id="editSpecificDetail2"></div>
+                                    <div class="mb-3" id="editNbJoursContainer">
+                                        <label for="editNbJours" class="form-label"><strong>Nombre de jours:</strong></label>
+                                        <input type="number" min="1" class="form-control" id="editNbJours" name="nbJoursHebergement">
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="mb-3" id="editNbJoursContainer" style="display:none;">
-                                <label for="editNbJours" class="form-label"><strong>Nombre de jours:</strong></label>
-                                <input type="number" min="1" class="form-control" id="editNbJours" name="nbJoursHebergement">
                             </div>
                             <div class="additional-details" id="editAdditionalDetails"></div>
                         </div>
@@ -199,7 +223,9 @@
                                     </div>
                                     <div class="p-4 mt-2">
                                         <div class="d-flex justify-content-between mb-3">
-                                            <h5 class="mb-0">Voyage #{{ reservation.id }}</h5>
+                                            <h5 class="mb-0">
+                                                {{ reservation.id_voyage and reservation.id_voyage.titre ? reservation.id_voyage.titre : 'Voyage #' ~ reservation.id }}
+                                            </h5>
                                             <div class="ps-2">
                                                 <small class="fa fa-star text-primary"></small>
                                                 <small class="fa fa-star text-primary"></small>
@@ -211,7 +237,7 @@
                                         <div class="d-flex mb-3">
                                             <small class="border-end me-3 pe-3">
                                                 <i class="fa fa-calendar text-primary me-2"></i>
-                                                {{ reservation.date_reservation|date('d/m/Y') }}
+                                                {{ reservation.id_voyage and reservation.id_voyage.dateDepart ? reservation.id_voyage.dateDepart|date('d/m/Y') : reservation.date_reservation|date('d/m/Y') }}
                                             </small>
                                             <small class="border-end me-3 pe-3">
                                                 <i class="fa fa-users text-primary me-2"></i>
@@ -219,7 +245,7 @@
                                             </small>
                                             <small>
                                                 <i class="fa fa-map-marker text-primary me-2"></i>
-                                                {{ reservation.id_voyage ? reservation.id_voyage.destination : 'N/A' }}
+                                                {{ reservation.id_voyage and reservation.id_voyage.destination ? reservation.id_voyage.destination : 'N/A' }}
                                             </small>
                                         </div>
                                         <div class="d-flex justify-content-between mt-auto">
@@ -227,24 +253,26 @@
                                                     data-reservation-id="{{ reservation.id }}"
                                                     data-reservation-type="voyage"
                                                     data-images='{{ static_images.voyage|json_encode|raw }}'
-                                                    data-title="Voyage #{{ reservation.id }}"
+                                                    data-title="{{ reservation.id_voyage and reservation.id_voyage.titre ? reservation.id_voyage.titre : 'Voyage #' ~ reservation.id }}"
                                                     data-price="{{ reservation.prix }}"
-                                                    data-date="{{ reservation.date_reservation|date('d/m/Y') }}"
+                                                    data-date="{{ reservation.id_voyage and reservation.id_voyage.dateDepart ? reservation.id_voyage.dateDepart|date('d/m/Y') : reservation.date_reservation|date('d/m/Y') }}"
                                                     data-status="{{ reservation.Etat }}"
                                                     data-places="{{ reservation.nb_places }}"
-                                                    data-destination="{{ reservation.id_voyage ? reservation.id_voyage.destination : 'N/A' }}">
+                                                    data-destination="{{ reservation.id_voyage and reservation.id_voyage.destination ? reservation.id_voyage.destination : 'N/A' }}"
+                                                    data-description="{{ reservation.id_voyage and reservation.id_voyage.description ? reservation.id_voyage.description : 'Aucune description disponible' }}">
                                                 Détails
                                             </button>
                                             <button class="btn btn-sm btn-warning rounded py-2 px-4 edit-reservation-btn"
                                                     data-reservation-id="{{ reservation.id }}"
                                                     data-reservation-type="voyage"
                                                     data-images='{{ static_images.voyage|json_encode|raw }}'
-                                                    data-title="Voyage #{{ reservation.id }}"
+                                                    data-title="{{ reservation.id_voyage and reservation.id_voyage.titre ? reservation.id_voyage.titre : 'Voyage #' ~ reservation.id }}"
                                                     data-price="{{ reservation.prix }}"
-                                                    data-date="{{ reservation.date_reservation|date('Y-m-d') }}"
+                                                    data-date="{{ reservation.id_voyage and reservation.id_voyage.dateDepart ? reservation.id_voyage.dateDepart|date('Y-m-d') : reservation.date_reservation|date('Y-m-d') }}"
                                                     data-status="{{ reservation.Etat }}"
                                                     data-places="{{ reservation.nb_places }}"
-                                                    data-destination="{{ reservation.id_voyage ? reservation.id_voyage.destination : 'N/A' }}">
+                                                    data-destination="{{ reservation.id_voyage and reservation.id_voyage.destination ? reservation.id_voyage.destination : 'N/A' }}"
+                                                    data-description="{{ reservation.id_voyage and reservation.id_voyage.description ? reservation.id_voyage.description : 'Aucune description disponible' }}">
                                                 Modifier
                                             </button>
                                             <button class="btn btn-sm btn-danger rounded py-2 px-4 delete-btn"
@@ -283,7 +311,16 @@
                                     </div>
                                     <div class="p-4 mt-2">
                                         <div class="d-flex justify-content-between mb-3">
-                                            <h5 class="mb-0">Chambre #{{ reservation.id }}</h5>
+                                            <div class="d-flex flex-column">
+                                                {% if reservation.id_Chambre and reservation.id_Chambre.id_hebergement %}
+                                                    <h5 class="mb-0">{{ reservation.id_Chambre.id_hebergement.nom }}</h5>
+                                                    <small class="text-muted">Chambre {{ reservation.id_Chambre.numero }}</small>
+                                                {% elseif reservation.id_Chambre %}
+                                                    <h5 class="mb-0">Chambre {{ reservation.id_Chambre.numero }}</h5>
+                                                {% else %}
+                                                    <h5 class="mb-0">Chambre #{{ reservation.id }}</h5>
+                                                {% endif %}
+                                            </div>
                                             <div class="ps-2">
                                                 <small class="fa fa-star text-primary"></small>
                                                 <small class="fa fa-star text-primary"></small>
@@ -311,25 +348,32 @@
                                                     data-reservation-id="{{ reservation.id }}"
                                                     data-reservation-type="chambre"
                                                     data-images='{{ static_images.chambre|json_encode|raw }}'
-                                                    data-title="Chambre #{{ reservation.id }}"
+                                                    data-title="{% if reservation.id_Chambre and reservation.id_Chambre.id_hebergement %}{{ reservation.id_Chambre.id_hebergement.nom }}{% elseif reservation.id_Chambre %}Chambre {{ reservation.id_Chambre.numero }}{% else %}Chambre #{{ reservation.id }}{% endif %}"
+                                                    data-subtitle="{% if reservation.id_Chambre and reservation.id_Chambre.id_hebergement %}Chambre {{ reservation.id_Chambre.numero }}{% endif %}"
                                                     data-price="{{ reservation.prix }}"
                                                     data-date="{{ reservation.date_reservation|date('d/m/Y') }}"
                                                     data-status="{{ reservation.Etat }}"
                                                     data-places="{{ reservation.nb_places }}"
-                                                    data-duration="{{ reservation.nbJoursHebergement }} jours">
+                                                    data-duration="{{ reservation.nbJoursHebergement }} jours"
+                                                    data-nb-jours="{{ reservation.nbJoursHebergement }}"
+                                                    data-hebergement="{% if reservation.id_Chambre and reservation.id_Chambre.id_hebergement %}{{ reservation.id_Chambre.id_hebergement.nom }}{% else %}N/A{% endif %}"
+                                                    data-description="{% if reservation.id_Chambre and reservation.id_Chambre.description %}{{ reservation.id_Chambre.description }}{% else %}Aucune description disponible{% endif %}">
                                                 Détails
                                             </button>
                                             <button class="btn btn-sm btn-warning rounded py-2 px-4 edit-reservation-btn"
                                                     data-reservation-id="{{ reservation.id }}"
                                                     data-reservation-type="chambre"
                                                     data-images='{{ static_images.chambre|json_encode|raw }}'
-                                                    data-title="Chambre #{{ reservation.id }}"
+                                                    data-title="{% if reservation.id_Chambre and reservation.id_Chambre.id_hebergement %}{{ reservation.id_Chambre.id_hebergement.nom }}{% elseif reservation.id_Chambre %}Chambre {{ reservation.id_Chambre.numero }}{% else %}Chambre #{{ reservation.id }}{% endif %}"
+                                                    data-subtitle="{% if reservation.id_Chambre and reservation.id_Chambre.id_hebergement %}Chambre {{ reservation.id_Chambre.numero }}{% endif %}"
                                                     data-price="{{ reservation.prix }}"
                                                     data-date="{{ reservation.date_reservation|date('Y-m-d') }}"
                                                     data-status="{{ reservation.Etat }}"
                                                     data-places="{{ reservation.nb_places }}"
                                                     data-duration="{{ reservation.nbJoursHebergement }} jours"
-                                                    data-nb-jours="{{ reservation.nbJoursHebergement }}">
+                                                    data-nb-jours="{{ reservation.nbJoursHebergement }}"
+                                                    data-hebergement="{% if reservation.id_Chambre and reservation.id_Chambre.id_hebergement %}{{ reservation.id_Chambre.id_hebergement.nom }}{% else %}N/A{% endif %}"
+                                                    data-description="{% if reservation.id_Chambre and reservation.id_Chambre.description %}{{ reservation.id_Chambre.description }}{% else %}Aucune description disponible{% endif %}">
                                                 Modifier
                                             </button>
                                             <button class="btn btn-sm btn-danger rounded py-2 px-4 delete-btn"
@@ -368,7 +412,10 @@
                                     </div>
                                     <div class="p-4 mt-2">
                                         <div class="d-flex justify-content-between mb-3">
-                                            <h5 class="mb-0">Transport #{{ reservation.id }}</h5>
+                                            <div class="d-flex flex-column">
+                                                <h5 class="mb-0">{{ reservation.id_Transport.nom }}</h5>
+                                                <small class="text-muted">{{ reservation.id_Transport.type }}</small>
+                                            </div>
                                             <div class="ps-2">
                                                 <small class="fa fa-star text-primary"></small>
                                                 <small class="fa fa-star text-primary"></small>
@@ -392,22 +439,30 @@
                                                     data-reservation-id="{{ reservation.id }}"
                                                     data-reservation-type="transport"
                                                     data-images='["{{ static_images.transport }}"]'
-                                                    data-title="Transport #{{ reservation.id }}"
+                                                    data-title="{{ reservation.id_Transport.nom }}"
+                                                    data-subtitle="{{ reservation.id_Transport.type }}"
                                                     data-price="{{ reservation.prix }}"
                                                     data-date="{{ reservation.dateAffectation ? reservation.dateAffectation|date('d/m/Y') : 'N/A' }}"
                                                     data-status="{{ reservation.Etat }}"
-                                                    data-places="{{ reservation.nb_places }}">
+                                                    data-places="{{ reservation.nb_places }}"
+                                                    data-pointdepart="{{ reservation.id_Transport.id_trajet.pointDepart }}"
+                                                    data-destination="{{ reservation.id_Transport.id_trajet.destination }}"
+                                                    data-description="{{ reservation.id_Transport.description ? reservation.id_Transport.description : 'Aucune description disponible' }}">
                                                 Détails
                                             </button>
                                             <button class="btn btn-sm btn-warning rounded py-2 px-4 edit-reservation-btn"
                                                     data-reservation-id="{{ reservation.id }}"
                                                     data-reservation-type="transport"
                                                     data-images='["{{ static_images.transport }}"]'
-                                                    data-title="Transport #{{ reservation.id }}"
+                                                    data-title="{{ reservation.id_Transport.nom }}"
+                                                    data-subtitle="{{ reservation.id_Transport.type }}"
                                                     data-price="{{ reservation.prix }}"
                                                     data-date="{{ reservation.dateAffectation ? reservation.dateAffectation|date('Y-m-d') : '' }}"
                                                     data-status="{{ reservation.Etat }}"
-                                                    data-places="{{ reservation.nb_places }}">
+                                                    data-places="{{ reservation.nb_places }}"
+                                                    data-pointdepart="{{ reservation.id_Transport.id_trajet.pointDepart }}"
+                                                    data-destination="{{ reservation.id_Transport.id_trajet.destination }}"
+                                                    data-description="{{ reservation.id_Transport.description ? reservation.id_Transport.description : 'Aucune description disponible' }}">
                                                 Modifier
                                             </button>
                                             <button class="btn btn-sm btn-danger rounded py-2 px-4 delete-btn"
@@ -458,8 +513,8 @@
                             <h5>{{ total }}€</h5>
                         </div>
                         <div class="text-center mt-4">
-                            <a class="btn btn-primary py-3 px-5 me-3" href="#">Continuer vos achats</a>
-                            <a class="btn btn-success py-3 px-5" href="#">Procéder au paiement</a>
+                            <a class="btn btn-primary py-3 px-5 me-3" href="{{ path('app_home') }}">Continuer vos achats</a>
+                            <button class="btn btn-success py-3 px-5" id="proceedToPayment">Procéder au paiement</button>
                         </div>
                     </div>
                 </div>
