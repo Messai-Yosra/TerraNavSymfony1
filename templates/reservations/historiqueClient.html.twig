@@ -1,3 +1,371 @@
 {% extends "baseClient.html.twig" %}
 
 {% block titre %} Historique {% endblock %}
+
+{% block content %}
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+                <h6 class="section-title text-center text-primary text-uppercase">Votre Historique</h6>
+                <h1 class="mb-5">Vos <span class="text-primary text-uppercase">Réservations</span></h1>
+            </div>
+
+            {% for message in app.flashes('success') %}
+                <div class="alert alert-success">{{ message }}</div>
+            {% endfor %}
+            {% for message in app.flashes('error') %}
+                <div class="alert alert-danger">{{ message }}</div>
+            {% endfor %}
+
+            <!-- Search, Filter and Sort Section -->
+            <div class="row mb-4 wow fadeInUp" data-wow-delay="0.2s">
+                <div class="col-md-12">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Rechercher, filtrer et trier</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- Search Bar -->
+                                <div class="col-md-5 mb-3">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" placeholder="Rechercher des réservations...">
+                                        <button class="btn btn-primary" type="button">
+                                            <i class="fa fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Filter Options -->
+                                <div class="col-md-5">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <select class="form-select">
+                                                <option value="all">Tous les types</option>
+                                                <option value="voyage">Voyages</option>
+                                                <option value="hebergement">Hébergements</option>
+                                                <option value="transport">Transports</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <select class="form-select">
+                                                <option value="all">Tous les statuts</option>
+                                                <option value="confirmed">Confirmées</option>
+                                                <option value="pending">En attente</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Sort Options -->
+                                <div class="col-md-2 mb-3">
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-primary dropdown-toggle w-100" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fa fa-sort me-1"></i> Trier par
+                                        </button>
+                                        <ul class="dropdown-menu w-100" aria-labelledby="sortDropdown">
+                                            <li><a class="dropdown-item" href="#"><i class="fa fa-sort-amount-up me-2"></i> Prix croissant</a></li>
+                                            <li><a class="dropdown-item" href="#"><i class="fa fa-sort-amount-down me-2"></i> Prix décroissant</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item" href="#"><i class="fa fa-calendar me-2"></i> Date récente</a></li>
+                                            <li><a class="dropdown-item" href="#"><i class="fa fa-calendar-alt me-2"></i> Date ancienne</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reservations List -->
+            <div class="row g-4">
+                <!-- Voyages Section -->
+                <div class="col-12 wow fadeInUp" data-wow-delay="0.3s">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fa fa-plane me-2"></i>
+                                Voyages
+                            </h5>
+                            <div>
+                                <span class="badge bg-white text-primary me-2">3 réservations</span>
+                                <span class="badge bg-light text-dark"><i class="fa fa-sort-amount-up me-1"></i> Prix croissant</span>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="bg-light">
+                                    <tr>
+                                        <th>Référence</th>
+                                        <th>Destination</th>
+                                        <th>Date</th>
+                                        <th class="sortable">
+                                            Prix
+                                            <a href="#" class="text-primary ms-1" data-sort="asc">
+                                                <i class="fa fa-sort-amount-up"></i>
+                                            </a>
+                                            <a href="#" class="text-primary ms-1" data-sort="desc">
+                                                <i class="fa fa-sort-amount-down"></i>
+                                            </a>
+                                        </th>
+                                        <th>Statut</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr>
+                                        <td>VOY-2023-003</td>
+                                        <td>Barcelone, Espagne</td>
+                                        <td>05/08/2023</td>
+                                        <td>380€</td>
+                                        <td><span class="badge bg-warning text-dark">En attente</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary">Détails</button>
+                                            <button class="btn btn-sm btn-outline-secondary ms-1">Facture</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>VOY-2023-001</td>
+                                        <td>Paris, France</td>
+                                        <td>15/06/2023</td>
+                                        <td>450€</td>
+                                        <td><span class="badge bg-success">Confirmé</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary">Détails</button>
+                                            <button class="btn btn-sm btn-outline-secondary ms-1">Facture</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>VOY-2023-002</td>
+                                        <td>Rome, Italie</td>
+                                        <td>22/07/2023</td>
+                                        <td>520€</td>
+                                        <td><span class="badge bg-success">Confirmé</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary">Détails</button>
+                                            <button class="btn btn-sm btn-outline-secondary ms-1">Facture</button>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hébergements Section -->
+                <div class="col-12 wow fadeInUp" data-wow-delay="0.4s">
+                    <div class="card shadow mt-4">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fa fa-hotel me-2"></i>
+                                Hébergements
+                            </h5>
+                            <div>
+                                <span class="badge bg-white text-primary me-2">1 réservation</span>
+                                <span class="badge bg-light text-dark"><i class="fa fa-sort me-1"></i> Non trié</span>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="bg-light">
+                                    <tr>
+                                        <th>Référence</th>
+                                        <th>Hôtel</th>
+                                        <th>Dates</th>
+                                        <th class="sortable">
+                                            Prix
+                                            <a href="#" class="text-primary ms-1" data-sort="asc">
+                                                <i class="fa fa-sort-amount-up"></i>
+                                            </a>
+                                            <a href="#" class="text-primary ms-1" data-sort="desc">
+                                                <i class="fa fa-sort-amount-down"></i>
+                                            </a>
+                                        </th>
+                                        <th>Statut</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr>
+                                        <td>HEB-2023-001</td>
+                                        <td>Hôtel Plaza</td>
+                                        <td>15/06/2023 - 20/06/2023</td>
+                                        <td>320€</td>
+                                        <td><span class="badge bg-success">Confirmé</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary">Détails</button>
+                                            <button class="btn btn-sm btn-outline-secondary ms-1">Facture</button>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transports Section -->
+                <div class="col-12 wow fadeInUp" data-wow-delay="0.5s">
+                    <div class="card shadow mt-4">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fa fa-car me-2"></i>
+                                Transports
+                            </h5>
+                            <div>
+                                <span class="badge bg-white text-primary me-2">1 réservation</span>
+                                <span class="badge bg-light text-dark"><i class="fa fa-sort me-1"></i> Non trié</span>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="bg-light">
+                                    <tr>
+                                        <th>Référence</th>
+                                        <th>Type</th>
+                                        <th>Date</th>
+                                        <th class="sortable">
+                                            Prix
+                                            <a href="#" class="text-primary ms-1" data-sort="asc">
+                                                <i class="fa fa-sort-amount-up"></i>
+                                            </a>
+                                            <a href="#" class="text-primary ms-1" data-sort="desc">
+                                                <i class="fa fa-sort-amount-down"></i>
+                                            </a>
+                                        </th>
+                                        <th>Statut</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr>
+                                        <td>TRP-2023-001</td>
+                                        <td>Voiture de luxe</td>
+                                        <td>15/06/2023</td>
+                                        <td>120€</td>
+                                        <td><span class="badge bg-warning text-dark">En attente</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary">Détails</button>
+                                            <button class="btn btn-sm btn-outline-secondary ms-1">Facture</button>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Section -->
+                <div class="col-12 wow fadeInUp" data-wow-delay="0.6s">
+                    <div class="card shadow mt-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Statistiques</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-4">
+                                    <div class="card border-primary">
+                                        <div class="card-body text-center">
+                                            <h3 class="text-primary">5</h3>
+                                            <p class="mb-0">Réservations totales</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-4">
+                                    <div class="card border-success">
+                                        <div class="card-body text-center">
+                                            <h3 class="text-success">1,290€</h3>
+                                            <p class="mb-0">Total dépensé</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-4">
+                                    <div class="card border-info">
+                                        <div class="card-body text-center">
+                                            <h3 class="text-info">3</h3>
+                                            <p class="mb-0">Destinations visitées</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div class="modal fade" id="reservationDetailsModal" tabindex="-1" aria-labelledby="reservationDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="reservationDetailsModalLabel">Détails de la réservation</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Informations générales</h5>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Référence:</span>
+                                    <span class="fw-bold">VOY-2023-001</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Date de réservation:</span>
+                                    <span class="fw-bold">10/06/2023</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Statut:</span>
+                                    <span class="badge bg-success">Confirmé</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Prix total:</span>
+                                    <span class="fw-bold">450€</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Détails du voyage</h5>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Destination:</span>
+                                    <span class="fw-bold">Paris, France</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Date de départ:</span>
+                                    <span class="fw-bold">15/06/2023</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Date de retour:</span>
+                                    <span class="fw-bold">20/06/2023</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Nombre de personnes:</span>
+                                    <span class="fw-bold">2</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <h5>Description</h5>
+                        <p>Voyage tout compris à Paris avec visite des principaux monuments (Tour Eiffel, Louvre, etc.) et hébergement en hôtel 4 étoiles.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    <button type="button" class="btn btn-primary">Imprimer la facture</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ asset('js/reservations/historiqueClient.js') }}"></script>
+{% endblock %}

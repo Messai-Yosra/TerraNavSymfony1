@@ -1,5 +1,172 @@
 {% extends "baseAdmin.html.twig" %}
 
-{% block titre %} Reservations {% endblock %}
+{% block titre %} Réservations {% endblock %}
 
-{% block content %} Reservations d'utilisateur 1 {% endblock %}
+{% block content %}
+    <link rel="stylesheet" href="{{ asset('css/reservations/reservationAdmin.css') }}"/>
+
+    <div class="reservations-container">
+        <div class="header">
+            <h1><i class="fas fa-calendar-check"></i> Réservations des utilisateurs</h1>
+        </div>
+
+        <div class="reservations-content">
+            <!-- User Selection Section -->
+            <div class="user-selection">
+                <div class="search-box">
+                    <input type="text" id="userSearch" placeholder="Rechercher des utilisateurs...">
+                    <button class="search-btn"><i class="fas fa-search"></i></button>
+                </div>
+
+                <div class="user-list">
+                    <div class="user-card active">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="user-info">
+                            <h4>Jean Dupont</h4>
+                            <p>jean.dupont@exemple.com</p>
+                        </div>
+                    </div>
+
+                    <div class="user-card">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="user-info">
+                            <h4>Marie Lambert</h4>
+                            <p>marie.l@exemple.com</p>
+                        </div>
+                    </div>
+
+                    <div class="user-card">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="user-info">
+                            <h4>Pierre Martin</h4>
+                            <p>pierre.m@exemple.com</p>
+                        </div>
+                    </div>
+
+                    <div class="user-card">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="user-info">
+                            <h4>Sophie Bernard</h4>
+                            <p>sophie.b@exemple.com</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reservations Display Section -->
+            <div class="reservations-display">
+                <div class="reservations-header">
+                    <h2>Réservations pour <span class="user-name">Jean Dupont</span></h2>
+                    <div class="reservation-filters">
+                        <select id="statusFilter">
+                            <option value="all">Tous les statuts</option>
+                            <option value="confirmed">Confirmées</option>
+                            <option value="pending">En attente</option>
+                        </select>
+                        <select id="dateSort">
+                            <option value="newest">Plus récentes</option>
+                            <option value="oldest">Plus anciennes</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="reservations-list">
+                    <div class="reservation-card" data-status="confirmed" data-date="2023-06-15">
+                        <div class="reservation-icon">
+                            <i class="fas fa-hotel"></i>
+                        </div>
+                        <div class="reservation-details">
+                            <h3>Hôtel Resort Plage</h3>
+                            <p class="reservation-date">15-20 juin 2023</p>
+                            <p class="reservation-status confirmed">Confirmée</p>
+                        </div>
+                        <div class="reservation-actions">
+                            <button class="action-btn view-btn" onclick="openReservationModal(1)"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="reservation-card" data-status="confirmed" data-date="2023-06-14">
+                        <div class="reservation-icon">
+                            <i class="fas fa-plane"></i>
+                        </div>
+                        <div class="reservation-details">
+                            <h3>Vol pour Paris</h3>
+                            <p class="reservation-date">14 juin 2023</p>
+                            <p class="reservation-status confirmed">Confirmée</p>
+                        </div>
+                        <div class="reservation-actions">
+                            <button class="action-btn view-btn" onclick="openReservationModal(2)"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="reservation-card" data-status="pending" data-date="2023-08-01">
+                        <div class="reservation-icon">
+                            <i class="fas fa-suitcase-rolling"></i>
+                        </div>
+                        <div class="reservation-details">
+                            <h3>Forfait Vacances d'été</h3>
+                            <p class="reservation-date">1-10 août 2023</p>
+                            <p class="reservation-status pending">En attente</p>
+                        </div>
+                        <div class="reservation-actions">
+                            <button class="action-btn view-btn" onclick="openReservationModal(3)"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reservation Details Modal -->
+    <div id="reservationModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2>Détails de la réservation</h2>
+
+            <div class="modal-body">
+                <div class="detail-row">
+                    <span class="detail-label">Utilisateur:</span>
+                    <span class="detail-value" id="modal-user">Jean Dupont</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Type:</span>
+                    <span class="detail-value" id="modal-type">Hôtel</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Nom:</span>
+                    <span class="detail-value" id="modal-name">Hôtel Resort Plage</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Dates:</span>
+                    <span class="detail-value" id="modal-dates">15-20 juin 2023</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Statut:</span>
+                    <span class="detail-value" id="modal-status">Confirmée</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Prix:</span>
+                    <span class="detail-value" id="modal-price">€850</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Référence:</span>
+                    <span class="detail-value" id="modal-reference">RES-2023-1564</span>
+                </div>
+                <div class="detail-row full-width">
+                    <span class="detail-label">Notes:</span>
+                    <span class="detail-value" id="modal-notes">Chambre avec vue mer, petit-déjeuner inclus</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ asset('js/reservations/reservationAdmin.js') }}"></script>
+{% endblock %}
