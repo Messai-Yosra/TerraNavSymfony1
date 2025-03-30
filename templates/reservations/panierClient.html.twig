@@ -1,3 +1,4 @@
+{# templates/reservations/panierClient.html.twig #}
 {% extends "baseClient.html.twig" %}
 
 {% block titre %} Panier {% endblock %}
@@ -218,7 +219,12 @@
                             <div class="col-lg-4 col-md-6">
                                 <div class="room-item shadow rounded overflow-hidden h-100">
                                     <div class="position-relative">
-                                        <img class="img-fluid w-100" src="{{ static_images.voyage[0] }}" alt="Voyage" style="height: 200px; object-fit: cover;">
+                                        {% if reservation.id_voyage and reservation.id_voyage.pathImages %}
+                                            {% set voyageImages = reservation.id_voyage.pathImages|split('***') %}
+                                            <img class="img-fluid w-100" src="{{ asset(voyageImages[0]) }}" alt="{{ reservation.id_voyage.titre }}" style="height: 200px; object-fit: cover;">
+                                        {% else %}
+                                            <img class="img-fluid w-100" src="{{ asset('img/voyage-default.jpg') }}" alt="Voyage" style="height: 200px; object-fit: cover;">
+                                        {% endif %}
                                         <small class="position-absolute start-0 top-100 translate-middle-y bg-primary text-white rounded py-1 px-3 ms-4">{{ reservation.prix }}€</small>
                                     </div>
                                     <div class="p-4 mt-2">
@@ -252,7 +258,7 @@
                                             <button class="btn btn-sm btn-primary rounded py-2 px-4 details-btn"
                                                     data-reservation-id="{{ reservation.id }}"
                                                     data-reservation-type="voyage"
-                                                    data-images='{{ static_images.voyage|json_encode|raw }}'
+                                                    data-images='{% if reservation.id_voyage and reservation.id_voyage.pathImages %}{{ reservation.id_voyage.pathImages|split('***')|json_encode|raw }}{% else %}["{{ asset('img/voyage-default.jpg') }}"]{% endif %}'
                                                     data-title="{{ reservation.id_voyage and reservation.id_voyage.titre ? reservation.id_voyage.titre : 'Voyage #' ~ reservation.id }}"
                                                     data-price="{{ reservation.prix }}"
                                                     data-date="{{ reservation.id_voyage and reservation.id_voyage.dateDepart ? reservation.id_voyage.dateDepart|date('d/m/Y') : reservation.date_reservation|date('d/m/Y') }}"
@@ -265,7 +271,7 @@
                                             <button class="btn btn-sm btn-warning rounded py-2 px-4 edit-reservation-btn"
                                                     data-reservation-id="{{ reservation.id }}"
                                                     data-reservation-type="voyage"
-                                                    data-images='{{ static_images.voyage|json_encode|raw }}'
+                                                    data-images='{% if reservation.id_voyage and reservation.id_voyage.pathImages %}{{ reservation.id_voyage.pathImages|split('***')|json_encode|raw }}{% else %}["{{ asset('img/voyage-default.jpg') }}"]{% endif %}'
                                                     data-title="{{ reservation.id_voyage and reservation.id_voyage.titre ? reservation.id_voyage.titre : 'Voyage #' ~ reservation.id }}"
                                                     data-price="{{ reservation.prix }}"
                                                     data-date="{{ reservation.id_voyage and reservation.id_voyage.dateDepart ? reservation.id_voyage.dateDepart|date('Y-m-d') : reservation.date_reservation|date('Y-m-d') }}"
@@ -303,20 +309,46 @@
                     </div>
                     <div class="row g-4" id="chambres-reservations">
                         {% for reservation in reservations.chambre %}
+                            {% set chambre = reservation.id_Chambre %}
                             <div class="col-lg-4 col-md-6">
                                 <div class="room-item shadow rounded overflow-hidden h-100">
                                     <div class="position-relative">
-                                        <img class="img-fluid w-100" src="{{ static_images.chambre[0] }}" alt="Chambre" style="height: 200px; object-fit: cover;">
+                                        <!-- Carousel for chambre images -->
+                                        <div id="carousel-chambre-{{ reservation.id }}" class="carousel slide" data-bs-ride="carousel">
+                                            <div class="carousel-inner">
+                                                {% if chambre and chambre.images|length > 0 %}
+                                                    {% for image in chambre.images %}
+                                                        <div class="carousel-item {% if loop.first %}active{% endif %}">
+                                                            <img class="d-block w-100" src="{{ asset(image.getUrlImage()) }}" alt="Chambre image" style="height: 200px; object-fit: cover;">
+                                                        </div>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <div class="carousel-item active">
+                                                        <img class="d-block w-100" src="{{ asset('img/room-default.jpg') }}" alt="Default chambre" style="height: 200px; object-fit: cover;">
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            {% if chambre and chambre.images|length > 1 %}
+                                                <button class="carousel-control-prev" type="button" data-bs-target="#carousel-chambre-{{ reservation.id }}" data-bs-slide="prev">
+                                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                    <span class="visually-hidden">Previous</span>
+                                                </button>
+                                                <button class="carousel-control-next" type="button" data-bs-target="#carousel-chambre-{{ reservation.id }}" data-bs-slide="next">
+                                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                    <span class="visually-hidden">Next</span>
+                                                </button>
+                                            {% endif %}
+                                        </div>
                                         <small class="position-absolute start-0 top-100 translate-middle-y bg-primary text-white rounded py-1 px-3 ms-4">{{ reservation.prix }}€</small>
                                     </div>
                                     <div class="p-4 mt-2">
                                         <div class="d-flex justify-content-between mb-3">
                                             <div class="d-flex flex-column">
-                                                {% if reservation.id_Chambre and reservation.id_Chambre.id_hebergement %}
-                                                    <h5 class="mb-0">{{ reservation.id_Chambre.id_hebergement.nom }}</h5>
-                                                    <small class="text-muted">Chambre {{ reservation.id_Chambre.numero }}</small>
-                                                {% elseif reservation.id_Chambre %}
-                                                    <h5 class="mb-0">Chambre {{ reservation.id_Chambre.numero }}</h5>
+                                                {% if chambre and chambre.id_hebergement %}
+                                                    <h5 class="mb-0">{{ chambre.id_hebergement.nom }}</h5>
+                                                    <small class="text-muted">Chambre {{ chambre.numero }}</small>
+                                                {% elseif chambre %}
+                                                    <h5 class="mb-0">Chambre {{ chambre.numero }}</h5>
                                                 {% else %}
                                                     <h5 class="mb-0">Chambre #{{ reservation.id }}</h5>
                                                 {% endif %}
@@ -347,33 +379,41 @@
                                             <button class="btn btn-sm btn-primary rounded py-2 px-4 details-btn"
                                                     data-reservation-id="{{ reservation.id }}"
                                                     data-reservation-type="chambre"
-                                                    data-images='{{ static_images.chambre|json_encode|raw }}'
-                                                    data-title="{% if reservation.id_Chambre and reservation.id_Chambre.id_hebergement %}{{ reservation.id_Chambre.id_hebergement.nom }}{% elseif reservation.id_Chambre %}Chambre {{ reservation.id_Chambre.numero }}{% else %}Chambre #{{ reservation.id }}{% endif %}"
-                                                    data-subtitle="{% if reservation.id_Chambre and reservation.id_Chambre.id_hebergement %}Chambre {{ reservation.id_Chambre.numero }}{% endif %}"
+                                                    data-images='{% if chambre and chambre.images|length > 0 %}{{ chambre.images|map(image => asset(image.getUrlImage()))|json_encode|raw }}{% else %}["{{ asset('img/room-default.jpg') }}"]{% endif %}'
+                                                    data-title="{% if chambre and chambre.id_hebergement %}{{ chambre.id_hebergement.nom }}{% elseif chambre %}Chambre {{ chambre.numero }}{% else %}Chambre #{{ reservation.id }}{% endif %}"
+                                                    data-subtitle="{% if chambre and chambre.id_hebergement %}Chambre {{ chambre.numero }}{% endif %}"
                                                     data-price="{{ reservation.prix }}"
                                                     data-date="{{ reservation.date_reservation|date('d/m/Y') }}"
                                                     data-status="{{ reservation.Etat }}"
                                                     data-places="{{ reservation.nb_places }}"
                                                     data-duration="{{ reservation.nbJoursHebergement }} jours"
                                                     data-nb-jours="{{ reservation.nbJoursHebergement }}"
-                                                    data-hebergement="{% if reservation.id_Chambre and reservation.id_Chambre.id_hebergement %}{{ reservation.id_Chambre.id_hebergement.nom }}{% else %}N/A{% endif %}"
-                                                    data-description="{% if reservation.id_Chambre and reservation.id_Chambre.description %}{{ reservation.id_Chambre.description }}{% else %}Aucune description disponible{% endif %}">
+                                                    data-hebergement="{% if chambre and chambre.id_hebergement %}{{ chambre.id_hebergement.nom }}{% else %}N/A{% endif %}"
+                                                    data-description="{% if chambre and chambre.description %}{{ chambre.description }}{% else %}Aucune description disponible{% endif %}"
+                                                    data-capacite="{% if chambre %}{{ chambre.capacite }}{% else %}N/A{% endif %}"
+                                                    data-taille="{% if chambre %}{{ chambre.taille }}{% else %}N/A{% endif %}"
+                                                    data-vue="{% if chambre %}{{ chambre.vue }}{% else %}N/A{% endif %}"
+                                                    data-equipements="{% if chambre %}{{ chambre.equipements }}{% else %}N/A{% endif %}">
                                                 Détails
                                             </button>
                                             <button class="btn btn-sm btn-warning rounded py-2 px-4 edit-reservation-btn"
                                                     data-reservation-id="{{ reservation.id }}"
                                                     data-reservation-type="chambre"
-                                                    data-images='{{ static_images.chambre|json_encode|raw }}'
-                                                    data-title="{% if reservation.id_Chambre and reservation.id_Chambre.id_hebergement %}{{ reservation.id_Chambre.id_hebergement.nom }}{% elseif reservation.id_Chambre %}Chambre {{ reservation.id_Chambre.numero }}{% else %}Chambre #{{ reservation.id }}{% endif %}"
-                                                    data-subtitle="{% if reservation.id_Chambre and reservation.id_Chambre.id_hebergement %}Chambre {{ reservation.id_Chambre.numero }}{% endif %}"
+                                                    data-images='{% if chambre and chambre.images|length > 0 %}{{ chambre.images|map(image => asset(image.getUrlImage()))|json_encode|raw }}{% else %}["{{ asset('img/room-default.jpg') }}"]{% endif %}'
+                                                    data-title="{% if chambre and chambre.id_hebergement %}{{ chambre.id_hebergement.nom }}{% elseif chambre %}Chambre {{ chambre.numero }}{% else %}Chambre #{{ reservation.id }}{% endif %}"
+                                                    data-subtitle="{% if chambre and chambre.id_hebergement %}Chambre {{ chambre.numero }}{% endif %}"
                                                     data-price="{{ reservation.prix }}"
                                                     data-date="{{ reservation.date_reservation|date('Y-m-d') }}"
                                                     data-status="{{ reservation.Etat }}"
                                                     data-places="{{ reservation.nb_places }}"
                                                     data-duration="{{ reservation.nbJoursHebergement }} jours"
                                                     data-nb-jours="{{ reservation.nbJoursHebergement }}"
-                                                    data-hebergement="{% if reservation.id_Chambre and reservation.id_Chambre.id_hebergement %}{{ reservation.id_Chambre.id_hebergement.nom }}{% else %}N/A{% endif %}"
-                                                    data-description="{% if reservation.id_Chambre and reservation.id_Chambre.description %}{{ reservation.id_Chambre.description }}{% else %}Aucune description disponible{% endif %}">
+                                                    data-hebergement="{% if chambre and chambre.id_hebergement %}{{ chambre.id_hebergement.nom }}{% else %}N/A{% endif %}"
+                                                    data-description="{% if chambre and chambre.description %}{{ chambre.description }}{% else %}Aucune description disponible{% endif %}"
+                                                    data-capacite="{% if chambre %}{{ chambre.capacite }}{% else %}N/A{% endif %}"
+                                                    data-taille="{% if chambre %}{{ chambre.taille }}{% else %}N/A{% endif %}"
+                                                    data-vue="{% if chambre %}{{ chambre.vue }}{% else %}N/A{% endif %}"
+                                                    data-equipements="{% if chambre %}{{ chambre.equipements }}{% else %}N/A{% endif %}">
                                                 Modifier
                                             </button>
                                             <button class="btn btn-sm btn-danger rounded py-2 px-4 delete-btn"
@@ -407,7 +447,11 @@
                             <div class="col-lg-4 col-md-6">
                                 <div class="room-item shadow rounded overflow-hidden h-100">
                                     <div class="position-relative">
-                                        <img class="img-fluid w-100" src="{{ static_images.transport }}" alt="Transport" style="height: 200px; object-fit: cover;">
+                                        {% if reservation.id_Transport.imagePath %}
+                                            <img class="img-fluid w-100" src="{{ asset(reservation.id_Transport.imagePath) }}" alt="{{ reservation.id_Transport.nom }}" style="height: 200px; object-fit: cover;">
+                                        {% else %}
+                                            <img class="img-fluid w-100" src="{{ asset('img/transport-default.jpg') }}" alt="Transport" style="height: 200px; object-fit: cover;">
+                                        {% endif %}
                                         <small class="position-absolute start-0 top-100 translate-middle-y bg-primary text-white rounded py-1 px-3 ms-4">{{ reservation.prix }}€</small>
                                     </div>
                                     <div class="p-4 mt-2">
@@ -427,7 +471,7 @@
                                         <div class="d-flex mb-3">
                                             <small class="border-end me-3 pe-3">
                                                 <i class="fa fa-calendar text-primary me-2"></i>
-                                                {{ reservation.dateAffectation ? reservation.dateAffectation|date('d/m/Y') : 'N/A' }}
+                                                {{ reservation.date_reservation ? reservation.date_reservation|date('d/m/Y') : 'N/A' }}
                                             </small>
                                             <small class="border-end me-3 pe-3">
                                                 <i class="fa fa-car text-primary me-2"></i>
@@ -438,11 +482,11 @@
                                             <button class="btn btn-sm btn-primary rounded py-2 px-4 details-btn"
                                                     data-reservation-id="{{ reservation.id }}"
                                                     data-reservation-type="transport"
-                                                    data-images='["{{ static_images.transport }}"]'
+                                                    data-images='{{ [reservation.id_Transport.imagePath ? asset(reservation.id_Transport.imagePath) : asset('img/transport-default.jpg')]|json_encode|raw }}'
                                                     data-title="{{ reservation.id_Transport.nom }}"
                                                     data-subtitle="{{ reservation.id_Transport.type }}"
                                                     data-price="{{ reservation.prix }}"
-                                                    data-date="{{ reservation.dateAffectation ? reservation.dateAffectation|date('d/m/Y') : 'N/A' }}"
+                                                    data-date="{{ reservation.date_reservation ? reservation.date_reservation|date('d/m/Y') : 'N/A' }}"
                                                     data-status="{{ reservation.Etat }}"
                                                     data-places="{{ reservation.nb_places }}"
                                                     data-pointdepart="{{ reservation.id_Transport.id_trajet.pointDepart }}"
@@ -453,11 +497,11 @@
                                             <button class="btn btn-sm btn-warning rounded py-2 px-4 edit-reservation-btn"
                                                     data-reservation-id="{{ reservation.id }}"
                                                     data-reservation-type="transport"
-                                                    data-images='["{{ static_images.transport }}"]'
+                                                    data-images='{{ [reservation.id_Transport.imagePath ? asset(reservation.id_Transport.imagePath) : asset('img/transport-default.jpg')]|json_encode|raw }}'
                                                     data-title="{{ reservation.id_Transport.nom }}"
                                                     data-subtitle="{{ reservation.id_Transport.type }}"
                                                     data-price="{{ reservation.prix }}"
-                                                    data-date="{{ reservation.dateAffectation ? reservation.dateAffectation|date('Y-m-d') : '' }}"
+                                                    data-date="{{ reservation.date_reservation ? reservation.date_reservation|date('Y-m-d') : '' }}"
                                                     data-status="{{ reservation.Etat }}"
                                                     data-places="{{ reservation.nb_places }}"
                                                     data-pointdepart="{{ reservation.id_Transport.id_trajet.pointDepart }}"

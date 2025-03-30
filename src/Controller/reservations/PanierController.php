@@ -40,15 +40,8 @@ final class PanierController extends AbstractController
                 $r->gettype_service() === 'Chambre' && $r->getEtat() === 'PENDING')
         ];
 
-        $staticImages = [
-            'voyage' => ['https://images.unsplash.com/photo-1431274172761-fca41d930114','https://images.unsplash.com/photo-1431274172761-fca41d930114'],
-            'transport' => 'https://images.unsplash.com/photo-1503376780353-7e6692767b70',
-            'chambre' => ['https://images.unsplash.com/photo-1566073771259-6a8506099945','https://images.unsplash.com/photo-1566073771259-6a8506099945']
-        ];
-
         return $this->render('reservations/panierClient.html.twig', [
             'reservations' => $groupedReservations,
-            'static_images' => $staticImages,
             'total' => $total,
             'panierId' => $panierId
         ]);

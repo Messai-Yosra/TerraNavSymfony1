@@ -68,13 +68,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (reservationType === 'voyage') {
                 document.getElementById('reservationPlaces').textContent = places;
-                document.getElementById('reservationPlacesLabel').style.display = 'block';
-                document.getElementById('reservationDaysLabel').style.display = 'none';
+                // document.getElementById('reservationPlacesLabel').style.display = 'block';
+                // document.getElementById('reservationDaysLabel').style.display = 'none';
             } else if (reservationType === 'chambre') {
                 document.getElementById('reservationPlaces').textContent = nbJours;
-                document.getElementById('reservationPlacesLabel').textContent = 'Nombre de jours';
-                document.getElementById('reservationPlacesLabel').style.display = 'block';
-                document.getElementById('reservationDaysLabel').style.display = 'none';
+                // document.getElementById('reservationPlacesLabel').textContent = 'Nombre de jours';
+                // document.getElementById('reservationPlacesLabel').style.display = 'block';
+                // document.getElementById('reservationDaysLabel').style.display = 'none';
             }
 
             // Clear and rebuild carousel
