@@ -107,8 +107,7 @@ final class PanierController extends AbstractController
         EntityManagerInterface $entityManager,
         PanierRepository $panierRepository,
         LoggerInterface $logger
-    ): JsonResponse
-    {
+    ): JsonResponse {
         if (!$this->isCsrfTokenValid('update-reservation', $request->request->get('_token'))) {
             return new JsonResponse(['success' => false, 'message' => 'Invalid CSRF token'], 403);
         }
@@ -120,33 +119,6 @@ final class PanierController extends AbstractController
 
         try {
             $type = $reservation->gettype_service();
-            $dateValue = $request->request->get('date_reservation');
-
-            // Validate date for chambre and transport
-            if (in_array($type, ['Chambre', 'Transport']) && !$dateValue) {
-                return new JsonResponse(['success' => false, 'message' => 'Date is required'], 400);
-            }
-
-            try {
-                $dateReservation = new \DateTime($dateValue);
-            } catch (\Exception $e) {
-                return new JsonResponse(['success' => false, 'message' => 'Invalid date format'], 400);
-            }
-
-            $today = new \DateTime('today');
-            if ($dateReservation < $today) {
-                return new JsonResponse(['success' => false, 'message' => 'Date must be today or in the future'], 400);
-            }
-
-            // Update reservation date for chambre and transport
-            if (in_array($type, ['Chambre', 'Transport'])) {
-                $reservation->setdate_reservation($dateReservation);
-            }
-
-            // For Transport, sync dateAffectation
-            if ($type === 'Transport') {
-                $reservation->setdateAffectation($dateReservation);
-            }
 
             // Handle type-specific fields
             switch ($type) {
@@ -155,7 +127,16 @@ final class PanierController extends AbstractController
                     if ($nbPlaces <= 0) {
                         return new JsonResponse(['success' => false, 'message' => 'Number of places must be positive'], 400);
                     }
-                    $reservation->setnb_places($nbPlaces);
+
+                    // Calculate new price based on price per place
+                    $voyage = $reservation->getId_voyage();
+                    if ($voyage) {
+                        $pricePerPlace = $reservation->getPrix() / $reservation->getNb_places();
+                        $newPrice = $pricePerPlace * $nbPlaces;
+                        $reservation->setPrix($newPrice);
+                    }
+
+                    $reservation->setNb_places($nbPlaces);
                     break;
 
                 case 'Chambre':
@@ -163,7 +144,32 @@ final class PanierController extends AbstractController
                     if ($nbJours <= 0) {
                         return new JsonResponse(['success' => false, 'message' => 'Number of days must be positive'], 400);
                     }
+
+                    // Calculate new price based on price per day
+                    $chambre = $reservation->getId_Chambre();
+                    if ($chambre) {
+                        $pricePerDay = $reservation->getPrix() / $reservation->getnbJoursHebergement();
+                        $newPrice = $pricePerDay * $nbJours;
+                        $reservation->setPrix($newPrice);
+                    }
+
                     $reservation->setnbJoursHebergement($nbJours);
+
+                    $dateValue = $request->request->get('date_reservation');
+                    if (!$dateValue) {
+                        return new JsonResponse(['success' => false, 'message' => 'Date is required'], 400);
+                    }
+                    $reservation->setdate_reservation(new \DateTime($dateValue));
+                    break;
+
+                case 'Transport':
+                    $dateValue = $request->request->get('date_reservation');
+                    if (!$dateValue) {
+                        return new JsonResponse(['success' => false, 'message' => 'Date is required'], 400);
+                    }
+                    $dateReservation = new \DateTime($dateValue);
+                    $reservation->setdate_reservation($dateReservation);
+                    $reservation->setdateAffectation($dateReservation);
                     break;
             }
 
@@ -178,8 +184,11 @@ final class PanierController extends AbstractController
                 'reservation' => [
                     'id' => $reservation->getId(),
                     'type' => $reservation->gettype_service(),
+                    'price' => $reservation->getPrix(),
                     'date' => $reservation->getdate_reservation()->format('Y-m-d'),
-                    'status' => $reservation->getEtat()
+                    'status' => $reservation->getEtat(),
+                    'nb_places' => $reservation->getNb_places(),
+                    'nb_jours' => $reservation->getnbJoursHebergement()
                 ]
             ]);
 

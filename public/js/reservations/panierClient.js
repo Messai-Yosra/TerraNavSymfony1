@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const date = this.getAttribute('data-date');
             const status = this.getAttribute('data-status');
             const places = this.getAttribute('data-places');
+            const nbJours = this.getAttribute('data-nb-jours');
             const pointDepart = this.getAttribute('data-pointdepart');
             const destination = this.getAttribute('data-destination');
             const description = this.getAttribute('data-description');
@@ -64,7 +65,17 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('reservationPrice').textContent = price;
             document.getElementById('reservationDate').textContent = date;
             document.getElementById('reservationStatus').textContent = status;
-            document.getElementById('reservationPlaces').textContent = places;
+
+            if (reservationType === 'voyage') {
+                document.getElementById('reservationPlaces').textContent = places;
+                document.getElementById('reservationPlacesLabel').style.display = 'block';
+                document.getElementById('reservationDaysLabel').style.display = 'none';
+            } else if (reservationType === 'chambre') {
+                document.getElementById('reservationPlaces').textContent = nbJours;
+                document.getElementById('reservationPlacesLabel').textContent = 'Nombre de jours';
+                document.getElementById('reservationPlacesLabel').style.display = 'block';
+                document.getElementById('reservationDaysLabel').style.display = 'none';
+            }
 
             // Clear and rebuild carousel
             const carouselIndicators = document.getElementById('carouselIndicators');
@@ -102,14 +113,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const additionalDetails = document.getElementById('additionalDetails');
 
             if (reservationType === 'voyage') {
-                specificDetail1.innerHTML = `<strong>Destination:</strong> ${this.getAttribute('data-destination') || 'N/A'}`;
+                specificDetail1.innerHTML = `<strong>Destination:</strong> ${destination || 'N/A'}`;
                 specificDetail2.innerHTML = '';
                 additionalDetails.innerHTML = `
                     <h5 class="mt-4">Description du voyage</h5>
                     <p>${description || 'Aucune description disponible'}</p>
                 `;
             } else if (reservationType === 'chambre') {
-                specificDetail1.innerHTML = `<strong>Durée:</strong> ${this.getAttribute('data-duration') || 'N/A'}`;
+                specificDetail1.innerHTML = `<strong>Durée:</strong> ${nbJours || '1'} jours`;
                 specificDetail2.innerHTML = `<strong>Hébergement:</strong> ${this.getAttribute('data-hebergement') || 'N/A'}`;
                 additionalDetails.innerHTML = `
                     <h5 class="mt-4">Description du chambre</h5>
@@ -145,6 +156,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const destination = this.getAttribute('data-destination');
             const description = this.getAttribute('data-description');
 
+            // Reset all event listeners to prevent duplicates
+            document.getElementById('editNbPlaces').replaceWith(document.getElementById('editNbPlaces').cloneNode(true));
+            document.getElementById('editNbJours').replaceWith(document.getElementById('editNbJours').cloneNode(true));
+
             // Set basic information
             document.getElementById('editReservationModalLabel').textContent = `Modifier ${title}`;
             document.getElementById('editReservationTitle').textContent = title;
@@ -153,6 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('editDate').value = date;
             document.getElementById('editReservationStatus').textContent = status;
             document.getElementById('editNbPlaces').value = places;
+            document.getElementById('editNbJours').value = nbJours || 1;
             document.getElementById('editReservationId').value = reservationId;
             document.getElementById('editReservationType').value = reservationType;
 
@@ -202,18 +218,45 @@ document.addEventListener('DOMContentLoaded', function() {
                 nbPlacesContainer.style.display = 'block';
                 nbJoursContainer.style.display = 'none';
                 dateContainer.style.display = 'none';
+
+                // Calculate and store price per place
+                const originalPrice = parseFloat(price);
+                const originalPlaces = parseInt(places) || 1;
+                const pricePerPlace = originalPrice / originalPlaces;
+                document.getElementById('editNbPlaces').setAttribute('data-price-per-place', pricePerPlace);
+
+                // Add event listener for dynamic price calculation
+                document.getElementById('editNbPlaces').addEventListener('input', function() {
+                    const pricePerPlace = parseFloat(this.getAttribute('data-price-per-place'));
+                    const newPlaces = parseInt(this.value) || 0;
+                    const newPrice = pricePerPlace * newPlaces;
+                    document.getElementById('editPrix').textContent = newPrice.toFixed(2) + '€';
+                });
             } else if (reservationType === 'chambre') {
                 nbPlacesContainer.style.display = 'none';
                 nbJoursContainer.style.display = 'block';
                 dateContainer.style.display = 'block';
-                document.getElementById('editNbJours').value = nbJours || 1;
+
+                // Calculate and store price per day
+                const originalPrice = parseFloat(price);
+                const originalDays = parseInt(nbJours) || 1;
+                const pricePerDay = originalPrice / originalDays;
+                document.getElementById('editNbJours').setAttribute('data-price-per-day', pricePerDay);
+
+                // Add event listener for dynamic price calculation
+                document.getElementById('editNbJours').addEventListener('input', function() {
+                    const pricePerDay = parseFloat(this.getAttribute('data-price-per-day'));
+                    const newDays = parseInt(this.value) || 0;
+                    const newPrice = pricePerDay * newDays;
+                    document.getElementById('editPrix').textContent = newPrice.toFixed(2) + '€';
+                });
             } else if (reservationType === 'transport') {
                 nbPlacesContainer.style.display = 'none';
                 nbJoursContainer.style.display = 'none';
                 dateContainer.style.display = 'block';
             }
 
-            // Set additional details based on reservation type
+            // Set additional details
             let additionalDetailsHTML = '';
             if (reservationType === 'transport') {
                 additionalDetailsHTML = `
@@ -261,19 +304,29 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Validate type-specific fields
+        // Validate type-specific fields and update price
         if (reservationType === 'voyage') {
             const nbPlaces = document.getElementById('editNbPlaces').value;
             if (nbPlaces <= 0) {
                 showNotification('Le nombre de places doit être positif', 'error');
                 return;
             }
+
+            // Update price in form data based on current calculation
+            const pricePerPlace = parseFloat(document.getElementById('editNbPlaces').getAttribute('data-price-per-place'));
+            const newPrice = pricePerPlace * nbPlaces;
+            formData.set('prix', newPrice.toString());
         } else if (reservationType === 'chambre') {
             const nbJours = document.getElementById('editNbJours').value;
             if (nbJours <= 0) {
                 showNotification('Le nombre de jours doit être positif', 'error');
                 return;
             }
+
+            // Update price in form data based on current calculation
+            const pricePerDay = parseFloat(document.getElementById('editNbJours').getAttribute('data-price-per-day'));
+            const newPrice = pricePerDay * nbJours;
+            formData.set('prix', newPrice.toString());
         }
 
         // Store form data for later submission
