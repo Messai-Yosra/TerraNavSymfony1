@@ -1,0 +1,15 @@
+{# templates/reset_password/email.html.twig #}
+<h1>Bonjour!</h1>
+
+<p>
+    Pour réinitialiser votre mot de passe, veuillez cliquer sur le lien suivant:
+    <br><br>
+    <a href="{{ resetUrl }}">{{ resetUrl }}</a>
+</p>
+
+<p>Ce lien expirera dans 1 heure ({{ expiry_date }}).</p>
+
+<p>
+    Cordialement,<br>
+    L'équipe TerraNav
+</p>

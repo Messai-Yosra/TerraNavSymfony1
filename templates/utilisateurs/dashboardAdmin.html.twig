@@ -18,15 +18,30 @@
         }
         
         .avatar-circle {
-            width: 100px;
-            height: 100px;
+            width: 100px !important;
+            height: 100px !important;
             border-radius: 50%;
             margin: -50px auto 10px;
             border: 5px solid white;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden !important;
             display: flex;
             justify-content: center;
             align-items: center;
+            position: relative;
+            background-position: center;
+            background-size: cover;
+        }
+        
+        .avatar-circle img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            position: absolute;
+            top: 0;
+            left: 0;
+            max-width: 100% !important;
+            max-height: 100% !important;
         }
         
         .card-top-banner {
@@ -551,25 +566,37 @@
                                 {% else %}linear-gradient(135deg, #36b9cc, #258391){% endif %}">
                             </div>
                             
-                            <!-- Avatar -->
-                            <div class="avatar-circle" 
-                                style="background: 
-                                {% if utilisateur.role == 'ADMIN' %}linear-gradient(45deg, #e74a3b, #be2617)
-                                {% elseif utilisateur.role == 'AGENCE' %}linear-gradient(45deg, #1cc88a, #169d68)
-                                {% else %}linear-gradient(45deg, #36b9cc, #258391){% endif %}">
-                                <span class="text-white h3">{{ utilisateur.prenom|first|upper }}{{ utilisateur.nom|first|upper }}</span>
-                            </div>
-                            
-                            <!-- User Identity -->
-                            <div class="text-center my-3">
-                                <h5 class="mb-0">{{ utilisateur.prenom }} {{ utilisateur.nom }}</h5>
-                                <p class="text-muted">@{{ utilisateur.username }}</p>
-                                <span class="badge 
-                                    {% if utilisateur.role == 'ADMIN' %}bg-danger
-                                    {% elseif utilisateur.role == 'AGENCE' %}bg-success
-                                    {% else %}bg-info{% endif %}">
-                                    {{ utilisateur.role }}
-                                </span>
+                            <!-- Avatar and User Information -->
+                            <div class="d-flex align-items-center p-3">
+                                <!-- Avatar plus petit à côté du texte -->
+                                <div class="me-3" style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; border: 3px solid white; box-shadow: 0 3px 10px rgba(0,0,0,0.1); flex-shrink: 0; display: flex; justify-content: center; align-items: center;
+                                    {% if not utilisateur.photo %}
+                                        background: 
+                                        {% if utilisateur.role == 'ADMIN' %}linear-gradient(45deg, #e74a3b, #be2617)
+                                        {% elseif utilisateur.role == 'AGENCE' %}linear-gradient(45deg, #1cc88a, #169d68)
+                                        {% else %}linear-gradient(45deg, #36b9cc, #258391){% endif %};
+                                    {% endif %}
+                                ">
+                                    {% if utilisateur.photo %}
+                                        <img src="{{ asset('uploads/profile/' ~ utilisateur.photo) }}" 
+                                             alt="Photo de {{ utilisateur.prenom }}"
+                                             style="width: 100%; height: 100%; object-fit: cover;">
+                                    {% else %}
+                                        <span class="text-white" style="font-size: 1.25rem;">{{ utilisateur.prenom|first|upper }}{{ utilisateur.nom|first|upper }}</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Information utilisateur -->
+                                <div>
+                                    <h5 class="mb-0">{{ utilisateur.prenom }} {{ utilisateur.nom }}</h5>
+                                    <p class="text-muted mb-1">@{{ utilisateur.username }}</p>
+                                    <span class="badge 
+                                        {% if utilisateur.role == 'ADMIN' %}bg-danger
+                                        {% elseif utilisateur.role == 'AGENCE' %}bg-success
+                                        {% else %}bg-info{% endif %}">
+                                        {{ utilisateur.role }}
+                                    </span>
+                                </div>
                             </div>
                             
                             <!-- User Information -->

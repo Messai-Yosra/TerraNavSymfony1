@@ -17,12 +17,13 @@ security:
             security: false
         main:
             lazy: true
-            provider: utilisateur_provider # Assurez-vous que ce provider existe
+            provider: utilisateur_provider
 
             # Enable form login
             form_login:
                 login_path: app_login
                 check_path: app_login_check
+                default_target_path: app_home
                 # Utilisez le success handler personnalisé au lieu de default_target_path
                 success_handler: App\Security\LoginSuccessHandler
                 # Désactivez ces options pour permettre au handler de fonctionner
@@ -34,10 +35,16 @@ security:
                 path: app_logout
                 target: app_login
 
-    # Règles d'accès
+            # Ajouter cette section pour autoriser les routes de réinitialisation de mot de passe
+            # access_control:
+            #     - { path: ^/reset-password, roles: PUBLIC_ACCESS }
+
+    # L'option access_control doit être ICI, au même niveau que firewalls
     access_control:
         # Routes publiques en premier
-        - { path: ^/login$, roles: PUBLIC_ACCESS }
+        - { path: ^/reset-password, roles: PUBLIC_ACCESS }
+        - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/register, roles: PUBLIC_ACCESS }
         - { path: ^/signup$, roles: PUBLIC_ACCESS }
         - { path: ^/login_check$, roles: PUBLIC_ACCESS }
         - { path: ^/logout$, roles: PUBLIC_ACCESS }

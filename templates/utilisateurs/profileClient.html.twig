@@ -1,6 +1,6 @@
-{% extends "baseClient.html.twig" %}
+{% extends 'baseClient.html.twig' %}
 
-{% block titre %} Profile {% endblock %}
+{% block titre %}Mon Profil - TerraNav{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -140,185 +140,318 @@
     </style>
 {% endblock %}
 
-{% block body %}
-    <div class="profile-container">
-        {% for label, messages in app.flashes %}
-            {% for message in messages %}
-                <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endfor %}
-        
-        <!-- Header du profil -->
-        <div class="profile-header">
-            <div class="container">
-                <div class="row justify-content-center">
-                    <div class="col-md-8 text-center">
-                        <div class="profile-avatar">
-                            {{ app.user.prenom|first|upper }}{{ app.user.nom|first|upper }}
-                        </div>
-                        <h1 class="profile-username">{{ app.user.prenom }} {{ app.user.nom }}</h1>
-                        <p class="profile-email">{{ app.user.email }}</p>
-                        <div class="profile-role-badge">{{ app.user.role }}</div>
-                    </div>
-                </div>
-            </div>
+{% block content %}
+<div class="container-xxl py-5">
+    <div class="container">
+        <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+            <h6 class="section-title text-center text-primary text-uppercase">Mon Profil</h6>
+            <h1 class="mb-5">Gérer <span class="text-primary text-uppercase">votre compte</span></h1>
         </div>
         
-        <div class="row">
-            <!-- Informations du profil -->
-            <div class="col-lg-4 mb-4">
-                <div class="card profile-card">
-                    <div class="profile-card-header">
-                        <h3><i class="fas fa-user me-2"></i> Mes informations</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="profile-info-item">
-                            <div class="profile-info-label">Email</div>
-                            <div class="profile-info-value">{{ app.user.email }}</div>
-                        </div>
-                        <div class="profile-info-item">
-                            <div class="profile-info-label">Téléphone</div>
-                            <div class="profile-info-value">{{ app.user.numTel ?: 'Non renseigné' }}</div>
-                        </div>
-                        <div class="profile-info-item">
-                            <div class="profile-info-label">CIN</div>
-                            <div class="profile-info-value">{{ app.user.cin ?: 'Non renseigné' }}</div>
-                        </div>
-                        <div class="profile-info-item">
-                            <div class="profile-info-label">Adresse</div>
-                            <div class="profile-info-value">{{ app.user.address ?: 'Non renseignée' }}</div>
-                        </div>
-                    </div>
-                </div>
+        <div class="row g-5">
+            <div class="col-lg-6 mx-auto wow fadeInUp" data-wow-delay="0.2s">
+                <div class="bg-light rounded p-5">
+                    {# Affichage des messages flash #}
+                    {% for label, messages in app.flashes %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
+                    
+                    <form id="profileForm" action="{{ path('user_profile_update') }}" method="post" enctype="multipart/form-data">
+                        <div class="row g-3">
+                            <!-- Photo de profil -->
+                            <div class="col-12 mb-4">
+                                <label for="photo" class="form-label">Photo de profil</label>
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="profile-avatar me-4" id="profilePreview" style="width: 150px; height: 150px; border-radius: 50%; overflow: hidden; background-color: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+                                        {% if app.user.photo %}
+                                            <img src="{{ asset('uploads/profile/' ~ app.user.photo) }}" alt="Photo de profil" class="img-fluid rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
+                                        {% else %}
+                                            <span style="font-size: 3rem; color: #6c757d;">{{ app.user.prenom|slice(0, 1) }}{{ app.user.nom|slice(0, 1) }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <div class="d-flex flex-wrap gap-2 mb-2">
+                                            <button type="button" id="cameraBtn" class="btn btn-secondary">
+                                                <i class="fas fa-camera me-1"></i> Prendre une photo
+                                            </button>
+                                            <span class="align-self-center">ou</span>
+                                            <label for="photo_upload" class="btn btn-outline-primary mb-0">
+                                                <i class="fas fa-upload me-1"></i> Télécharger une image
+                                            </label>
+                                            
+                                            <!-- Input pour la caméra (mobile) -->
+                                            <input type="file" class="form-control d-none" id="photo_camera" name="photo_camera" accept="image/*" capture="camera">
+                                            
+                                            <!-- Input pour l'upload normal -->
+                                            <input type="file" class="form-control d-none" id="photo_upload" name="photo_upload" accept="image/*">
+                                        </div>
+                                        <div class="form-text">
+                                            Formats acceptés : JPG, PNG, GIF. Max 2 Mo.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-                <!-- Activité récente (optionnel) -->
-                <div class="card profile-card">
-                    <div class="profile-card-header">
-                        <h3><i class="fas fa-history me-2"></i> Activité récente</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="profile-info-item">
-                            <div class="profile-info-label">Dernière connexion</div>
-                            <div class="profile-info-value">{{ "now"|date("d/m/Y H:i") }}</div>
-                        </div>
-                        <div class="profile-info-item">
-                            <div class="profile-info-label">Voyages réservés</div>
-                            <div class="profile-info-value">{{ app.user.voyages|length }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Formulaire de modification -->
-            <div class="col-lg-8">
-                <div class="card profile-card">
-                    <div class="profile-card-header d-flex justify-content-between align-items-center">
-                        <h3><i class="fas fa-edit me-2"></i> Modifier mon profil</h3>
-                    </div>
-                    <div class="card-body">
-                        <form method="post" action="{{ path('user_profile_update') }}" class="profile-form">
-                            <div class="row mb-4">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Prénom</label>
-                                    <div class="position-relative">
-                                        <i class="fas fa-user profile-form-icon"></i>
-                                        <input type="text" name="prenom" class="form-control profile-form-control profile-form-input" value="{{ app.user.prenom }}" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Nom</label>
-                                    <div class="position-relative">
-                                        <i class="fas fa-user profile-form-icon"></i>
-                                        <input type="text" name="nom" class="form-control profile-form-control profile-form-input" value="{{ app.user.nom }}" required>
+                            <!-- Modal pour la caméra -->
+                            <div class="modal fade" id="cameraModal" tabindex="-1" aria-labelledby="cameraModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="cameraModalLabel">Prendre une photo</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="camera-container">
+                                                <video id="videoElement" autoplay playsinline style="width: 100%; display: block;" class="rounded mb-3"></video>
+                                                <canvas id="canvasElement" style="display: none; width: 100%;" class="rounded mb-3"></canvas>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer justify-content-between">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                            <div>
+                                                <button type="button" id="captureBtn" class="btn btn-primary">
+                                                    <i class="fas fa-camera me-1"></i> Capturer
+                                                </button>
+                                                <button type="button" id="recaptureBtn" class="btn btn-outline-secondary" style="display: none;">
+                                                    <i class="fas fa-redo me-1"></i> Reprendre
+                                                </button>
+                                                <button type="button" id="usePhotoBtn" class="btn btn-success" style="display: none;">
+                                                    <i class="fas fa-check me-1"></i> Utiliser cette photo
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             
-                            <div class="row mb-4">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Email</label>
-                                    <div class="position-relative">
-                                        <i class="fas fa-envelope profile-form-icon"></i>
-                                        <input type="email" name="email" class="form-control profile-form-control profile-form-input" value="{{ app.user.email }}" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Numéro de téléphone</label>
-                                    <div class="position-relative">
-                                        <i class="fas fa-phone profile-form-icon"></i>
-                                        <input type="text" name="numTelephone" class="form-control profile-form-control profile-form-input" value="{{ app.user.numTel }}">
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="row mb-4">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">CIN</label>
-                                    <div class="position-relative">
-                                        <i class="fas fa-id-card profile-form-icon"></i>
-                                        <input type="text" name="cin" class="form-control profile-form-control profile-form-input" value="{{ app.user.cin }}">
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Adresse</label>
-                                    <div class="position-relative">
-                                        <i class="fas fa-map-marker-alt profile-form-icon"></i>
-                                        <input type="text" name="adresse" class="form-control profile-form-control profile-form-input" value="{{ app.user.address }}">
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="d-flex justify-content-end mt-4">
-                                <button type="submit" class="profile-submit-btn">
-                                    <i class="fas fa-save me-2"></i> Enregistrer les modifications
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                            <!-- Champ caché pour stocker l'image de la caméra -->
+                            <input type="hidden" id="base64_camera_image" name="base64_camera_image">
 
-                <!-- Changer le mot de passe -->
-                <div class="card profile-card">
-                    <div class="profile-card-header">
-                        <h3><i class="fas fa-lock me-2"></i> Changer mon mot de passe</h3>
-                    </div>
-                    <div class="card-body">
-                        <form method="post" action="{{ path('user_password_update') }}">
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">Mot de passe actuel</label>
-                                    <div class="position-relative">
-                                        <i class="fas fa-lock profile-form-icon"></i>
-                                        <input type="password" name="currentPassword" class="form-control profile-form-control profile-form-input" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">Nouveau mot de passe</label>
-                                    <div class="position-relative">
-                                        <i class="fas fa-lock profile-form-icon"></i>
-                                        <input type="password" name="newPassword" class="form-control profile-form-control profile-form-input" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">Confirmer le mot de passe</label>
-                                    <div class="position-relative">
-                                        <i class="fas fa-lock profile-form-icon"></i>
-                                        <input type="password" name="confirmPassword" class="form-control profile-form-control profile-form-input" required>
-                                    </div>
+                            <!-- Informations personnelles -->
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="prenom" name="prenom" value="{{ app.user.prenom }}" required>
+                                    <label for="prenom">Prénom</label>
                                 </div>
                             </div>
-                            <div class="d-flex justify-content-end mt-4">
-                                <button type="submit" class="profile-submit-btn">
-                                    <i class="fas fa-key me-2"></i> Changer mon mot de passe
-                                </button>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="nom" name="nom" value="{{ app.user.nom }}" required>
+                                    <label for="nom">Nom</label>
+                                </div>
                             </div>
-                        </form>
-                    </div>
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ app.user.email }}" required>
+                                    <label for="email">Email</label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="numTelephone" name="numTelephone" value="{{ app.user.numTel }}">
+                                    <label for="numTelephone">Numéro de téléphone</label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="cin" name="cin" value="{{ app.user.cin }}">
+                                    <label for="cin">CIN</label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="adresse" name="adresse" value="{{ app.user.address }}">
+                                    <label for="adresse">Adresse</label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <button class="btn btn-primary w-100 py-3" type="submit">Mettre à jour mon profil</button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Éléments du DOM
+    const cameraBtn = document.getElementById('cameraBtn');
+    const photoCamera = document.getElementById('photo_camera');
+    const photoUpload = document.getElementById('photo_upload');
+    const profilePreview = document.getElementById('profilePreview');
+    const videoElement = document.getElementById('videoElement');
+    const canvasElement = document.getElementById('canvasElement');
+    const captureBtn = document.getElementById('captureBtn');
+    const recaptureBtn = document.getElementById('recaptureBtn');
+    const usePhotoBtn = document.getElementById('usePhotoBtn');
+    const base64Input = document.getElementById('base64_camera_image');
+    
+    // Variables globales
+    let stream = null;
+    let cameraModal = new bootstrap.Modal(document.getElementById('cameraModal'));
+    
+    // Fonction pour démarrer la caméra
+    async function startCamera() {
+        console.log("Tentative d'accès à la caméra...");
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                },
+                audio: false
+            });
+            
+            videoElement.srcObject = stream;
+            videoElement.play();
+            console.log("Caméra démarrée avec succès");
+            return true;
+        } catch (err) {
+            console.error("Erreur d'accès à la caméra:", err);
+            alert("Impossible d'accéder à la caméra: " + err.message);
+            return false;
+        }
+    }
+    
+    // Fonction pour arrêter la caméra
+    function stopCamera() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+            videoElement.srcObject = null;
+        }
+    }
+    
+    // Ouvrir la modale et démarrer la caméra
+    cameraBtn.addEventListener('click', async function() {
+        console.log("Bouton caméra cliqué");
+        
+        // Réinitialiser l'interface
+        videoElement.style.display = 'block';
+        canvasElement.style.display = 'none';
+        captureBtn.style.display = 'inline-block';
+        recaptureBtn.style.display = 'none';
+        usePhotoBtn.style.display = 'none';
+        
+        // Afficher la modale
+        cameraModal.show();
+        
+        // Démarrer la caméra après un court délai
+        setTimeout(async function() {
+            const success = await startCamera();
+            if (!success) {
+                cameraModal.hide();
+            }
+        }, 500);
+    });
+    
+    // Fermer la caméra quand la modale est fermée
+    document.getElementById('cameraModal').addEventListener('hidden.bs.modal', function() {
+        console.log("Modale fermée, arrêt de la caméra");
+        stopCamera();
+    });
+    
+    // Capturer une photo
+    captureBtn.addEventListener('click', function() {
+        console.log("Capture de photo");
+        
+        try {
+            // Prendre une capture de la vidéo
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+            const context = canvasElement.getContext('2d');
+            context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+            
+            // Afficher la photo capturée
+            videoElement.style.display = 'none';
+            canvasElement.style.display = 'block';
+            captureBtn.style.display = 'none';
+            recaptureBtn.style.display = 'inline-block';
+            usePhotoBtn.style.display = 'inline-block';
+        } catch (error) {
+            console.error("Erreur lors de la capture:", error);
+            alert("Erreur lors de la capture: " + error.message);
+        }
+    });
+    
+    // Reprendre une photo
+    recaptureBtn.addEventListener('click', function() {
+        videoElement.style.display = 'block';
+        canvasElement.style.display = 'none';
+        captureBtn.style.display = 'inline-block';
+        recaptureBtn.style.display = 'none';
+        usePhotoBtn.style.display = 'none';
+    });
+    
+    // Utiliser la photo capturée
+    usePhotoBtn.addEventListener('click', function() {
+        try {
+            // Convertir le canvas en base64
+            const imageData = canvasElement.toDataURL('image/jpeg');
+            
+            // Stocker l'image dans l'input caché
+            base64Input.value = imageData;
+            
+            // Mettre à jour la prévisualisation
+            profilePreview.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = imageData;
+            img.alt = 'Photo de profil';
+            img.className = 'img-fluid rounded-circle';
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+            profilePreview.appendChild(img);
+            
+            // Fermer la modale
+            cameraModal.hide();
+        } catch (error) {
+            console.error("Erreur lors de l'utilisation de la photo:", error);
+            alert("Erreur lors de l'utilisation de la photo: " + error.message);
+        }
+    });
+    
+    // Prévisualisation des photos téléchargées
+    photoCamera.addEventListener('change', function() {
+        previewUploadedFile(this);
+    });
+    
+    photoUpload.addEventListener('change', function() {
+        previewUploadedFile(this);
+    });
+    
+    function previewUploadedFile(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // Vider l'input base64 car on utilise un fichier
+                base64Input.value = '';
+                
+                // Mettre à jour la prévisualisation
+                profilePreview.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = 'Photo de profil';
+                img.className = 'img-fluid rounded-circle';
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                profilePreview.appendChild(img);
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+});
+</script>
 {% endblock %}
