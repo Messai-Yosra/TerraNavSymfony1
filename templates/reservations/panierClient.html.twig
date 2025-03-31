@@ -167,7 +167,10 @@
                                         <span id="editReservationStatus" class="form-control-plaintext"></span>
                                     </div>
                                     <div class="mb-3" id="nbPlacesContainer">
-                                        <label for="editNbPlaces" class="form-label"><strong>Nombre de places:</strong></label>
+                                        <label for="editNbPlaces" class="form-label">
+                                            <strong>Nombre de places:</strong>
+                                            <span id="availablePlacesInfo" class="text-muted small"></span>
+                                        </label>
                                         <input type="number" min="1" class="form-control" id="editNbPlaces" name="nb_places">
                                     </div>
                                     <div class="mb-3" id="editNbJoursContainer">
@@ -271,6 +274,7 @@
                                             <button class="btn btn-sm btn-warning rounded py-2 px-4 edit-reservation-btn"
                                                     data-reservation-id="{{ reservation.id }}"
                                                     data-reservation-type="voyage"
+                                                    data-voyage-places="{{ reservation.id_voyage.nbPlacesD }}"
                                                     data-images='{% if reservation.id_voyage and reservation.id_voyage.pathImages %}{{ reservation.id_voyage.pathImages|split('***')|json_encode|raw }}{% else %}["{{ asset('img/voyage-default.jpg') }}"]{% endif %}'
                                                     data-title="{{ reservation.id_voyage and reservation.id_voyage.titre ? reservation.id_voyage.titre : 'Voyage #' ~ reservation.id }}"
                                                     data-price="{{ reservation.prix }}"

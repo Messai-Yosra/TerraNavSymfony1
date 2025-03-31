@@ -68,13 +68,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (reservationType === 'voyage') {
                 document.getElementById('reservationPlaces').textContent = places;
-                // document.getElementById('reservationPlacesLabel').style.display = 'block';
-                // document.getElementById('reservationDaysLabel').style.display = 'none';
             } else if (reservationType === 'chambre') {
                 document.getElementById('reservationPlaces').textContent = nbJours;
-                // document.getElementById('reservationPlacesLabel').textContent = 'Nombre de jours';
-                // document.getElementById('reservationPlacesLabel').style.display = 'block';
-                // document.getElementById('reservationDaysLabel').style.display = 'none';
             }
 
             // Clear and rebuild carousel
@@ -152,6 +147,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const status = this.getAttribute('data-status');
             const places = this.getAttribute('data-places');
             const nbJours = this.getAttribute('data-nb-jours');
+            const voyagePlaces = this.getAttribute('data-voyage-places');
             const pointDepart = this.getAttribute('data-pointdepart');
             const destination = this.getAttribute('data-destination');
             const description = this.getAttribute('data-description');
@@ -219,10 +215,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 nbJoursContainer.style.display = 'none';
                 dateContainer.style.display = 'none';
 
+                const currentReservationPlaces = parseInt(places) || 1;
+                const availablePlaces = parseInt(voyagePlaces) + currentReservationPlaces;
+
+                document.getElementById('availablePlacesInfo').textContent =
+                    `(Disponibles: ${availablePlaces}, Actuellement réservées: ${currentReservationPlaces})`;
+
+                document.getElementById('editNbPlaces').max = availablePlaces;
+                document.getElementById('editNbPlaces').value = currentReservationPlaces;
+
                 // Calculate and store price per place
                 const originalPrice = parseFloat(price);
-                const originalPlaces = parseInt(places) || 1;
-                const pricePerPlace = originalPrice / originalPlaces;
+                const pricePerPlace = originalPrice / currentReservationPlaces;
                 document.getElementById('editNbPlaces').setAttribute('data-price-per-place', pricePerPlace);
 
                 // Add event listener for dynamic price calculation
@@ -306,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Validate type-specific fields and update price
         if (reservationType === 'voyage') {
-            const nbPlaces = document.getElementById('editNbPlaces').value;
+            const nbPlaces = parseInt(document.getElementById('editNbPlaces').value);
             if (nbPlaces <= 0) {
                 showNotification('Le nombre de places doit être positif', 'error');
                 return;
@@ -317,7 +321,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const newPrice = pricePerPlace * nbPlaces;
             formData.set('prix', newPrice.toString());
         } else if (reservationType === 'chambre') {
-            const nbJours = document.getElementById('editNbJours').value;
+            const nbJours = parseInt(document.getElementById('editNbJours').value);
             if (nbJours <= 0) {
                 showNotification('Le nombre de jours doit être positif', 'error');
                 return;
