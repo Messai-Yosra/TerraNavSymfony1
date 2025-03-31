@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             document.getElementById('modalReservationDate').textContent = this.dataset.date;
             document.getElementById('modalReservationStatus').textContent = this.dataset.status;
-            document.getElementById('modalReservationPrice').textContent = this.dataset.price + '€';
+            document.getElementById('modalReservationPrice').textContent = this.dataset.price + ' TND';
             document.getElementById('modalReservationDescription').textContent = this.dataset.description || 'Aucune description disponible';
 
             // Clear previous details

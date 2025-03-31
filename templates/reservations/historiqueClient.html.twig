@@ -112,7 +112,7 @@
                                             <td data-date="{{ reservation.id_voyage and reservation.id_voyage.dateDepart ? reservation.id_voyage.dateDepart|date('Y-m-d') : reservation.date_reservation|date('Y-m-d') }}">
                                                 {{ reservation.id_voyage and reservation.id_voyage.dateDepart ? reservation.id_voyage.dateDepart|date('d/m/Y') : reservation.date_reservation|date('d/m/Y') }}
                                             </td>
-                                            <td data-price="{{ reservation.prix }}">{{ reservation.prix }}€</td>
+                                            <td data-price="{{ reservation.prix }}">{{ reservation.prix }} TND</td>
                                             <td>
                                                 <span class="badge {{ reservation.Etat == 'CONFIRMED' ? 'bg-success' : 'bg-warning' }}">
                                                     {{ reservation.Etat == 'CONFIRMED' ? 'Confirmé' : 'En attente' }}
@@ -187,7 +187,7 @@
                                                     - {{ reservation.date_reservation|date_modify("+" ~ reservation.nbJoursHebergement ~ " days")|date('d/m/Y') }}
                                                 {% endif %}
                                             </td>
-                                            <td data-price="{{ reservation.prix }}">{{ reservation.prix }}€</td>
+                                            <td data-price="{{ reservation.prix }}">{{ reservation.prix }} TND</td>
                                             <td>
                                                 <span class="badge {{ reservation.Etat == 'CONFIRMED' ? 'bg-success' : 'bg-warning' }}">
                                                     {{ reservation.Etat == 'CONFIRMED' ? 'Confirmé' : 'En attente' }}
@@ -254,7 +254,7 @@
                                             <td data-date="{{ reservation.dateAffectation ? reservation.dateAffectation|date('Y-m-d') : '' }}">
                                                 {{ reservation.dateAffectation ? reservation.dateAffectation|date('d/m/Y') : 'N/A' }}
                                             </td>
-                                            <td data-price="{{ reservation.prix }}">{{ reservation.prix }}€</td>
+                                            <td data-price="{{ reservation.prix }}">{{ reservation.prix }} TND</td>
                                             <td>
                                                 <span class="badge {{ reservation.Etat == 'CONFIRMED' ? 'bg-success' : 'bg-warning' }}">
                                                     {{ reservation.Etat == 'CONFIRMED' ? 'Confirmé' : 'En attente' }}
@@ -305,7 +305,7 @@
                             <div class="col-md-4 mb-4">
                                 <div class="card border-success">
                                     <div class="card-body text-center">
-                                        <h3 class="text-success">{{ total_spent }}€</h3>
+                                        <h3 class="text-success">{{ total_spent }} TND</h3>
                                         <p class="mb-0">Total dépensé</p>
                                     </div>
                                 </div>

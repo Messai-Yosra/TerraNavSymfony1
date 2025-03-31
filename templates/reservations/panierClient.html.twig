@@ -35,7 +35,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Êtes-vous sûr de vouloir procéder au paiement pour un total de <strong>{{ total }}€</strong> ?</p>
+                    <p>Êtes-vous sûr de vouloir procéder au paiement pour un total de <strong>{{ total }} TND</strong> ?</p>
                     <p>Toutes vos réservations seront confirmées.</p>
                 </div>
                 <div class="modal-footer">
@@ -96,7 +96,7 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <p><strong>Type:</strong> <span id="reservationType"></span></p>
-                                <p><strong>Prix:</strong> <span id="reservationPrice"></span>€</p>
+                                <p><strong>Prix:</strong> <span id="reservationPrice"></span> TND</p>
                                 <p><strong>Date:</strong> <span id="reservationDate"></span></p>
                             </div>
                             <div class="col-md-6">
@@ -228,7 +228,7 @@
                                         {% else %}
                                             <img class="img-fluid w-100" src="{{ asset('img/voyage-default.jpg') }}" alt="Voyage" style="height: 200px; object-fit: cover;">
                                         {% endif %}
-                                        <small class="position-absolute start-0 top-100 translate-middle-y bg-primary text-white rounded py-1 px-3 ms-4">{{ reservation.prix }}€</small>
+                                        <small class="position-absolute start-0 top-100 translate-middle-y bg-primary text-white rounded py-1 px-3 ms-4">{{ reservation.prix }} TND</small>
                                     </div>
                                     <div class="p-4 mt-2">
                                         <div class="d-flex justify-content-between mb-3">
@@ -343,7 +343,7 @@
                                                 </button>
                                             {% endif %}
                                         </div>
-                                        <small class="position-absolute start-0 top-100 translate-middle-y bg-primary text-white rounded py-1 px-3 ms-4">{{ reservation.prix }}€</small>
+                                        <small class="position-absolute start-0 top-100 translate-middle-y bg-primary text-white rounded py-1 px-3 ms-4">{{ reservation.prix }} TND</small>
                                     </div>
                                     <div class="p-4 mt-2">
                                         <div class="d-flex justify-content-between mb-3">
@@ -456,7 +456,7 @@
                                         {% else %}
                                             <img class="img-fluid w-100" src="{{ asset('img/transport-default.jpg') }}" alt="Transport" style="height: 200px; object-fit: cover;">
                                         {% endif %}
-                                        <small class="position-absolute start-0 top-100 translate-middle-y bg-primary text-white rounded py-1 px-3 ms-4">{{ reservation.prix }}€</small>
+                                        <small class="position-absolute start-0 top-100 translate-middle-y bg-primary text-white rounded py-1 px-3 ms-4">{{ reservation.prix }} TND</small>
                                     </div>
                                     <div class="p-4 mt-2">
                                         <div class="d-flex justify-content-between mb-3">
@@ -537,28 +537,28 @@
                         {% if reservations.voyage is not empty %}
                             <div class="d-flex justify-content-between mb-3">
                                 <h6>Voyages</h6>
-                                <h6>{{ reservations.voyage|reduce((sum, item) => sum + item.prix, 0) }}€</h6>
+                                <h6>{{ reservations.voyage|reduce((sum, item) => sum + item.prix, 0) }} TND</h6>
                             </div>
                         {% endif %}
 
                         {% if reservations.chambre is not empty %}
                             <div class="d-flex justify-content-between mb-3">
                                 <h6>Hébergements</h6>
-                                <h6>{{ reservations.chambre|reduce((sum, item) => sum + item.prix, 0) }}€</h6>
+                                <h6>{{ reservations.chambre|reduce((sum, item) => sum + item.prix, 0) }} TND</h6>
                             </div>
                         {% endif %}
 
                         {% if reservations.transport is not empty %}
                             <div class="d-flex justify-content-between mb-3">
                                 <h6>Transports</h6>
-                                <h6>{{ reservations.transport|reduce((sum, item) => sum + item.prix, 0) }}€</h6>
+                                <h6>{{ reservations.transport|reduce((sum, item) => sum + item.prix, 0) }} TND</h6>
                             </div>
                         {% endif %}
 
                         <hr>
                         <div class="d-flex justify-content-between mb-3">
                             <h5>Total</h5>
-                            <h5>{{ total }}€</h5>
+                            <h5>{{ total }} TND</h5>
                         </div>
                         <div class="text-center mt-4">
                             <a class="btn btn-primary py-3 px-5 me-3" href="{{ path('app_home') }}">Continuer vos achats</a>

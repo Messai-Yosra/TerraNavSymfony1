@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('editReservationModalLabel').textContent = `Modifier ${title}`;
             document.getElementById('editReservationTitle').textContent = title;
             document.getElementById('editReservationTypeDisplay').textContent = reservationType.charAt(0).toUpperCase() + reservationType.slice(1);
-            document.getElementById('editPrix').textContent = price + '€';
+            document.getElementById('editPrix').textContent = price + ' TND';
             document.getElementById('editDate').value = date;
             document.getElementById('editReservationStatus').textContent = status;
             document.getElementById('editNbPlaces').value = places;
@@ -234,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const pricePerPlace = parseFloat(this.getAttribute('data-price-per-place'));
                     const newPlaces = parseInt(this.value) || 0;
                     const newPrice = pricePerPlace * newPlaces;
-                    document.getElementById('editPrix').textContent = newPrice.toFixed(2) + '€';
+                    document.getElementById('editPrix').textContent = newPrice.toFixed(2) + ' TND';
                 });
             } else if (reservationType === 'chambre') {
                 nbPlacesContainer.style.display = 'none';
@@ -252,7 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const pricePerDay = parseFloat(this.getAttribute('data-price-per-day'));
                     const newDays = parseInt(this.value) || 0;
                     const newPrice = pricePerDay * newDays;
-                    document.getElementById('editPrix').textContent = newPrice.toFixed(2) + '€';
+                    document.getElementById('editPrix').textContent = newPrice.toFixed(2) + ' TND';
                 });
             } else if (reservationType === 'transport') {
                 nbPlacesContainer.style.display = 'none';

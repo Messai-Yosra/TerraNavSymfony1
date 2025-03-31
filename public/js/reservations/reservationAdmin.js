@@ -74,57 +74,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Modal functions
 function openReservationModal(reservationId) {
-    // In a real application, you would fetch reservation details from your backend
-    // Here we're just simulating with different data based on the ID
     const modal = document.getElementById('reservationModal');
+    const reservationData = window.reservationsData[Object.keys(window.reservationsData)[0]].reservations.find(r => r.id === reservationId);
 
-    // Sample data - in reality you would get this from your backend
-    const reservationData = {
-        1: {
-            user: "Jean Dupont",
-            type: "Hôtel",
-            name: "Hôtel Resort Plage",
-            dates: "15-20 juin 2023",
-            status: "Confirmée",
-            price: "€850",
-            reference: "RES-2023-1564",
-            notes: "Chambre avec vue mer, petit-déjeuner inclus"
-        },
-        2: {
-            user: "Jean Dupont",
-            type: "Vol",
-            name: "Vol pour Paris",
-            dates: "14 juin 2023",
-            status: "Confirmée",
-            price: "€320",
-            reference: "RES-2023-1565",
-            notes: "Vol direct, siège fenêtre, bagage en soute inclus"
-        },
-        3: {
-            user: "Jean Dupont",
-            type: "Forfait",
-            name: "Forfait Vacances d'été",
-            dates: "1-10 août 2023",
-            status: "En attente",
-            price: "€1,200",
-            reference: "RES-2023-1566",
-            notes: "En attente de confirmation des disponibilités"
-        }
-    };
+    if (reservationData) {
+        // Populate modal with data
+        document.getElementById('modal-user').textContent = window.reservationsData[Object.keys(window.reservationsData)[0]].name;
+        document.getElementById('modal-type').textContent =
+            reservationData.type === 'voyage' ? 'Voyage' :
+                reservationData.type === 'chambre' ? 'Hébergement' :
+                    reservationData.type === 'transport' ? 'Transport' : 'Autre';
+        document.getElementById('modal-name').textContent = reservationData.name;
+        document.getElementById('modal-dates').textContent = reservationData.dates;
+        document.getElementById('modal-places').textContent = reservationData.nb_places;
+        document.getElementById('modal-status').textContent = reservationData.status;
+        document.getElementById('modal-price').textContent = reservationData.price;
+        document.getElementById('modal-reference').textContent = reservationData.reference;
+        document.getElementById('modal-notes').textContent = reservationData.notes;
 
-    // Populate modal with data
-    const data = reservationData[reservationId];
-    document.getElementById('modal-user').textContent = data.user;
-    document.getElementById('modal-type').textContent = data.type;
-    document.getElementById('modal-name').textContent = data.name;
-    document.getElementById('modal-dates').textContent = data.dates;
-    document.getElementById('modal-status').textContent = data.status;
-    document.getElementById('modal-price').textContent = data.price;
-    document.getElementById('modal-reference').textContent = data.reference;
-    document.getElementById('modal-notes').textContent = data.notes;
-
-    // Show modal
-    modal.style.display = 'block';
+        // Show modal
+        modal.style.display = 'block';
+    }
 }
 
 function closeModal() {

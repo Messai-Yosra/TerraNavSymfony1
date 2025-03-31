@@ -19,52 +19,24 @@
                 </div>
 
                 <div class="user-list">
-                    <div class="user-card active">
-                        <div class="user-avatar">
-                            <i class="fas fa-user"></i>
+                    {% for user in users %}
+                        <div class="user-card {{ loop.first ? 'active' : '' }}" data-user-id="{{ user.id }}">
+                            <div class="user-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="user-info">
+                                <h4>{{ user.nom }} {{ user.prenom }}</h4>
+                                <p>{{ user.email }}</p>
+                            </div>
                         </div>
-                        <div class="user-info">
-                            <h4>Jean Dupont</h4>
-                            <p>jean.dupont@exemple.com</p>
-                        </div>
-                    </div>
-
-                    <div class="user-card">
-                        <div class="user-avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="user-info">
-                            <h4>Marie Lambert</h4>
-                            <p>marie.l@exemple.com</p>
-                        </div>
-                    </div>
-
-                    <div class="user-card">
-                        <div class="user-avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="user-info">
-                            <h4>Pierre Martin</h4>
-                            <p>pierre.m@exemple.com</p>
-                        </div>
-                    </div>
-
-                    <div class="user-card">
-                        <div class="user-avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="user-info">
-                            <h4>Sophie Bernard</h4>
-                            <p>sophie.b@exemple.com</p>
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
 
             <!-- Reservations Display Section -->
             <div class="reservations-display">
                 <div class="reservations-header">
-                    <h2>Réservations pour <span class="user-name">Jean Dupont</span></h2>
+                    <h2>Réservations pour <span class="user-name">{{ users[0].nom }} {{ users[0].prenom }}</span></h2>
                     <div class="reservation-filters">
                         <select id="statusFilter">
                             <option value="all">Tous les statuts</option>
@@ -79,47 +51,62 @@
                 </div>
 
                 <div class="reservations-list">
-                    <div class="reservation-card" data-status="confirmed" data-date="2023-06-15">
-                        <div class="reservation-icon">
-                            <i class="fas fa-hotel"></i>
+                    {% for reservation in users[0].paniers|first.reservations %}
+                        <div class="reservation-card"
+                             data-status="{{ reservation.Etat == 'CONFIRMED' ? 'confirmed' : 'pending' }}"
+                             data-date="{{ reservation.date_reservation|date('Y-m-d') }}"
+                             data-reservation-id="{{ reservation.id }}">
+                            <div class="reservation-icon">
+                                {% if reservation.id_voyage %}
+                                    <i class="fas fa-suitcase-rolling"></i>
+                                {% elseif reservation.id_Chambre %}
+                                    <i class="fas fa-hotel"></i>
+                                {% elseif reservation.id_Transport %}
+                                    <i class="fas fa-plane"></i>
+                                {% else %}
+                                    <i class="fas fa-calendar-check"></i>
+                                {% endif %}
+                            </div>
+                            <div class="reservation-details">
+                                <h3>
+                                    {% if reservation.id_voyage %}
+                                        {{ reservation.id_voyage.titre }}
+                                    {% elseif reservation.id_Chambre %}
+                                        {{ reservation.id_Chambre.id_hebergement.nom }}
+                                    {% elseif reservation.id_Transport %}
+                                        {{ reservation.id_Transport.nom }}
+                                    {% else %}
+                                        Réservation #{{ reservation.id }}
+                                    {% endif %}
+                                </h3>
+                                <p class="reservation-date">
+                                    {% if reservation.id_voyage %}
+                                        {{ reservation.id_voyage.dateDepart|date('d/m/Y') }} - {{ reservation.id_voyage.dateRetour|date('d/m/Y') }}
+                                        {% if reservation.nb_places %}
+                                            ({{ reservation.nb_places }} places)
+                                        {% endif %}
+                                    {% elseif reservation.id_Chambre %}
+                                        {{ reservation.date_reservation|date('d/m/Y') }}
+                                        {% if reservation.nbJoursHebergement %}
+                                            ({{ reservation.nbJoursHebergement }} jours)
+                                        {% endif %}
+                                    {% elseif reservation.id_Transport %}
+                                        {{ reservation.dateAffectation|date('d/m/Y') }}
+                                    {% else %}
+                                        {{ reservation.date_reservation|date('d/m/Y') }}
+                                    {% endif %}
+                                </p>
+                                <p class="reservation-status {{ reservation.Etat == 'CONFIRMED' ? 'confirmed' : 'pending' }}">
+                                    {{ reservation.Etat == 'CONFIRMED' ? 'Confirmée' : 'En attente' }}
+                                </p>
+                            </div>
+                            <div class="reservation-actions">
+                                <button class="action-btn view-btn" onclick="openReservationModal({{ reservation.id }})">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div class="reservation-details">
-                            <h3>Hôtel Resort Plage</h3>
-                            <p class="reservation-date">15-20 juin 2023</p>
-                            <p class="reservation-status confirmed">Confirmée</p>
-                        </div>
-                        <div class="reservation-actions">
-                            <button class="action-btn view-btn" onclick="openReservationModal(1)"><i class="fas fa-eye"></i></button>
-                        </div>
-                    </div>
-
-                    <div class="reservation-card" data-status="confirmed" data-date="2023-06-14">
-                        <div class="reservation-icon">
-                            <i class="fas fa-plane"></i>
-                        </div>
-                        <div class="reservation-details">
-                            <h3>Vol pour Paris</h3>
-                            <p class="reservation-date">14 juin 2023</p>
-                            <p class="reservation-status confirmed">Confirmée</p>
-                        </div>
-                        <div class="reservation-actions">
-                            <button class="action-btn view-btn" onclick="openReservationModal(2)"><i class="fas fa-eye"></i></button>
-                        </div>
-                    </div>
-
-                    <div class="reservation-card" data-status="pending" data-date="2023-08-01">
-                        <div class="reservation-icon">
-                            <i class="fas fa-suitcase-rolling"></i>
-                        </div>
-                        <div class="reservation-details">
-                            <h3>Forfait Vacances d'été</h3>
-                            <p class="reservation-date">1-10 août 2023</p>
-                            <p class="reservation-status pending">En attente</p>
-                        </div>
-                        <div class="reservation-actions">
-                            <button class="action-btn view-btn" onclick="openReservationModal(3)"><i class="fas fa-eye"></i></button>
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -134,39 +121,238 @@
             <div class="modal-body">
                 <div class="detail-row">
                     <span class="detail-label">Utilisateur:</span>
-                    <span class="detail-value" id="modal-user">Jean Dupont</span>
+                    <span class="detail-value" id="modal-user"></span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Type:</span>
-                    <span class="detail-value" id="modal-type">Hôtel</span>
+                    <span class="detail-value" id="modal-type"></span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Nom:</span>
-                    <span class="detail-value" id="modal-name">Hôtel Resort Plage</span>
+                    <span class="detail-value" id="modal-name"></span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Dates:</span>
-                    <span class="detail-value" id="modal-dates">15-20 juin 2023</span>
+                    <span class="detail-value" id="modal-dates"></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Nombre de places:</span>
+                    <span class="detail-value" id="modal-places"></span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Statut:</span>
-                    <span class="detail-value" id="modal-status">Confirmée</span>
+                    <span class="detail-value" id="modal-status"></span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Prix:</span>
-                    <span class="detail-value" id="modal-price">€850</span>
+                    <span class="detail-value" id="modal-price"></span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Référence:</span>
-                    <span class="detail-value" id="modal-reference">RES-2023-1564</span>
+                    <span class="detail-value" id="modal-reference"></span>
                 </div>
                 <div class="detail-row full-width">
                     <span class="detail-label">Notes:</span>
-                    <span class="detail-value" id="modal-notes">Chambre avec vue mer, petit-déjeuner inclus</span>
+                    <span class="detail-value" id="modal-notes"></span>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="{{ asset('js/reservations/reservationAdmin.js') }}"></script>
+    <script>
+        // Store reservations data for JavaScript access
+        const reservationsData = {
+        {% for user in users %}
+        {{ user.id }}: {
+            name: "{{ user.nom }} {{ user.prenom }}",
+                email: "{{ user.email }}",
+                reservations: [
+                {% for panier in user.paniers %}
+                {% for reservation in panier.reservations %}
+                {
+                    id: {{ reservation.id }},
+                    type: "{% if reservation.id_voyage %}voyage{% elseif reservation.id_Chambre %}chambre{% elseif reservation.id_Transport %}transport{% else %}other{% endif %}",
+                    name: "{% if reservation.id_voyage %}{{ reservation.id_voyage.titre }}{% elseif reservation.id_Chambre %}{{ reservation.id_Chambre.id_hebergement.nom }}{% elseif reservation.id_Transport %}{{ reservation.id_Transport.nom }}{% else %}Réservation #{{ reservation.id }}{% endif %}",
+                    dates: "{% if reservation.id_voyage %}{{ reservation.id_voyage.dateDepart|date('d/m/Y') }} - {{ reservation.id_voyage.dateRetour|date('d/m/Y') }}{% elseif reservation.id_Chambre %}{{ reservation.date_reservation|date('d/m/Y') }}{% if reservation.nbJoursHebergement %} ({{ reservation.nbJoursHebergement }} jours){% endif %}{% elseif reservation.id_Transport %}{{ reservation.dateAffectation|date('d/m/Y') }}{% else %}{{ reservation.date_reservation|date('d/m/Y') }}{% endif %}",
+                    status: "{{ reservation.Etat == 'CONFIRMED' ? 'Confirmée' : 'En attente' }}",
+                    price: "{{ reservation.prix }} TND",
+                    reference: "{% if reservation.id_voyage %}VOY-{{ reservation.id }}{% elseif reservation.id_Chambre %}CHB-{{ reservation.id }}{% elseif reservation.id_Transport %}TRP-{{ reservation.id }}{% else %}RES-{{ reservation.id }}{% endif %}",
+                    notes: "{% if reservation.id_voyage %}{{ reservation.id_voyage.description }}{% elseif reservation.id_Chambre %}{{ reservation.id_Chambre.description }}{% elseif reservation.id_Transport %}{{ reservation.id_Transport.description }}{% else %}Aucune note disponible{% endif %}",
+                    nb_places: {{ reservation.nb_places ?? 0 }}
+                },
+                {% endfor %}
+                {% endfor %}
+            ]
+        },
+        {% endfor %}
+        };
+
+        function openReservationModal(reservationId) {
+            // Find the reservation in our data
+            let reservationData = null;
+            let userData = null;
+
+            // Search through all users to find this reservation
+            for (const userId in reservationsData) {
+                const user = reservationsData[userId];
+                const reservation = user.reservations.find(r => r.id === reservationId);
+                if (reservation) {
+                    reservationData = reservation;
+                    userData = user;
+                    break;
+                }
+            }
+
+            if (reservationData && userData) {
+                // Populate modal with data
+                document.getElementById('modal-user').textContent = userData.name;
+                document.getElementById('modal-type').textContent =
+                    reservationData.type === 'voyage' ? 'Voyage' :
+                        reservationData.type === 'chambre' ? 'Hébergement' :
+                            reservationData.type === 'transport' ? 'Transport' : 'Autre';
+                document.getElementById('modal-name').textContent = reservationData.name;
+                document.getElementById('modal-dates').textContent = reservationData.dates;
+                document.getElementById('modal-places').textContent = reservationData.nb_places;
+                document.getElementById('modal-status').textContent = reservationData.status;
+                document.getElementById('modal-price').textContent = reservationData.price;
+                document.getElementById('modal-reference').textContent = reservationData.reference;
+                document.getElementById('modal-notes').textContent = reservationData.notes;
+
+                // Show modal
+                document.getElementById('reservationModal').style.display = 'block';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('reservationModal').style.display = 'none';
+        }
+
+        // User card selection
+        document.addEventListener('DOMContentLoaded', function() {
+            const userCards = document.querySelectorAll('.user-card');
+            userCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const userId = this.getAttribute('data-user-id');
+                    const userData = reservationsData[userId];
+
+                    if (userData) {
+                        // Update active state
+                        userCards.forEach(c => c.classList.remove('active'));
+                        this.classList.add('active');
+
+                        // Update the user name in the header
+                        document.querySelector('.user-name').textContent = userData.name;
+
+                        // Update reservations list
+                        const reservationsList = document.querySelector('.reservations-list');
+                        reservationsList.innerHTML = '';
+
+                        userData.reservations.forEach(reservation => {
+                            const iconClass =
+                                reservation.type === 'voyage' ? 'fa-suitcase-rolling' :
+                                    reservation.type === 'chambre' ? 'fa-hotel' :
+                                        reservation.type === 'transport' ? 'fa-plane' : 'fa-calendar-check';
+
+                            const statusClass = reservation.status === 'Confirmée' ? 'confirmed' : 'pending';
+
+                            const dateParts = reservation.dates.split(' - ');
+                            const dateValue = dateParts[0].split('/').reverse().join('-');
+
+                            const reservationCard = document.createElement('div');
+                            reservationCard.className = `reservation-card`;
+                            reservationCard.setAttribute('data-status', statusClass);
+                            reservationCard.setAttribute('data-date', dateValue);
+                            reservationCard.setAttribute('data-reservation-id', reservation.id);
+
+                            reservationCard.innerHTML = `
+                                <div class="reservation-icon">
+                                    <i class="fas ${iconClass}"></i>
+                                </div>
+                                <div class="reservation-details">
+                                    <h3>${reservation.name}</h3>
+                                    <p class="reservation-date">${reservation.dates}</p>
+                                    <p class="reservation-status ${statusClass}">${reservation.status}</p>
+                                </div>
+                                <div class="reservation-actions">
+                                    <button class="action-btn view-btn" onclick="openReservationModal(${reservation.id})">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            `;
+
+                            reservationsList.appendChild(reservationCard);
+                        });
+                    }
+                });
+            });
+
+            // Search functionality
+            const userSearch = document.getElementById('userSearch');
+            userSearch.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                userCards.forEach(card => {
+                    const name = card.querySelector('h4').textContent.toLowerCase();
+                    const email = card.querySelector('p').textContent.toLowerCase();
+                    if (name.includes(searchTerm) || email.includes(searchTerm)) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+
+            // Status filter functionality
+            const statusFilter = document.getElementById('statusFilter');
+            const dateSort = document.getElementById('dateSort');
+
+            function filterAndSortReservations() {
+                const statusValue = statusFilter.value;
+                const sortValue = dateSort.value;
+                const reservationCards = document.querySelectorAll('.reservation-card');
+
+                // Filter by status
+                reservationCards.forEach(card => {
+                    const cardStatus = card.getAttribute('data-status');
+
+                    if (statusValue === 'all' || cardStatus === statusValue) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                // Sort by date
+                const visibleCards = Array.from(reservationCards).filter(card =>
+                    card.style.display !== 'none'
+                );
+
+                visibleCards.sort((a, b) => {
+                    const dateA = new Date(a.getAttribute('data-date'));
+                    const dateB = new Date(b.getAttribute('data-date'));
+
+                    return sortValue === 'newest' ?
+                        dateB - dateA :
+                        dateA - dateB;
+                });
+
+                // Reorder in DOM
+                const container = document.querySelector('.reservations-list');
+                visibleCards.forEach(card => {
+                    container.appendChild(card);
+                });
+            }
+
+            statusFilter.addEventListener('change', filterAndSortReservations);
+            dateSort.addEventListener('change', filterAndSortReservations);
+
+            // Close modal when clicking outside of it
+            window.onclick = function(event) {
+                const modal = document.getElementById('reservationModal');
+                if (event.target == modal) {
+                    closeModal();
+                }
+            }
+        });
+    </script>
 {% endblock %}
