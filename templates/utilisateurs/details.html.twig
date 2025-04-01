@@ -1,0 +1,63 @@
+{# filepath: c:\Users\asus\TerraNavSymfony1\TerraNavSymfony1\templates\admin\reclamations\details.html.twig #}
+{% extends "baseAdmin.html.twig" %}
+
+{% block title %}Détails de la réclamation{% endblock %}
+
+{% block body %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Détails de la réclamation #{{ reclamation.id }}</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-info-circle me-1"></i>
+                Informations
+            </div>
+            <div>
+                {% if reclamation.etat == 'Non traité' %}
+                    <a href="{{ path('admin_reclamation_marquer_traite', {'id': reclamation.id}) }}" class="btn btn-success btn-sm">
+                        <i class="fas fa-check me-1"></i> Marquer comme traité
+                    </a>
+                {% else %}
+                    <span class="badge bg-success">Traité</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>Date de soumission:</strong> {{ reclamation.dateReclamation|date('d/m/Y à H:i') }}
+                </div>
+                <div class="col-md-6">
+                    <strong>Client:</strong> {{ reclamation.id_user.email }}
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>Sujet:</strong> {{ reclamation.sujet }}
+                </div>
+                <div class="col-md-6">
+                    <strong>Statut:</strong> 
+                    {% if reclamation.etat == 'Non traité' %}
+                        <span class="badge bg-warning text-dark">Non traité</span>
+                    {% else %}
+                        <span class="badge bg-success">Traité</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <strong>Message:</strong>
+                <div class="p-3 bg-light mt-2 rounded">
+                    {{ reclamation.description|nl2br }}
+                </div>
+            </div>
+            
+            <a href="{{ path('admin_reclamations_index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Retour à la liste
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

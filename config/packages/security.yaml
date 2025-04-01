@@ -52,6 +52,7 @@ security:
         # Routes qui nécessitent authentification
         - { path: ^/profile, roles: ROLE_USER }
         - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/reclamer, roles: ROLE_USER }
         
         # Routes temporairement ouvertes pour débogage
         - { path: ^/DashboardClient, roles: PUBLIC_ACCESS }

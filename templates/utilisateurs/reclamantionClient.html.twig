@@ -1,3 +1,96 @@
+{# filepath: c:\Users\asus\TerraNavSymfony1\TerraNavSymfony1\templates\utilisateurs\reclamantionClient.html.twig #}
 {% extends "baseClient.html.twig" %}
 
 {% block titre %} Reclamer {% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Nouvelle réclamation</h5>
+                </div>
+                <div class="card-body">
+                    {% for message in app.flashes('success') %}
+                        <div class="alert alert-success" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                    
+                    {{ form_start(form) }}
+                        <div class="mb-3">
+                            {{ form_label(form.sujet) }}
+                            {{ form_widget(form.sujet, {'attr': {'class': 'form-select'}}) }}
+                            {{ form_errors(form.sujet) }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form_label(form.description) }}
+                            {{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.description) }}
+                            <div class="form-text">Soyez aussi précis que possible pour que nous puissions vous aider efficacement.</div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>Envoyer ma réclamation
+                            </button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-7">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">Mes réclamations</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if reclamations is empty %}
+                        <div class="text-center py-4">
+                            <p class="text-muted mb-0">Vous n'avez pas encore soumis de réclamation</p>
+                        </div>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Sujet</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for reclamation in reclamations %}
+                                        <tr>
+                                            <td>{{ reclamation.dateReclamation|date('d/m/Y') }}</td>
+                                            <td>{{ reclamation.sujet }}</td>
+                                            <td>
+                                                {% if reclamation.etat == 'Non traité' %}
+                                                    <span class="badge bg-warning text-dark">Non traité</span>
+                                                {% else %}
+                                                    <span class="badge bg-success">Traité</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="3" class="border-top-0 pt-0">
+                                                <div class="ps-3 pe-3 pb-2">
+                                                    <strong>Message:</strong>
+                                                    <p class="small mb-0 text-muted">{{ reclamation.description }}</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

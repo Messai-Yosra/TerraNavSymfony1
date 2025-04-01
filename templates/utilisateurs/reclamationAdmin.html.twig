@@ -2,4 +2,733 @@
 
 {% block titre %} Reclamations {% endblock %}
 
-{% block content %} reclamations de client 1 {% endblock %}
+{% block content %}
+<div class="reclamation-dashboard">
+    <!-- Sidebar de filtrage et statistiques -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-filter"></i> Filtres</h3>
+        </div>
+        
+        <div class="sidebar-stats">
+            <div class="stat-item">
+                <div class="stat-value">{{ reclamations|length }}</div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat-item warning">
+                <div class="stat-value">{{ reclamations|filter(r => r.etat == 'Non traité')|length }}</div>
+                <div class="stat-label">En attente</div>
+            </div>
+            <div class="stat-item success">
+                <div class="stat-value">{{ reclamations|filter(r => r.etat == 'Traité')|length }}</div>
+                <div class="stat-label">Traités</div>
+            </div>
+        </div>
+        
+        <div class="sidebar-filters">
+            <div class="filter-group">
+                <h4>Statut</h4>
+                <div class="filter-options">
+                    <label class="filter-option">
+                        <input type="radio" name="status-filter" value="all" checked>
+                        <span class="filter-checkbox"></span>
+                        <span>Tous</span>
+                        <span class="filter-count">{{ reclamations|length }}</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="status-filter" value="non-traite">
+                        <span class="filter-checkbox"></span>
+                        <span>Non traités</span>
+                        <span class="filter-count warning">{{ reclamations|filter(r => r.etat == 'Non traité')|length }}</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="status-filter" value="traite">
+                        <span class="filter-checkbox"></span>
+                        <span>Traités</span>
+                        <span class="filter-count success">{{ reclamations|filter(r => r.etat == 'Traité')|length }}</span>
+                    </label>
+                </div>
+            </div>
+            
+            {% if reclamations|length > 0 %}
+            <div class="filter-group">
+                <h4>Trier par</h4>
+                <div class="filter-options">
+                    <label class="filter-option">
+                        <input type="radio" name="sort-filter" value="newest" checked>
+                        <span class="filter-checkbox"></span>
+                        <span>Plus récents</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="sort-filter" value="oldest">
+                        <span class="filter-checkbox"></span>
+                        <span>Plus anciens</span>
+                    </label>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if reclamations|length > 0 %}
+            <div class="action-buttons">
+                <button class="refresh-btn" onclick="location.reload();">
+                    <i class="fas fa-sync-alt"></i> Actualiser
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Contenu principal -->
+    <div class="main-content">
+        <div class="dashboard-header">
+            <h1>Gestion des réclamations</h1>
+            
+            {% for message in app.flashes('success') %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if reclamations is empty %}
+            <div class="no-data-message">
+                <i class="fas fa-inbox fa-3x mb-3"></i>
+                <p>Aucune réclamation trouvée</p>
+            </div>
+        {% else %}
+            <div class="reclamation-cards">
+                {% for reclamation in reclamations %}
+                    <div class="reclamation-card {% if reclamation.etat == 'Non traité' %}non-traite{% else %}traite{% endif %}">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <h3>Réclamation #{{ reclamation.id }}</h3>
+                                {% if reclamation.etat == 'Non traité' %}
+                                    <span class="status-badge pending">Non traité</span>
+                                {% else %}
+                                    <span class="status-badge completed">Traité</span>
+                                {% endif %}
+                            </div>
+                            <div class="card-date">
+                                <i class="far fa-calendar-alt"></i>
+                                {{ reclamation.dateReclamation|date('d/m/Y H:i') }}
+                            </div>
+                        </div>
+                        
+                        <div class="card-content">
+                            <div class="info-row">
+                                <span class="info-label"><i class="fas fa-user"></i> Client:</span>
+                                <span class="info-value">
+                                    {% if reclamation.id_user %}
+                                        {{ reclamation.id_user.email }}
+                                    {% else %}
+                                        Client supprimé
+                                    {% endif %}
+                                </span>
+                            </div>
+                            
+                            <div class="info-row">
+                                <span class="info-label"><i class="fas fa-tag"></i> Sujet:</span>
+                                <span class="info-value">{{ reclamation.sujet }}</span>
+                            </div>
+                            
+                            <div class="message-preview">
+                                <p>{{ reclamation.description|striptags|slice(0, 100) }}{% if reclamation.description|length > 100 %}...{% endif %}</p>
+                                <button type="button" class="btn-link" data-toggle="modal" data-target="#modal-{{ reclamation.id }}">
+                                    Voir le message complet
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer">
+                            {% if reclamation.etat == 'Non traité' %}
+                                <a href="{{ path('admin_reclamation_traiter', {'id': reclamation.id}) }}" class="action-btn complete">
+                                    <i class="fas fa-check"></i> Marquer traité
+                                </a>
+                            {% else %}
+                                <span class="action-btn disabled">
+                                    <i class="fas fa-check-circle"></i> Déjà traité
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Modal pour afficher le message -->
+                        <div class="modal fade" id="modal-{{ reclamation.id }}" tabindex="-1" role="dialog" aria-labelledby="messageModalLabel" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="messageModalLabel">Message - {{ reclamation.sujet }}</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        {{ reclamation.description|nl2br }}
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Script pour gérer les modals Bootstrap -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Fonction pour ouvrir les modals
+    document.querySelectorAll('[data-toggle="modal"]').forEach(button => {
+        button.addEventListener('click', function() {
+            const target = this.getAttribute('data-target');
+            const modal = document.querySelector(target);
+            
+            if (modal) {
+                // Afficher la modal
+                modal.classList.add('show');
+                modal.style.display = 'block';
+                document.body.classList.add('modal-open');
+                
+                // Créer un backdrop
+                const backdrop = document.createElement('div');
+                backdrop.classList.add('modal-backdrop', 'fade', 'show');
+                document.body.appendChild(backdrop);
+            }
+        });
+    });
+    
+    // Fonction pour fermer les modals
+    document.querySelectorAll('[data-dismiss="modal"]').forEach(button => {
+        button.addEventListener('click', function() {
+            const modal = this.closest('.modal');
+            
+            if (modal) {
+                // Cacher la modal
+                modal.classList.remove('show');
+                modal.style.display = 'none';
+                document.body.classList.remove('modal-open');
+                
+                // Supprimer le backdrop
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) {
+                    backdrop.remove();
+                }
+            }
+        });
+    });
+    
+    // Filtres pour les cartes de réclamation
+    document.querySelectorAll('input[name="status-filter"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const filter = this.value;
+            const cards = document.querySelectorAll('.reclamation-card');
+            
+            cards.forEach(card => {
+                if (filter === 'all') {
+                    card.style.display = 'flex';
+                } else if (filter === 'non-traite' && card.classList.contains('non-traite')) {
+                    card.style.display = 'flex';
+                } else if (filter === 'traite' && card.classList.contains('traite')) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+    
+    // Triage des cartes
+    document.querySelectorAll('input[name="sort-filter"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const sortOrder = this.value;
+            const cardsContainer = document.querySelector('.reclamation-cards');
+            const cards = Array.from(cardsContainer.querySelectorAll('.reclamation-card'));
+            
+            cards.sort((a, b) => {
+                const dateA = new Date(a.querySelector('.card-date').textContent.trim());
+                const dateB = new Date(b.querySelector('.card-date').textContent.trim());
+                
+                if (sortOrder === 'newest') {
+                    return dateB - dateA;
+                } else {
+                    return dateA - dateB;
+                }
+            });
+            
+            // Vider et reconstruire le conteneur
+            cardsContainer.innerHTML = '';
+            cards.forEach(card => cardsContainer.appendChild(card));
+        });
+    });
+});
+</script>
+
+<style>
+/* Layout principal */
+.reclamation-dashboard {
+    display: flex;
+    gap: 25px;
+    min-height: calc(100vh - 100px);
+}
+
+/* Sidebar */
+.sidebar {
+    width: 280px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 20px;
+    height: fit-content;
+    flex-shrink: 0;
+}
+
+.sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.sidebar-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #333;
+}
+
+.sidebar-stats {
+    display: flex;
+    padding: 15px;
+    gap: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.stat-item {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+}
+
+.stat-item.warning {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.stat-item.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+}
+
+.sidebar-filters {
+    padding: 15px;
+}
+
+.filter-group {
+    margin-bottom: 20px;
+}
+
+.filter-group h4 {
+    font-size: 1rem;
+    margin-bottom: 10px;
+    color: #495057;
+}
+
+.filter-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.filter-option {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 8px 10px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.filter-option:hover {
+    background-color: #f8f9fa;
+}
+
+.filter-option input[type="radio"] {
+    display: none;
+}
+
+.filter-checkbox {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid #ddd;
+    margin-right: 10px;
+    position: relative;
+    display: inline-block;
+}
+
+.filter-option input[type="radio"]:checked + .filter-checkbox::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #007bff;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.filter-option span {
+    font-size: 0.95rem;
+}
+
+.filter-count {
+    margin-left: auto;
+    background-color: #e9ecef;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.filter-count.warning {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.filter-count.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.action-buttons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.refresh-btn {
+    padding: 10px 15px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.refresh-btn:hover {
+    background-color: #e9ecef;
+}
+
+/* Contenu principal */
+.main-content {
+    flex: 1;
+}
+
+.dashboard-header {
+    margin-bottom: 20px;
+}
+
+.dashboard-header h1 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+}
+
+.alert {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border-left: 4px solid #28a745;
+}
+
+/* Grille de cartes */
+.reclamation-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+}
+
+/* Carte de réclamation */
+.reclamation-card {
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.reclamation-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+}
+
+.reclamation-card.non-traite {
+    border-left: 4px solid #ffc107;
+}
+
+.reclamation-card.traite {
+    border-left: 4px solid #28a745;
+}
+
+/* En-tête de carte */
+.card-header {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #eee;
+}
+
+.card-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.card-title h3 {
+    font-size: 1.1rem;
+    margin: 0;
+    font-weight: 600;
+}
+
+.status-badge {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.status-badge.pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-badge.completed {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.card-date {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+/* Contenu de la carte */
+.card-content {
+    padding: 15px;
+    flex: 1;
+}
+
+.info-row {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.info-label {
+    font-weight: 500;
+    width: 80px;
+    color: #495057;
+}
+
+.info-value {
+    color: #212529;
+    word-break: break-word;
+}
+
+.message-preview {
+    margin-top: 15px;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+}
+
+.message-preview p {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 10px;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: #007bff;
+    padding: 0;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+/* Pied de carte */
+.card-footer {
+    padding: 15px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.action-btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.action-btn.complete {
+    background-color: #28a745;
+    color: white;
+}
+
+.action-btn.complete:hover {
+    background-color: #218838;
+}
+
+.action-btn.disabled {
+    background-color: #e9ecef;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* Message pour aucune réclamation */
+.no-data-message {
+    text-align: center;
+    padding: 40px 0;
+    color: #6c757d;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+    .reclamation-dashboard {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        position: static;
+    }
+    
+    .sidebar-stats {
+        justify-content: space-around;
+    }
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1050;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-dialog {
+    position: relative;
+    width: auto;
+    margin: 1.75rem auto;
+    max-width: 500px;
+}
+
+.modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+    border-radius: 8px;
+    outline: 0;
+    box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 20px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.modal-title {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6c757d;
+}
+
+.modal-body {
+    position: relative;
+    flex: 1 1 auto;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+.modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 15px 20px;
+    border-top: 1px solid #e9ecef;
+}
+
+.btn-secondary {
+    padding: 8px 16px;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000;
+    opacity: 0.5;
+    z-index: 1040;
+}
+</style>
+{% endblock %}

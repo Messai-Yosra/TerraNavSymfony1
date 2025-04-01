@@ -96,6 +96,10 @@
                                                class="dropdown-item {{ app.request.get('_route') == 'app_historique' ? 'active' : '' }}">
                                                 <i class="fas fa-history me-2"></i> Historique
                                             </a>
+                                            <a href="{{ path('app_reclamer') }}" 
+                                               class="dropdown-item {{ app.request.get('_route') == 'app_reclamer' ? 'active' : '' }}">
+                                                <i class="fas fa-exclamation-circle me-2"></i> Reclamer
+                                            </a>
                                             <div class="dropdown-divider"></div>
                                             <a href="{{ path('app_logout') }}" class="dropdown-item">
                                                 <i class="fas fa-sign-out-alt me-2"></i> Se déconnecter
