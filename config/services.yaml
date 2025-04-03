@@ -19,6 +19,15 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+    # Configuration spécifique pour le service ImagePathResolver
+    App\Service\voyages\ImagePathResolver:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+            $baseUrl: '%images_base_url%'
+            $isWebEnvironment: true
 
+    App\Service\voyages\VoyageMailer:
+        arguments:
+            $mailer: '@mailer'
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

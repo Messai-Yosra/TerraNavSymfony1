@@ -157,4 +157,21 @@ class Offre
         }
         return $this;
     }
+
+    public function transformSingleImagePath(string $absolutePath): string
+    {
+        return str_replace(
+            [
+                'C:\TerraNavSymfony1\public\\',
+                'C:/TerraNavSymfony1/public/',
+                '\\'
+            ],
+            [
+                '',
+                '',
+                '/'
+            ],
+            $absolutePath
+        );
+    }
 }

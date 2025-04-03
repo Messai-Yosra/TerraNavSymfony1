@@ -1,0 +1,207 @@
+{% extends "baseClient.html.twig" %}
+
+{% block title %}Confirmation ajout Offre{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    <div class="container-fluid page-header mb-5 p-0"
+         style="background-image: url({{ asset('img/voyages/1.avif') }});">
+        <div class="container-fluid page-header-inner py-5">
+            <div class="container text-center pb-5">
+                <h1 class="display-3 text-white mb-3 animated slideInDown">Confirmation Ajout Offre</h1>
+                <div class="badge bg-success fs-4 mb-3">Réduction: -{{ offre.reduction }}%</div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center text-uppercase">
+                        <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+                        <li class="breadcrumb-item text-white active" aria-current="page">Confirmation Offre</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Détails de l'offre -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="row g-5 align-items-center">
+                <div class="col-lg-6">
+                    <h6 class="section-title text-start text-primary text-uppercase">Détails de l'Offre</h6>
+                    <h1 class="mb-4">{{ offre.titre }}</h1>
+                    <div class="mb-4">
+                        <p>{{ offre.description }}</p>
+                    </div>
+
+                    <!-- Section Principale d'Informations -->
+                    <div class="row g-3 pb-4">
+                        <!-- Réduction -->
+                        <div class="col-sm-6 wow fadeIn" data-wow-delay="0.1s">
+                            <div class="border rounded p-1 h-100 hover-effect">
+                                <div class="border rounded text-center p-4 h-100">
+                                    <i class="fas fa-percentage fa-2x text-primary mb-2"></i>
+                                    <h3 class="h5 mb-1">{{ offre.reduction }}%</h3>
+                                    <p class="mb-0 text-muted">Réduction</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Date de Début -->
+                        <div class="col-sm-6 wow fadeIn" data-wow-delay="0.2s">
+                            <div class="border rounded p-1 h-100 hover-effect">
+                                <div class="border rounded text-center p-4 h-100">
+                                    <i class="fas fa-hourglass-start fa-2x text-primary mb-2"></i>
+                                    <h3 class="h5 mb-1">{{ offre.dateDebut|date('d M Y à H:i') }}</h3>
+                                    <p class="mb-0 text-muted">Date de début</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Date de Fin -->
+                        <div class="col-sm-6 wow fadeIn" data-wow-delay="0.3s">
+                            <div class="border rounded p-1 h-100 hover-effect">
+                                <div class="border rounded text-center p-4 h-100">
+                                    <i class="fas fa-hourglass-end fa-2x text-primary mb-2"></i>
+                                    <h3 class="h5 mb-1">{{ offre.dateFin|date('d M Y à H:i') }}</h3>
+                                    <p class="mb-0 text-muted">Date de fin</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Durée de l'Offre -->
+                        <div class="col-sm-6 wow fadeIn" data-wow-delay="0.4s">
+                            <div class="border rounded p-1 h-100 hover-effect">
+                                <div class="border rounded text-center p-4 h-100">
+                                    <i class="fas fa-clock fa-2x text-primary mb-2"></i>
+                                    <h3 class="h5 mb-1">
+                                        {% set difference = date(offre.dateFin).diff(date(offre.dateDebut)) %}
+                                        {{ difference.d }} jours, {{ difference.h }}h
+                                    </h3>
+                                    <p class="mb-0 text-muted">Durée de l'offre</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Boutons d'Action -->
+                    <div class="d-flex flex-wrap gap-3 mt-4">
+                        <a href="{{ path('app_offres_agence') }}" class="btn btn-primary py-3 px-5 btn-hover">
+                            <i class="fas fa-list me-2"></i>Voir toutes mes offres
+                        </a>
+                        <a href="{{ path('app_ajout_offre') }}" class="btn btn-outline-primary py-3 px-5 btn-hover">
+                            <i class="fas fa-plus-circle me-2"></i>Ajouter une autre offre
+                        </a>
+                    </div>
+                    <form action="{{ path('app_publier_offre') }}" method="POST" id="publishForm">
+                        <button type="submit" class="btn btn-primary py-3 px-5 btn-hover">
+                            <i class="fas fa-ticket-alt me-2"></i>Publier Offre
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Image de l'offre -->
+                <div class="col-lg-6">
+                    <div class="image-hover-container">
+                        <img class="img-fluid rounded wow zoomIn shadow-sm image-hover"
+                             src="{{ asset(offre.transformSingleImagePath(offre.imagePath)) }}"
+                             style="width: 100%; height: 400px; object-fit: cover;"
+                             onerror="this.src='{{ asset('img/about-1.jpg') }}'"
+                             alt="Image de l'offre {{ offre.titre }}">
+                        <div class="image-hover-overlay">
+                            <div class="image-hover-text">Votre offre</div>
+                        </div>
+                    </div>
+
+                    <!-- Informations Complémentaires -->
+                    <div class="mt-5 p-4 bg-light rounded wow fadeIn hover-effect" data-wow-delay="0.5s">
+                        <h4 class="mb-3"><i class="fas fa-info-circle text-primary me-2"></i>Prochaines étapes</h4>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Votre offre est maintenant active
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Elle sera visible par tous les clients
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Vous pouvez l'associer à des voyages existants
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Vous pouvez la modifier à tout moment
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Effets de hover */
+        .hover-effect {
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .hover-effect:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-hover {
+            transition: all 0.3s ease;
+        }
+
+        .btn-hover:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Effet hover sur les images */
+        .image-hover-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .image-hover {
+            transition: all 0.3s ease;
+            display: block;
+            width: 100%;
+        }
+
+        .image-hover-overlay {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            width: 100%;
+            opacity: 0;
+            transition: .3s ease;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-hover-container:hover .image-hover {
+            transform: scale(1.05);
+        }
+
+        .image-hover-container:hover .image-hover-overlay {
+            opacity: 1;
+        }
+
+        .image-hover-text {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+{% endblock %}

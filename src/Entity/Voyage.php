@@ -17,11 +17,11 @@ class Voyage
     #[ORM\Column(name: "id", type: "integer")]
     private int $id;
 
-    #[ORM\ManyToOne(targetEntity: Offre::class, inversedBy: "voyages")]
-    #[ORM\JoinColumn(name: 'id_offre', referencedColumnName: 'id', onDelete: 'CASCADE')]
-    private Offre $id_offre;
+    #[ORM\ManyToOne(targetEntity: Offre::class, inversedBy: "voyages", cascade: ["persist"])] // Ajoutez cascade: ["persist"]
+    #[ORM\JoinColumn(name: 'id_offre', referencedColumnName: 'id', onDelete: 'SET NULL')]
+    private ?Offre $id_offre = null;
 
-    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: "voyages")]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: "voyages", cascade: ["persist"])] // Ajoutez cascade persist
     #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id', onDelete: 'CASCADE')]
     private Utilisateur $id_user;
 
@@ -74,12 +74,12 @@ class Voyage
         return $this;
     }
 
-    public function getId_offre(): Offre
+    public function getId_offre(): ?Offre
     {
         return $this->id_offre;
     }
 
-    public function setId_offre(Offre $id_offre): self
+    public function setId_offre(?Offre $id_offre): self
     {
         $this->id_offre = $id_offre;
         return $this;
@@ -228,5 +228,42 @@ class Voyage
             }
         }
         return $this;
+    }
+
+    private ?array $imageList = null;
+
+    public function getImageList(): ?array
+    {
+        return $this->imageList;
+    }
+
+    public function setImageList(array $imageList): self
+    {
+        $this->imageList = $imageList;
+        return $this;
+    }
+
+    public function getNomOffre(): ?string
+    {
+        return $this->id_offre ? $this->id_offre->getTitre() : null;
+    }
+
+    public function transformImagePaths(string $absolutePaths): string
+    {
+        return str_replace(
+            [
+                'C:\TerraNavSymfony1\public\\',
+                'C:/TerraNavSymfony1/public/',
+                '\\',
+                '***'
+            ],
+            [
+                '',
+                '',
+                '/',
+                '***'
+            ],
+            $absolutePaths
+        );
     }
 }

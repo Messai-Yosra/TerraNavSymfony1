@@ -1,0 +1,95 @@
+/* Styles pour les cartes d'offres */
+.offer-card {
+    transition: all 0.3s ease;
+    border: none;
+    background: #fff;
+    margin-bottom: 20px;
+}
+
+.offer-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.offer-image {
+    height: 200px;
+    object-fit: cover;
+    transition: all 0.5s ease;
+}
+
+.offer-card:hover .offer-image {
+    transform: scale(1.05);
+}
+
+.offer-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.3));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.offer-card:hover .offer-overlay {
+    opacity: 1;
+}
+
+.offer-btn {
+    transition: all 0.3s ease;
+    background: #0d6efd;
+    border: none;
+}
+
+.offer-btn:hover {
+    background: #0b5ed7;
+    transform: translateX(5px);
+}
+
+/* Style pour le message quand il n'y a pas d'offres */
+.no-offers {
+    padding: 40px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+/* Style pour le badge de réduction */
+.badge.bg-danger {
+    font-size: 0.9rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.offer-card:hover .badge.bg-danger {
+    transform: scale(1.1);
+}
+
+/* Style pour le formulaire de recherche */
+.booking .btn-primary {
+    transition: all 0.3s ease;
+}
+
+.booking .btn-primary:hover {
+    background: #0b5ed7;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
+}
+
+/* Animation pour les cartes */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.wow.fadeInUp {
+    animation-name: fadeInUp;
+    animation-duration: 1s;
+}
