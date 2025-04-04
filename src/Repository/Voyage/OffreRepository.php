@@ -28,32 +28,41 @@ class OffreRepository extends ServiceEntityRepository
             ->andWhere('o.dateFin >= :now OR o.dateFin IS NULL')
             ->setParameter('now', new \DateTime());
 
-        // Filtre par recherche textuelle
+        // Filtres
+        $this->applyFilters($qb, $filters);
+
+        // Tri
+        $this->applySorting($qb, $filters['sort'] ?? null);
+
+        return $qb->getQuery()->getResult();
+    }
+
+    private function applyFilters($qb, array $filters): void
+    {
         if (!empty($filters['search'])) {
             $qb->andWhere('o.titre LIKE :search')
                 ->setParameter('search', '%'.$filters['search'].'%');
         }
 
-        // Filtre par réduction minimum
         if (!empty($filters['minReduction'])) {
             $qb->andWhere('o.reduction >= :minReduction')
                 ->setParameter('minReduction', (float)$filters['minReduction']);
         }
 
-        // Filtre par date de début
         if (!empty($filters['dateDebut'])) {
             $qb->andWhere('o.dateDebut >= :dateDebut')
                 ->setParameter('dateDebut', new \DateTime($filters['dateDebut']));
         }
 
-        // Filtre par date de fin
         if (!empty($filters['dateFin'])) {
             $qb->andWhere('o.dateFin <= :dateFin')
                 ->setParameter('dateFin', new \DateTime($filters['dateFin']));
         }
+    }
 
-        // Tri des résultats
-        switch ($filters['sort']) {
+    private function applySorting($qb, ?string $sortType): void
+    {
+        switch ($sortType) {
             case 'alpha':
                 $qb->orderBy('o.titre', 'ASC');
                 break;
@@ -66,8 +75,6 @@ class OffreRepository extends ServiceEntityRepository
             default:
                 $qb->orderBy('o.dateDebut', 'DESC');
         }
-
-        return $qb->getQuery()->getResult();
     }
 
     public function findFilteredOffresAgence(array $filters = [])
@@ -147,6 +154,16 @@ class OffreRepository extends ServiceEntityRepository
             ->where('o.id_user = :idAgence')
             ->setParameter('idAgence', $idAgence)
             ->orderBy('o.titre', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+    public function findTitlesStartingWith(string $query): array
+    {
+        return $this->createQueryBuilder('o')
+            ->select('o.titre')
+            ->where('o.titre LIKE :query')
+            ->setParameter('query', $query.'%')
+            ->setMaxResults(10)
             ->getQuery()
             ->getResult();
     }

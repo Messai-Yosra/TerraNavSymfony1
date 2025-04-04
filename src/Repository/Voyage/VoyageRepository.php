@@ -56,8 +56,8 @@ class VoyageRepository extends ServiceEntityRepository
 
         // Filtre pour les voyages en solde
         if (isset($filters['onSale'])) {
-            $qb->join('v.id_offre', 'o')
-                ->andWhere('o.titre != :noOffer')
+            $qb->leftJoin('v.id_offre', 'offer') // Changé 'o' en 'offer'
+            ->andWhere('offer.titre != :noOffer')
                 ->setParameter('noOffer', 'Aucun Offre');
         }
 
@@ -73,18 +73,18 @@ class VoyageRepository extends ServiceEntityRepository
                 $qb->orderBy('v.prix', 'DESC');
                 break;
             case 'remise_asc':
-                $qb->leftJoin('v.id_offre', 'o') // Jointure optionnelle pour le tri par remise
-                ->orderBy('o.reduction', 'ASC');
+                $qb->leftJoin('v.id_offre', 'offer_asc') // Alias différent
+                ->orderBy('offer_asc.reduction', 'ASC');
                 break;
             case 'remise_desc':
-                $qb->leftJoin('v.id_offre', 'o') // Jointure optionnelle pour le tri par remise
-                ->orderBy('o.reduction', 'DESC');
+                $qb->leftJoin('v.id_offre', 'offer_desc') // Alias différent
+                ->orderBy('offer_desc.reduction', 'DESC');
                 break;
             case 'plus_proche':
-                $qb->orderBy('v.dateDepart', 'ASC'); // Tri par date la plus proche
+                $qb->orderBy('v.dateDepart', 'ASC');
                 break;
             default:
-                $qb->orderBy('v.dateDepart', 'DESC'); // Tri par défaut
+                $qb->orderBy('v.dateDepart', 'DESC');
         }
 
         return $qb->getQuery()->getResult();
@@ -194,6 +194,17 @@ class VoyageRepository extends ServiceEntityRepository
             ->andWhere('v.dateDepart >= CURRENT_DATE()')
             ->setParameter('offre', $offre)
             ->orderBy('v.dateDepart', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findTitlesStartingWith(string $query): array
+    {
+        return $this->createQueryBuilder('v')
+            ->select('v.titre')
+            ->where('v.titre LIKE :query')
+            ->setParameter('query', $query.'%')
+            ->setMaxResults(10)
             ->getQuery()
             ->getResult();
     }

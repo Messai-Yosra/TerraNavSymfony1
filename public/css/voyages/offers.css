@@ -93,3 +93,31 @@
     animation-name: fadeInUp;
     animation-duration: 1s;
 }
+#searchSuggestions {
+    position: absolute;
+    width: 100%;
+    z-index: 1000;
+    background: white;
+    display: none; /* Initialement caché */
+}
+
+#searchSuggestions .list-group-item {
+    border-left: none;
+    border-right: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 0.75rem 1.25rem;
+}
+
+#searchSuggestions .list-group-item:first-child {
+    border-top: none;
+}
+
+#searchSuggestions .list-group-item:hover {
+    background-color: #f8f9fa;
+    padding-left: 1.5rem;
+}
+
+.position-relative {
+    position: relative;
+}

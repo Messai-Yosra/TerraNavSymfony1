@@ -24,7 +24,7 @@
     <!-- Booking Start -->
     <div class="container-fluid booking pb-5 wow fadeIn" data-wow-delay="0.1s">
         <div class="container">
-            <form id="filterForm" method="get" action="{{ path('app_offres') }}">
+            <form id="filterForm" method="get" action="{{ path('app_offres') }}" class="auto-submit-form">
                 <div class="bg-white shadow" style="padding: 35px; border-radius: 8px;">
                     <div class="row g-3">
                         <div class="col-md-3">
@@ -64,14 +64,16 @@
     <!-- Search Bar -->
     <div class="container mb-4">
         <div class="row justify-content-center">
-            <div class="col-md-8">
-                <form method="get" action="{{ path('app_voyages') }}" class="input-group shadow-lg">
-                    <input type="text" class="form-control border-0" name="search" placeholder="Rechercher un offre..."
-                           value="{{ searchTerm ?? '' }}">
+            <div class="col-md-8 position-relative">
+                <form method="get" action="{{ path('app_offres') }}" class="input-group shadow-lg">
+                    <input type="text" class="form-control border-0 search-input" id="searchInput" name="search"
+                           placeholder="Rechercher une offre..." value="{{ searchTerm ?? '' }}" autocomplete="off">
                     <button class="btn btn-primary" type="submit">
                         <i class="fas fa-search me-2"></i>Rechercher
                     </button>
                 </form>
+                <!-- Liste des suggestions -->
+                <div id="searchSuggestions" class="list-group position-absolute w-100 d-none" style="z-index: 1000;"></div>
             </div>
         </div>
     </div>
@@ -208,5 +210,119 @@
             border-left: 3px solid #0d6efd;
         }
     </style>
+    <style>
+        /* Styles existants... */
+
+        /* Ajouts pour les suggestions */
+        #searchSuggestions {
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.175);
+            border-radius: 0 0 4px 4px;
+            margin-top: -1px;
+        }
+
+        #searchSuggestions .list-group-item {
+            border-left: none;
+            border-right: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            padding: 0.75rem 1.25rem;
+        }
+
+        #searchSuggestions .list-group-item:first-child {
+            border-top: none;
+        }
+
+        #searchSuggestions .list-group-item:hover {
+            background-color: #f8f9fa;
+            padding-left: 1.5rem;
+        }
+    </style>
+
+    <script>
+        // Fonction debounce pour limiter les appels fréquents
+        const debounce = (func, delay) => {
+            let timeout;
+            return function() {
+                const context = this;
+                const args = arguments;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gestion du filtre dynamique
+            const filterForm = document.getElementById('filterForm');
+            if (filterForm) {
+                const formElements = filterForm.querySelectorAll('input, select');
+                formElements.forEach(element => {
+                    element.addEventListener('change', () => {
+                        filterForm.submit();
+                    });
+                });
+            }
+
+            // Recherche avec suggestions
+            const searchInput = document.getElementById('searchInput');
+            const searchForm = document.querySelector('.input-group.shadow-lg form');
+            const suggestionsContainer = document.getElementById('searchSuggestions');
+
+            if (searchInput) {
+                searchInput.addEventListener('input', debounce(async function() {
+                    const query = this.value.trim();
+                    console.log("Recherche en cours pour:", query); // Debug
+
+                    if (query.length < 2) {
+                        suggestionsContainer.classList.add('d-none');
+                        return;
+                    }
+
+                    try {
+                        console.log("Envoi de la requête pour:", query);
+                        const response = await fetch(`{{ path('app_offres_suggestions') }}?q=${encodeURIComponent(query)}`);
+                        console.log("Réponse reçue:", response);
+
+                        if (!response.ok) throw new Error('Network response was not ok');
+
+                        const suggestions = await response.json();
+                        console.log("Suggestions reçues:", suggestions);
+
+                        if (suggestions.length > 0) {
+                            suggestionsContainer.innerHTML = suggestions.map(suggestion =>
+                                `<a href="#" class="list-group-item list-group-item-action" data-suggestion="${suggestion}">
+                                ${suggestion}
+                             </a>`
+                            ).join('');
+                            suggestionsContainer.classList.remove('d-none');
+                        } else {
+                            suggestionsContainer.classList.add('d-none');
+                        }
+                    } catch (error) {
+                        console.error('Erreur de recherche:', error);
+                        suggestionsContainer.classList.add('d-none');
+                    }
+                }, 300));
+
+                // Gestion du clic sur une suggestion
+                suggestionsContainer.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('list-group-item')) {
+                        e.preventDefault();
+                        searchInput.value = e.target.dataset.suggestion;
+                        suggestionsContainer.classList.add('d-none');
+                        searchForm.submit();
+                    }
+                });
+
+                // Masquer les suggestions quand on clique ailleurs
+                document.addEventListener('click', function(e) {
+                    if (!searchInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+                        suggestionsContainer.classList.add('d-none');
+                    }
+                });
+            }
+        });
+    </script>
     <!-- Offres Section End -->
 {% endblock %}

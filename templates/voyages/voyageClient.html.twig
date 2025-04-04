@@ -21,85 +21,70 @@
     <!-- Filtres améliorés -->
     <div class="container-fluid booking pb-5 wow fadeIn" data-wow-delay="0.1s">
         <div class="container">
-            <div class="bg-white shadow" style="padding: 35px;">
-                <form id="filterForm" method="get" action="{{ path('app_voyages') }}">
-                    <div class="row g-3">
-                        <div class="col-md-10">
-                            <div class="row g-3">
-                                <!-- Prix Minimum -->
-                                <div class="col-md-3">
-                                    <label for="minPriceSlider">Prix Minimum (DT)</label>
+            <div class="bg-white shadow rounded-3" style="padding: 25px;">
+                <form id="filterForm" method="get" action="{{ path('app_voyages') }}" class="auto-submit-form">
+                    <div class="row g-3 align-items-end">
+                        <!-- Prix Minimum et Maximum - Regroupés -->
+                        <div class="col-md-4">
+                            <div class="mb-2">
+                                <label for="minPriceSlider" class="form-label fw-semibold">Fourchette de prix (DT)</label>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span id="minPriceValue" class="badge bg-primary">{{ filterParams.minPrice ?? 0 }} DT</span>
+                                    <span id="maxPriceValue" class="badge bg-primary">{{ filterParams.maxPrice ?? 10000 }} DT</span>
+                                </div>
+                                <div class="range-sliders">
                                     <input type="range" class="form-range" id="minPriceSlider"
-                                           min="0" max="10000" step="10"
+                                           min="0" max="10000" step="100"
                                            value="{{ filterParams.minPrice ?? 0 }}">
-                                    <div class="d-flex justify-content-between">
-                                        <span id="minPriceValue">{{ filterParams.minPrice ?? 0 }} DT</span>
-                                    </div>
-                                    <input type="hidden" id="minPrice" name="minPrice"
-                                           value="{{ filterParams.minPrice ?? 0 }}">
-                                </div>
-
-                                <!-- Prix Maximum -->
-                                <div class="col-md-3">
-                                    <label for="maxPriceSlider">Prix Maximum (DT)</label>
                                     <input type="range" class="form-range" id="maxPriceSlider"
-                                           min="0" max="10000" step="10"
-                                           value="{{ filterParams.maxPrice ?? 10000 }}">
-                                    <div class="d-flex justify-content-between">
-                                        <span id="maxPriceValue">{{ filterParams.maxPrice ?? 10000 }} DT</span>
-                                    </div>
-                                    <input type="hidden" id="maxPrice" name="maxPrice"
+                                           min="0" max="10000" step="100"
                                            value="{{ filterParams.maxPrice ?? 10000 }}">
                                 </div>
-
-                                <!-- Nombre de places minimum -->
-                                <div class="col-md-2">
-                                    <label for="minPlaces">Places min</label>
-                                    <input type="number" id="minPlaces" name="minPlaces"
-                                           class="form-control" min="1"
-                                           value="{{ filterParams.minPlaces ?? '' }}"
-                                           placeholder="Places min">
-                                </div>
-
-                                <!-- Type de voyage -->
-                                <div class="col-md-2">
-                                    <label for="type">Type</label>
-                                    <select class="form-select" id="type" name="type">
-                                        <option value="all">Tous les types</option>
-                                        <option value="Avion" {% if filterParams.type == 'Avion' %}selected{% endif %}>Avion</option>
-                                        <option value="Bateau" {% if filterParams.type == 'Bateau' %}selected{% endif %}>Bateau</option>
-                                        <option value="Train" {% if filterParams.type == 'Train' %}selected{% endif %}>Train</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <label for="sort" class="form-label">Trier par</label>
-                                    <select class="form-select" id="sort" name="sort">
-                                        <option value="">Par défaut</option>
-                                        <option value="alpha" {% if filterParams.sort == 'alpha' %}selected{% endif %}>Ordre alphabétique</option>
-                                        <option value="prix_asc" {% if filterParams.sort == 'prix_asc' %}selected{% endif %}>prix croissant</option>
-                                        <option value="prix_desc" {% if filterParams.sort == 'prix_desc' %}selected{% endif %}>prix décroissant</option>
-                                        <option value="remise_asc" {% if filterParams.sort == 'remise_asc' %}selected{% endif %}>remise croissante</option>
-                                        <option value="remise_desc" {% if filterParams.sort == 'remise_desc' %}selected{% endif %}>remise décroissante</option>
-                                        <option value="plus_proche" {% if filterParams.sort == 'plus_proche' %}selected{% endif %}>plus proche</option>
-                                    </select>
-                                </div>
-
-                                <!-- Voyages en solde -->
-                                <div class="col-md-4">
-                                    <div class="filter-group">
-                                        <label class="form-label fw-bold">Options</label>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="onSale" name="onSale"
-                                                   {% if filterParams.onSale %}checked{% endif %}>
-                                            <label class="form-check-label" for="onSale">Promotions seulement</label>
-                                        </div>
-                                    </div>
-                                </div>
+                                <input type="hidden" id="minPrice" name="minPrice" value="{{ filterParams.minPrice ?? 0 }}">
+                                <input type="hidden" id="maxPrice" name="maxPrice" value="{{ filterParams.maxPrice ?? 10000 }}">
                             </div>
                         </div>
 
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary w-100 py-2">Filtrer</button>
+                        <!-- Places minimum -->
+                        <div class="col-md-2">
+                            <label for="minPlaces" class="form-label fw-semibold">Places min</label>
+                            <input type="number" id="minPlaces" name="minPlaces"
+                                   class="form-control" min="1"
+                                   value="{{ filterParams.minPlaces ?? '' }}"
+                                   placeholder="Ex: 2">
+                        </div>
+
+                        <!-- Type de voyage -->
+                        <div class="col-md-2">
+                            <label for="type" class="form-label fw-semibold">Type</label>
+                            <select class="form-select" id="type" name="type">
+                                <option value="all">Tous types</option>
+                                <option value="Avion" {% if filterParams.type == 'Avion' %}selected{% endif %}>Avion</option>
+                                <option value="Bateau" {% if filterParams.type == 'Bateau' %}selected{% endif %}>Bateau</option>
+                                <option value="Train" {% if filterParams.type == 'Train' %}selected{% endif %}>Train</option>
+                            </select>
+                        </div>
+
+                        <!-- Trier par -->
+                        <div class="col-md-2">
+                            <label for="sort" class="form-label fw-semibold">Trier par</label>
+                            <select class="form-select" id="sort" name="sort">
+                                <option value="">Par défaut</option>
+                                <option value="alpha" {% if filterParams.sort == 'alpha' %}selected{% endif %}>A-Z</option>
+                                <option value="prix_asc" {% if filterParams.sort == 'prix_asc' %}selected{% endif %}>Prix ↑</option>
+                                <option value="prix_desc" {% if filterParams.sort == 'prix_desc' %}selected{% endif %}>Prix ↓</option>
+                                <option value="remise_desc" {% if filterParams.sort == 'remise_desc' %}selected{% endif %}>Promo</option>
+                            </select>
+                        </div>
+
+                        <!-- Options (Promotions) -->
+                        <div class="col-md-2 d-flex flex-column">
+                            <label class="form-label fw-semibold">Options</label>
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" id="onSale" name="onSale"
+                                       {% if filterParams.onSale %}checked{% endif %}>
+                                <label class="form-check-label" for="onSale">Promotions</label>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -110,14 +95,21 @@
     <!-- Barre de recherche avec ombre plus visible -->
     <div class="container mb-4">
         <div class="row justify-content-center">
-            <div class="col-md-8">
+            <div class="col-md-8 position-relative">
                 <form method="get" action="{{ path('app_voyages') }}" class="input-group shadow-lg">
-                    <input type="text" class="form-control border-0" name="search" placeholder="Rechercher un voyage..."
-                           value="{{ searchTerm ?? '' }}">
+                    <input type="text"
+                           class="form-control border-0 search-input"
+                           id="searchInput"
+                           name="search"
+                           placeholder="Rechercher un voyage..."
+                           value="{{ searchTerm ?? '' }}"
+                           autocomplete="off">
                     <button class="btn btn-primary" type="submit">
                         <i class="fas fa-search me-2"></i>Rechercher
                     </button>
                 </form>
+                <!-- Liste des suggestions -->
+                <div id="searchSuggestions" class="list-group position-absolute w-100 d-none" style="z-index: 1000;"></div>
             </div>
         </div>
     </div>
@@ -257,49 +249,42 @@
             </div>
         </div>
     </div>
-
-    <!-- Script pour les filtres -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const minPriceSlider = document.getElementById('minPriceSlider');
-            const maxPriceSlider = document.getElementById('maxPriceSlider');
-            const minPriceValue = document.getElementById('minPriceValue');
-            const maxPriceValue = document.getElementById('maxPriceValue');
-            const minPriceInput = document.getElementById('minPrice');
-            const maxPriceInput = document.getElementById('maxPrice');
-
-            // Min Price Slider Logic
-            minPriceSlider.addEventListener('input', function() {
-                const value = this.value;
-                minPriceValue.textContent = `${value} DT`;
-                minPriceInput.value = value;
-
-                // Ensure min price is not higher than max price
-                if (parseInt(value) > parseInt(maxPriceSlider.value)) {
-                    maxPriceSlider.value = value;
-                    maxPriceValue.textContent = `${value} DT`;
-                    maxPriceInput.value = value;
-                }
-            });
-
-            // Max Price Slider Logic
-            maxPriceSlider.addEventListener('input', function() {
-                const value = this.value;
-                maxPriceValue.textContent = `${value} DT`;
-                maxPriceInput.value = value;
-
-                // Ensure max price is not lower than min price
-                if (parseInt(value) < parseInt(minPriceSlider.value)) {
-                    minPriceSlider.value = value;
-                    minPriceValue.textContent = `${value} DT`;
-                    minPriceInput.value = value;
-                }
-            });
-        });
-    </script>
-
-    <!-- Style additionnel -->
     <style>
+        /* Feedback visuel pendant le chargement */
+        .loading-filters {
+            position: relative;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Animation de pulse pour les cartes pendant le chargement */
+        @keyframes pulse {
+            0% { opacity: 0.8; }
+            50% { opacity: 0.5; }
+            100% { opacity: 0.8; }
+        }
+
+        .loading-content .room-item {
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Style pour le spinner personnalisé */
+        .custom-spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #0d6efd;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Styles existants améliorés */
         .filter-group {
             margin-bottom: 1.5rem;
         }
@@ -307,51 +292,266 @@
         .filter-group label {
             margin-bottom: 0.5rem;
             display: block;
+            font-weight: 500;
         }
 
         .price-display {
-            padding: 0.5rem;
+            padding: 0.75rem;
             background-color: #f8f9fa;
             border-radius: 0.5rem;
             border-left: 4px solid #0d6efd;
+            margin: 0.5rem 0;
         }
 
         .badge.bg-danger {
             font-size: 0.75rem;
             padding: 0.35em 0.65em;
+            font-weight: 600;
         }
 
         .form-range::-webkit-slider-thumb {
             background: #0d6efd;
+            width: 20px;
+            height: 20px;
         }
 
         .form-range::-moz-range-thumb {
             background: #0d6efd;
+            width: 20px;
+            height: 20px;
         }
 
         .form-range::-ms-thumb {
             background: #0d6efd;
+            width: 20px;
+            height: 20px;
         }
 
         .room-item {
-            transition: transform 0.3s ease;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.1);
         }
 
         .room-item:hover {
             transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
 
         .input-group .form-control {
             border-right: none;
+            padding: 0.75rem 1rem;
         }
 
         .input-group .btn {
             border-left: none;
+            padding: 0 1.5rem;
         }
 
         /* Ombre plus visible pour la barre de recherche */
         .shadow-lg {
             box-shadow: 0 1rem 3rem rgba(0,0,0,.175) !important;
         }
+
+        /* Amélioration des boutons */
+        .voyage-btn {
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .voyage-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Style pour les sélecteurs */
+        .form-select {
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        /* Styles pour les suggestions de recherche */
+        #searchSuggestions {
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.175);
+            border-radius: 0 0 4px 4px;
+            margin-top: -1px;
+        }
+
+        #searchSuggestions .list-group-item {
+            border-left: none;
+            border-right: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            padding: 0.75rem 1.25rem;
+        }
+
+        #searchSuggestions .list-group-item:first-child {
+            border-top: none;
+        }
+
+        #searchSuggestions .list-group-item:hover {
+            background-color: #f8f9fa;
+            padding-left: 1.5rem;
+        }
     </style>
+    <script>
+        // Fonction debounce pour limiter les appels fréquents
+        const debounce = (func, delay) => {
+            let timeout;
+            return function() {
+                const context = this;
+                const args = arguments;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Création de l'overlay de chargement
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.className = 'loading-overlay';
+            loadingOverlay.innerHTML = `
+                <div class="d-flex flex-column align-items-center">
+                    <div class="custom-spinner mb-3"></div>
+                    <p class="text-primary fw-bold">Chargement des voyages...</p>
+                </div>
+            `;
+            document.body.appendChild(loadingOverlay);
+
+            // Fonction pour soumettre le formulaire avec debounce
+            const submitFormDebounced = debounce((form) => {
+                loadingOverlay.style.display = 'flex';
+                form.classList.add('loading-filters');
+                document.querySelector('.loading-content')?.classList.add('loading-content');
+                setTimeout(() => form.submit(), 100);
+            }, 500);
+
+            // Gestion des sliders de prix
+            const minPriceSlider = document.getElementById('minPriceSlider');
+            const maxPriceSlider = document.getElementById('maxPriceSlider');
+            const minPriceValue = document.getElementById('minPriceValue');
+            const maxPriceValue = document.getElementById('maxPriceValue');
+            const minPriceInput = document.getElementById('minPrice');
+            const maxPriceInput = document.getElementById('maxPrice');
+
+            const updatePriceSliders = () => {
+                const form = document.getElementById('filterForm');
+                submitFormDebounced(form);
+            };
+
+            if (minPriceSlider && maxPriceSlider) {
+                minPriceSlider.addEventListener('input', function() {
+                    const value = this.value;
+                    minPriceValue.textContent = `${value} DT`;
+                    minPriceInput.value = value;
+
+                    if (parseInt(value) > parseInt(maxPriceSlider.value)) {
+                        maxPriceSlider.value = value;
+                        maxPriceValue.textContent = `${value} DT`;
+                        maxPriceInput.value = value;
+                    }
+                    updatePriceSliders();
+                });
+
+                maxPriceSlider.addEventListener('input', function() {
+                    const value = this.value;
+                    maxPriceValue.textContent = `${value} DT`;
+                    maxPriceInput.value = value;
+
+                    if (parseInt(value) < parseInt(minPriceSlider.value)) {
+                        minPriceSlider.value = value;
+                        minPriceValue.textContent = `${value} DT`;
+                        minPriceInput.value = value;
+                    }
+                    updatePriceSliders();
+                });
+            }
+
+            // Recherche avec suggestions
+            const searchInput = document.getElementById('searchInput');
+            const searchForm = document.querySelector('.input-group.shadow-lg form');
+            const suggestionsContainer = document.getElementById('searchSuggestions');
+
+            if (searchInput) {
+                searchInput.addEventListener('input', debounce(async function() {
+                    const query = this.value.trim();
+
+                    if (query.length < 2) {
+                        suggestionsContainer.classList.add('d-none');
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`{{ path('app_voyages_suggestions') }}?q=${encodeURIComponent(query)}`);
+                        if (!response.ok) throw new Error('Network response was not ok');
+
+                        const suggestions = await response.json();
+
+                        if (suggestions.length > 0) {
+                            suggestionsContainer.innerHTML = suggestions.map(suggestion =>
+                                `<a href="#" class="list-group-item list-group-item-action" data-suggestion="${suggestion.titre}">
+                                    ${suggestion.titre}
+                                 </a>`
+                            ).join('');
+                            suggestionsContainer.classList.remove('d-none');
+                        } else {
+                            suggestionsContainer.classList.add('d-none');
+                        }
+                    } catch (error) {
+                        console.error('Erreur de recherche:', error);
+                        suggestionsContainer.classList.add('d-none');
+                    }
+                }, 300));
+
+                // Gestion du clic sur une suggestion
+                suggestionsContainer.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('list-group-item')) {
+                        e.preventDefault();
+                        searchInput.value = e.target.dataset.suggestion;
+                        suggestionsContainer.classList.add('d-none');
+                    }
+                });
+
+                // Masquer les suggestions quand on clique ailleurs
+                document.addEventListener('click', function(e) {
+                    if (!searchInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+                        suggestionsContainer.classList.add('d-none');
+                    }
+                });
+            }
+
+            // Pour le switch de promotion
+            const onSaleSwitch = document.getElementById('onSale');
+            if (onSaleSwitch) {
+                onSaleSwitch.addEventListener('change', () => {
+                    submitFormDebounced(document.getElementById('filterForm'));
+                });
+            }
+
+            // Style pour l'overlay de chargement
+            const style = document.createElement('style');
+            style.textContent = `
+                .loading-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(255,255,255,0.85);
+                    z-index: 9999;
+                    display: none;
+                    justify-content: center;
+                    align-items: center;
+                    flex-direction: column;
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
 {% endblock %}

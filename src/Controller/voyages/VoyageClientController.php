@@ -10,6 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 final class VoyageClientController extends AbstractController
 {
@@ -93,6 +94,14 @@ final class VoyageClientController extends AbstractController
         return $this->render('voyages/ReserverVoyage.html.twig', [
             'voyage' => $voyage
         ]);
+    }
+    #[Route('/voyages/suggestions', name: 'app_voyages_suggestions')]
+    public function suggestions(Request $request, VoyageRepository $voyageRepository): JsonResponse
+    {
+        $query = $request->query->get('q', '');
+        $suggestions = $voyageRepository->findTitlesStartingWith($query);
+
+        return $this->json($suggestions);
     }
 
 
