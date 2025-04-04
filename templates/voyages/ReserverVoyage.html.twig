@@ -71,7 +71,7 @@
                         <div class="border rounded p-4 hover-effect">
                             <h3 class="text-primary mb-4">Votre réservation</h3>
 
-                            <form method="post" action="{{ path('app_reservation_new', {'id': voyage.id}) }}">
+                            <form method="post" action="{{ path('app_voyage_reserver', {'id': voyage.id}) }}">
                                 <div class="mb-4">
                                     <label for="nbPlaces" class="form-label">Nombre de places à réserver</label>
                                     <input type="number"

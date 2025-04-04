@@ -87,12 +87,14 @@ final class VoyageClientController extends AbstractController
             'similarVoyages' => $similarVoyages,
         ]);
     }
-    #[Route('/voyage/{id}', name: 'app_voyage_reserver')]
+    #[Route('/Reservervoyage/{id}', name: 'app_voyage_reserver')]
     public function Reserver(Voyage $voyage): Response
     {
-        return $this->render('voyages/DetailsVoyage.html.twig', [
+        return $this->render('voyages/ReserverVoyage.html.twig', [
             'voyage' => $voyage
         ]);
     }
+
+
 
 }
