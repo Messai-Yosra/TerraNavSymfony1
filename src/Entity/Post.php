@@ -46,10 +46,15 @@ class Post
     private Collection $reactions;
 
     public function __construct()
-    {
-        $this->commentaires = new ArrayCollection();
-        $this->reactions = new ArrayCollection();
-    }
+{
+    $this->date = new \DateTime(); 
+    $this->statut = "non traitée"; 
+    $this->nbCommentaires = 0; 
+    $this->nbReactions = 0; 
+    $this->commentaires = new ArrayCollection();
+    $this->reactions = new ArrayCollection();
+}
+
 
     public function getId(): int
     {

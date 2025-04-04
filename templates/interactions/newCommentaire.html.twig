@@ -1,0 +1,31 @@
+{% extends 'baseClient.html.twig' %}
+
+{% block titre %}Ajouter un commentaire{% endblock %}
+
+{% block content %}
+<link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
+<link href="{{ asset('css/styleClient.css') }}" rel="stylesheet">
+    <div class="container mt-4">
+        <h2>Ajouter un commentaire</h2>
+        
+        <div class="card p-3">
+            <h4>Post :</h4>
+            <p><strong>{{ post.description }}</strong></p>
+            {% if post.image %}
+                <img src="{{ asset('img/' ~ post.image) }}" alt="Image" class="img-fluid">
+            {% endif %}
+        </div>
+
+        <div class="mt-3">
+            {{ form_start(form) }}
+                <div class="mb-3">
+                    {{ form_label(form.contenu, 'Votre commentaire :') }}
+                    {{ form_widget(form.contenu, {'attr': {'class': 'form-control', 'placeholder': 'Écrivez votre commentaire ici...'}}) }}
+                </div>
+                <button type="submit" class="btn btn-primary">Envoyer</button>
+            {{ form_end(form) }}
+        </div>
+        
+        <a href="{{ path('app_post_show', {'id': post.id}) }}" class="btn btn-secondary mt-2">Retour</a>
+    </div>
+{% endblock %}

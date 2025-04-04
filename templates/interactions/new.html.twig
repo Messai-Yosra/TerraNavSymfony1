@@ -1,0 +1,12 @@
+{# For Add Post - new.html.twig #}
+{% extends "baseClient.html.twig" %}
+{% block titre %}Ajouter un nouveau post{% endblock %}
+{% block content %}
+    <h1>Ajouter un nouveau post</h1>
+    {{ form_start(form) }}
+        {{ form_row(form.description) }}
+        {{ form_row(form.image) }}
+        <button class="btn">Ajoutter</button>
+
+    {{ form_end(form) }}
+{% endblock %}

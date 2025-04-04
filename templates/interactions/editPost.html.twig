@@ -1,0 +1,15 @@
+{% extends "baseClient.html.twig" %}
+
+
+{% block titre %}Modifier un Post{% endblock %}
+
+{% block content %}
+    <h1>Modifier le Post</h1>
+    <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/styleClient.css') }}" rel="stylesheet">
+    {{ form_start(form) }}
+        {{ form_row(form.description) }}
+        {{ form_row(form.image) }}
+        <button class="btn">Modifier</button>
+    {{ form_end(form) }}
+{% endblock %}

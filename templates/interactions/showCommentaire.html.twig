@@ -1,0 +1,43 @@
+{% extends 'baseClient.html.twig' %}
+
+{% block titre %}Détails du Post{% endblock %}
+
+{% block content %}
+
+<link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
+<link href="{{ asset('css/styleClient.css') }}" rel="stylesheet">
+    <div class="container mt-4">
+        <p>{{ post.description }}</p>
+
+        {% if post.image %}
+            <img src="{{ asset('img/' ~ post.image) }}" alt="Image du post" class="img-fluid">
+        {% endif %}
+
+        <h3 class="mt-4">Commentaires</h3>
+
+        {% if post.commentaires is not empty %}
+            <ul class="list-group">
+                {% for commentaire in post.commentaires %}
+                    <li class="list-group-item">
+                        <strong>{{ commentaire.id_User.nom }}</strong> 
+                        contenue : {{ commentaire.contenu }} 
+                        <br>
+                        <small>date : {{ commentaire.date ? commentaire.date|date('d/m/Y H:i') : 'Non défini' }}</small>
+                        <div class="mt-2">
+                            <form action="{{ path('app_commentaire_delete', {'id': commentaire.id}) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce commentaire ?')">
+                                <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+                            </form>
+                            <a href="{{ path('app_commentaire_edit', {'id': commentaire.id}) }}"method="POST" class="btn btn-warning btn-sm">Modifier</a>
+                        </div>
+                        
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Aucun commentaire pour ce post.</p>
+        {% endif %}
+
+        <a href="{{ path('app_commentaire_new', {'postId': post.id}) }}" class="btn btn-success mt-2">Ajouter un commentaire</a>
+        <a href="{{ path('app_chat') }}" class="btn btn-secondary mt-2">Retour</a>
+    </div>
+{% endblock %}

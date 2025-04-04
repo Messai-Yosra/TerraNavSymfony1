@@ -1,3 +1,55 @@
-{% extends "baseClient.html.twig" %}
+{% extends 'baseClient.html.twig' %}
 
-{% block titre %} Chat - Client {% endblock %}
+{% block titre %}Chat - Posts{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <a href="{{ path('app_post_new') }}" class="btn btn-primary mb-3">Ajouter un Post</a>
+
+        <h2>Liste des Posts</h2>
+        {% if posts is not empty %}
+            <div class="row">
+                {% for post in posts %}
+                    <div class="col-md-8 mx-auto mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ post.description }}</h5>
+                                <p class="card-text">
+                                    <strong>Statut :</strong> {{ post.statut }}<br>
+                                    <strong>Date :</strong> {{ post.date ? post.date|date('d/m/Y H:i') : 'Non défini' }}
+                                </p>
+                                 
+                                {% if post.image %}
+                                    <img src="{{ asset('img/' ~ post.image) }}" class="img-fluid rounded">
+                                {% endif %}
+                                <div class="mt-3">
+                                    <strong>reations :</strong> {{ post.nbReactions }}<br>
+                                    <strong>commentaires :</strong> {{ post.nbCommentaires }}<br>
+
+                                </div>
+                                <div class="mt-3">
+                                    <a href="{{ path('app_post_edit', {'id': post.id}) }}" class="btn btn-warning">Modifier</a>
+                                    <a href="{{ path('app_post_delete', {'id': post.id}) }}" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce post ?')">Supprimer</a>
+                                    <a href="{{ path('app_post_details', {'id': post.id}) }}" class="btn btn-info">Détails</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Aucun post trouvé.</p>
+        {% endif %}
+    </div>
+
+    <script>
+        function toggleComments(postId) {
+            let commentsSection = document.getElementById('comments-' + postId);
+            if (commentsSection.style.display === "none") {
+                commentsSection.style.display = "block";
+            } else {
+                commentsSection.style.display = "none";
+            }
+        }
+    </script>
+{% endblock %}
