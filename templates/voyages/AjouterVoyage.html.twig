@@ -81,29 +81,39 @@
                                         <!-- Destination -->
                                         <div class="col-md-6">
                                             <div class="form-floating">
-                                                <input type="text" class="form-control" id="destination"
-                                                       name="destination" placeholder="Destination" required>
-                                                <label for="destination"><i
-                                                            class="fas fa-map-marked-alt me-2 text-primary"></i>Destination</label>
+                                                {{ form_widget(form.destination, {'attr': {'class': form.destination.vars.errors|length ? 'form-control is-invalid' : 'form-control'}}) }}
+                                                {{ form_label(form.destination) }}
+                                                {% if form.destination.vars.errors|length %}
+                                                    <div class="form-error-message">
+                                                        {{ form_errors(form.destination) }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </div>
 
                                         <!-- Point de départ -->
                                         <div class="col-md-6">
                                             <div class="form-floating">
-                                                <input type="text" class="form-control" id="pointDepart"
-                                                       name="pointDepart" placeholder="Point de départ" required>
-                                                <label for="pointDepart"><i
-                                                            class="fas fa-map-marker-alt me-2 text-primary"></i>Point de départ</label>
+                                                {{ form_widget(form.pointDepart, {'attr': {'class': form.pointDepart.vars.errors|length ? 'form-control is-invalid' : 'form-control'}}) }}
+                                                {{ form_label(form.pointDepart) }}
+                                                {% if form.pointDepart.vars.errors|length %}
+                                                    <div class="form-error-message">
+                                                        {{ form_errors(form.pointDepart) }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </div>
 
                                         <!-- Titre du voyage -->
                                         <div class="col-12">
                                             <div class="form-floating">
-                                                <input type="text" class="form-control" id="titre" name="titre"
-                                                       placeholder="Titre du voyage" required>
-                                                <label for="titre"><i class="fas fa-heading me-2 text-primary"></i>Titre du voyage</label>
+                                                {{ form_widget(form.titre, {'attr': {'class': form.titre.vars.errors|length ? 'form-control is-invalid' : 'form-control'}}) }}
+                                                {{ form_label(form.titre) }}
+                                                {% if form.titre.vars.errors|length %}
+                                                    <div class="form-error-message">
+                                                        {{ form_errors(form.titre) }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </div>
                                     </div>
@@ -119,21 +129,27 @@
                                     <div class="row g-3">
                                         <!-- Date de départ -->
                                         <div class="col-md-6">
-                                            <div class="form-floating date" id="date3" data-target-input="nearest">
-                                                <input type="datetime-local" class="form-control" id="dateDepart"
-                                                       name="dateDepart" required>
-                                                <label for="dateDepart"><i
-                                                            class="fas fa-plane-departure me-2 text-primary"></i>Date de départ</label>
+                                            <div class="form-floating">
+                                                {{ form_widget(form.dateDepart, {'attr': {'class': form.dateDepart.vars.errors|length ? 'form-control is-invalid' : 'form-control'}}) }}
+                                                {{ form_label(form.dateDepart) }}
+                                                {% if form.dateDepart.vars.errors|length %}
+                                                    <div class="form-error-message">
+                                                        {{ form_errors(form.dateDepart) }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </div>
 
                                         <!-- Date de retour -->
                                         <div class="col-md-6">
-                                            <div class="form-floating date" id="date4" data-target-input="nearest">
-                                                <input type="datetime-local" class="form-control" id="dateRetour"
-                                                       name="dateRetour" required>
-                                                <label for="dateRetour"><i
-                                                            class="fas fa-plane-arrival me-2 text-primary"></i>Date de retour</label>
+                                            <div class="form-floating">
+                                                {{ form_widget(form.dateRetour, {'attr': {'class': form.dateRetour.vars.errors|length ? 'form-control is-invalid' : 'form-control'}}) }}
+                                                {{ form_label(form.dateRetour) }}
+                                                {% if form.dateRetour.vars.errors|length %}
+                                                    <div class="form-error-message">
+                                                        {{ form_errors(form.dateRetour) }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </div>
                                     </div>
@@ -150,33 +166,39 @@
                                         <!-- Type de voyage -->
                                         <div class="col-md-6">
                                             <div class="form-floating">
-                                                <select class="form-select" id="type" name="type" required>
-                                                    <option value="">Sélectionner un type</option>
-                                                    <option value="Avion">Avion</option>
-                                                    <option value="Train">Train</option>
-                                                    <option value="Bateau">Bateau</option>
-                                                </select>
-                                                <label for="type"><i class="fas fa-tags me-2 text-primary"></i>Type de voyage</label>
+                                                {{ form_widget(form.type, {'attr': {'class': form.type.vars.errors|length ? 'form-select is-invalid' : 'form-select'}}) }}
+                                                {{ form_label(form.type) }}
+                                                {% if form.type.vars.errors|length %}
+                                                    <div class="form-error-message">
+                                                        {{ form_errors(form.type) }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </div>
 
                                         <!-- Nombre de places -->
                                         <div class="col-md-6">
                                             <div class="form-floating">
-                                                <input type="number" class="form-control" id="nbPlacesD"
-                                                       name="nbPlacesD" min="1" placeholder="Nombre de places" required>
-                                                <label for="nbPlacesD"><i
-                                                            class="fas fa-users me-2 text-primary"></i>Nombre de places</label>
+                                                {{ form_widget(form.nbPlacesD, {'attr': {'class': form.nbPlacesD.vars.errors|length ? 'form-control is-invalid' : 'form-control'}}) }}
+                                                {{ form_label(form.nbPlacesD) }}
+                                                {% if form.nbPlacesD.vars.errors|length %}
+                                                    <div class="form-error-message">
+                                                        {{ form_errors(form.nbPlacesD) }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </div>
 
                                         <!-- Prix -->
                                         <div class="col-md-6">
                                             <div class="form-floating">
-                                                <input type="number" step="0.5" class="form-control" id="prix"
-                                                       name="prix" min="0" placeholder="Prix" required>
-                                                <label for="prix"><i
-                                                            class="fas fa-money-bill-wave me-2 text-primary"></i>Prix (€)</label>
+                                                {{ form_widget(form.prix, {'attr': {'class': form.prix.vars.errors|length ? 'form-control is-invalid' : 'form-control'}}) }}
+                                                {{ form_label(form.prix) }}
+                                                {% if form.prix.vars.errors|length %}
+                                                    <div class="form-error-message">
+                                                        {{ form_errors(form.prix) }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </div>
 
@@ -189,8 +211,7 @@
                                                         <option value="{{ offre.id }}">{{ offre.titre }}</option>
                                                     {% endfor %}
                                                 </select>
-                                                <label for="id_offre"><i
-                                                            class="fas fa-percent me-2 text-primary"></i>Offre associée</label>
+                                                <label for="id_offre"><i class="fas fa-percent me-2 text-primary"></i>Offre associée</label>
                                             </div>
                                         </div>
                                     </div>
@@ -208,9 +229,10 @@
                                         <div class="col-12">
                                             <div class="form-group">
                                                 <label for="images"><i class="fas fa-camera me-2 text-primary"></i>Images du voyage</label>
-                                                <input type="file" class="form-control hover-file-input" id="images"
-                                                       name="images[]" multiple accept="image/*">
+                                                <input type="file" class="form-control hover-file-input"
+                                                       id="images" name="images[]" multiple accept="image/*">
                                                 <small class="form-text text-muted">Sélectionnez une ou plusieurs images (max 5)</small>
+                                                <div id="imagePreview" class="mt-2"></div>
                                             </div>
                                         </div>
 
@@ -218,16 +240,22 @@
                                         <div class="col-12">
                                             <div class="form-floating">
                                                 <div class="input-group">
-                                                <textarea class="form-control"
-                                                          placeholder="Description détaillée" id="description"
-                                                          name="description" style="height: 100px"
-                                                          required></textarea>
+                                                    {{ form_widget(form.description, {
+                                                        'attr': {
+                                                            'style': 'height: 100px',
+                                                            'class': form.description.vars.errors|length ? 'form-control is-invalid' : 'form-control'
+                                                        }
+                                                    }) }}
+                                                    {{ form_label(form.description) }}
+                                                    {% if form.description.vars.errors|length %}
+                                                        <div class="form-error-message">
+                                                            {{ form_errors(form.description) }}
+                                                        </div>
+                                                    {% endif %}
                                                     <button class="btn btn-outline-primary" type="button"
                                                             id="generateDescBtn" style="height: 58px;">
                                                         <i class="fas fa-magic me-1"></i> Générer
                                                     </button>
-                                                    <label for="description"><i
-                                                                class="fas fa-align-left me-2 text-primary"></i>Description détaillée</label>
                                                 </div>
                                             </div>
                                         </div>
@@ -252,12 +280,51 @@
                         </div>
                     </div>
                 </div>
+
+                {{ form_end(form) }}
             </form>
         </div>
     </div>
     <!-- Voyage Form End -->
 
     <style>
+        /* Style des messages d'erreur */
+        .form-error-message {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Style des champs invalides */
+        .is-invalid {
+            border-color: #dc3545 !important;
+        }
+
+        .is-invalid:focus {
+            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
+        }
+
+        /* Positionnement des messages d'erreur */
+        .form-floating {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-floating .form-error-message {
+            position: absolute;
+            bottom: -1.25rem;
+            left: 0.75rem;
+        }
+
+        /* Correction du hover pour tous les champs */
+        .form-control:hover,
+        .form-select:hover,
+        #nbPlacesD:hover,
+        #prix:hover {
+            border-color: #0d6efd;
+            background-color: #f8f9fa;
+        }
+
         /* Effets de hover */
         .hover-effect {
             transition: all 0.3s ease;
@@ -317,8 +384,28 @@
         }
 
         /* Animation pour les champs */
+        /* Style de base pour tous les champs */
         .form-control {
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        /* Style de survol commun pour tous les champs */
+        .form-control:hover {
+            border-color: #666;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Style spécifique pour les champs avec erreur */
+        .form-control.is-invalid {
+            border-color: #dc3545;
+        }
+
+        .form-control.is-invalid:hover {
+            border-color: #c82333;
+            box-shadow: 0 0 5px rgba(220, 53, 69, 0.25);
         }
 
         .form-control:focus {
@@ -332,6 +419,10 @@
 
         .col-lg-6:last-child {
             padding-right: 2rem;
+        }
+
+        .invalid-feedback {
+            margin-top: 5px;
         }
     </style>
 
@@ -364,8 +455,6 @@
                     e.preventDefault();
                     return;
                 }
-
-                // Si tout est valide, le formulaire se soumettra normalement
             });
 
             // Gestion du bouton Annuler
@@ -387,6 +476,8 @@
                 });
             });
         });
+
+        // Gestion de la prévisualisation des images
         document.getElementById('images').addEventListener('change', function(e) {
             const preview = document.getElementById('imagePreview');
             preview.innerHTML = '';

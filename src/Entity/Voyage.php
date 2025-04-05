@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Validator\Constraints as Assert;
 use App\Entity\Utilisateur;
 use App\Entity\Offre;
 use App\Entity\Reservation;
@@ -26,30 +27,56 @@ class Voyage
     private Utilisateur $id_user;
 
     #[ORM\Column(name: "pointDepart", type: "string", length: 50, nullable: true)]
+    #[Assert\NotBlank(message: "Le point de départ est obligatoire")]
+    #[Assert\Length(
+        min: 3,
+        max: 50,
+        minMessage: "Le point de départ doit faire au moins {{ limit }} caractères",
+        maxMessage: "Le point de départ ne peut pas dépasser {{ limit }} caractères"
+    )]
     private ?string $pointDepart;
 
     #[ORM\Column(name: "dateDepart", type: "datetime", nullable: true)]
+    #[Assert\NotBlank(message: "La date de départ est obligatoire")]
+    #[Assert\GreaterThan("today", message: "La date de départ doit être dans le futur")]
     private ?\DateTimeInterface $dateDepart;
 
     #[ORM\Column(name: "dateRetour", type: "datetime", nullable: true)]
+    #[Assert\NotBlank(message: "La date de retour est obligatoire")]
+    #[Assert\Expression(
+        "this.getDateRetour() > this.getDateDepart()",
+        message: "La date de retour doit être après la date de départ"
+    )]
     private ?\DateTimeInterface $dateRetour;
 
     #[ORM\Column(name: "destination", type: "string", length: 50, nullable: true)]
+    #[Assert\NotBlank(message: "La destination est obligatoire")]
+    #[Assert\Length(min: 3, max: 50)]
     private ?string $destination;
 
     #[ORM\Column(name: "nbPlacesD", type: "integer", nullable: true)]
+    #[Assert\NotBlank(message: "Le nombre de places est obligatoire")]
+    #[Assert\Positive(message: "Le nombre de places doit être positif")]
     private ?int $nbPlacesD;
 
     #[ORM\Column(name: "type", type: "string", length: 50, nullable: true)]
+    #[Assert\NotBlank(message: "Le type de voyage est obligatoire")]
+    #[Assert\Choice(choices: ["Avion", "Train", "Bateau"], message: "Choisissez un type valide")]
     private ?string $type;
 
     #[ORM\Column(name: "prix", type: "float", nullable: true)]
+    #[Assert\NotBlank(message: "Le prix est obligatoire")]
+    #[Assert\Positive(message: "Le prix doit être positif")]
     private ?float $prix;
 
     #[ORM\Column(name: "description", type: "text", nullable: true)]
+    #[Assert\NotBlank(message: "La description est obligatoire")]
+    #[Assert\Length(min: 20, minMessage: "La description doit faire au moins {{ limit }} caractères")]
     private ?string $description;
 
     #[ORM\Column(name: "titre", type: "string", length: 50, nullable: true)]
+    #[Assert\NotBlank(message: "Le titre est obligatoire")]
+    #[Assert\Length(min: 5, max: 50)]
     private ?string $titre;
 
     #[ORM\Column(name: "pathImages", type: "text", nullable: true)]
@@ -266,4 +293,5 @@ class Voyage
             $absolutePaths
         );
     }
+
 }
