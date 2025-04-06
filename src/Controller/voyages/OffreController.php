@@ -4,6 +4,7 @@ namespace App\Controller\voyages;
 
 use App\Entity\Offre;
 use App\Entity\Utilisateur;
+use App\Form\voyages\OffreType;
 use App\Repository\Utilisateur\UtilisateurRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -135,5 +136,12 @@ class OffreController extends AbstractController
             $this->addFlash('error', 'Une erreur est survenue : '.$e->getMessage());
             return $this->redirectToRoute('app_confirmation_ajout_offre');
         }
+    }
+
+    public function new(Request $request): Response
+    {
+        $offre = new Offre();
+        $form = $this->createForm(OffreType::class, $offre);
+        return $this->redirectToRoute('app_confirmation_ajout_offre');
     }
 }

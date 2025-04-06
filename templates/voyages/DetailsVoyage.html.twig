@@ -51,8 +51,8 @@
                         </div>
                     </div>
                     <div class="mt-3">
-                        <a  class="btn btn-outline-primary btn-sm btn-hover" href="{{ path('app_voyages') }}">
-                            <i class="fas fa-eye me-1" ></i> Voir tous les voyages de cette agence
+                        <a  class="btn btn-outline-primary btn-sm btn-hover" href="{{ path('app_agence_profile', {'id': voyage.id_user.id}) }}">
+                            <i class="fas fa-eye me-1" ></i> Voir Profile d'Agence
                         </a>
                     </div>
                 </div>
@@ -190,6 +190,7 @@
                     </div>
                 </div>
 
+
                 <!-- Galerie d'Images -->
                 <div class="col-lg-6">
                     <div class="row g-3">
@@ -249,6 +250,38 @@
                                 Petit-déjeuner buffet inclus
                             </li>
                         </ul>
+                    </div>
+                </div>
+                <!-- Section Activités (à placer où vous souhaitez l'afficher) -->
+                <div class="mt-4">
+                    <button id="generateActivities" class="btn btn-info py-3 px-5 btn-hover">
+                        <i class="fas fa-lightbulb me-2"></i>Activités populaires
+                    </button>
+
+                    <div id="activitiesContainer" class="mt-3 p-4 bg-light rounded d-none">
+                        <!-- En-tête avec bouton de copie -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="mb-0">
+                                <i class="fas fa-map-marked-alt text-primary me-2"></i>
+                                Activités à {{ voyage.destination }}
+                            </h4>
+                            <button id="copyActivities" class="btn btn-sm btn-outline-secondary" title="Copier les activités">
+                                <i class="fas fa-copy me-1"></i>Copier
+                            </button>
+                        </div>
+
+                        <!-- Contenu des activités (rempli dynamiquement) -->
+                        <div id="activitiesContent" class="activities-content bg-white p-3 rounded">
+                            <!-- État initial - vide ou avec message d'attente -->
+                            <p class="text-center text-muted mb-0">
+                                Cliquez sur le bouton pour générer les activités populaires...
+                            </p>
+                        </div>
+
+                        <!-- Pied de section -->
+                        <div class="text-end small text-muted mt-2">
+                            <i class="fas fa-info-circle"></i> Suggestions générées par intelligence artificielle
+                        </div>
                     </div>
                 </div>
             </div>
@@ -364,6 +397,48 @@
     </div>
 
     <style>
+        /* Conteneur principal */
+        #activitiesContainer {
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        /* Contenu des activités */
+        .activities-content {
+            min-height: 150px;
+            border-left: 4px solid #0d6efd;
+            background-color: #f8f9fa;
+        }
+
+        /* Style de la liste des activités */
+        .activity-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .activity-item {
+            padding: 8px 0;
+            border-bottom: 1px dashed #dee2e6;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            color: #0d6efd;
+            margin-right: 10px;
+        }
+
+        /* Animation de chargement */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .activity-loading {
+            animation: fadeIn 0.5s ease-in-out;
+        }
         /* Effets de hover */
         .hover-effect {
             transition: all 0.3s ease;
@@ -475,4 +550,5 @@
             }
         }
     </style>
+
 {% endblock %}

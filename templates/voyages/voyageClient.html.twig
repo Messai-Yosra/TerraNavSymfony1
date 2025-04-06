@@ -224,6 +224,14 @@
                                         {% endif %}
                                         <small>Voyage en {{ voyage.type }}</small>
                                     </div>
+                                    <div>
+                                        <i class="fas fa-cloud-sun text-primary me-2"></i>
+                                        <small>
+                                            <a href="#" class="weather-link" data-destination="{{ voyage.destination }}">
+                                                Voir météo à {{ voyage.destination }}
+                                            </a>
+                                        </small>
+                                    </div>
                                 </div>
 
                                 <div class="d-flex justify-content-between">
@@ -250,6 +258,16 @@
         </div>
     </div>
     <style>
+        .weather-link {
+            color: inherit;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .weather-link:hover {
+            color: #0d6efd;
+            text-decoration: underline;
+        }
         /* Feedback visuel pendant le chargement */
         .loading-filters {
             position: relative;

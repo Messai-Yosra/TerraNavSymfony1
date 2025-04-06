@@ -1,0 +1,404 @@
+{% extends "baseClient.html.twig" %}
+
+{% block title %}Profil de l'Agence - {{ agence.nomagence }}{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    <div class="container-fluid page-header mb-5 p-0"
+         style="background-image: url({{ asset('img/voyages/acceuil4.avif') }});">
+        <div class="container-fluid page-header-inner py-5">
+            <div class="container text-center pb-5">
+                <h1 class="display-3 text-white mb-3 animated slideInDown">{{ agence.nomagence }}</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center text-uppercase">
+                        <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+                        <li class="breadcrumb-item"><a href="{{ path('app_voyages') }}">Voyages</a></li>
+                        <li class="breadcrumb-item text-white active" aria-current="page">Agence</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Agence -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="row g-5 align-items-center bg-light rounded p-4 hover-effect">
+                <div class="col-md-3 text-center">
+                    <img src="{{ asset(agence.photo ? 'img/users/' ~ agence.photo : 'img/voyages/user.avif') }}"
+                         class="rounded-circle img-fluid"
+                         style="width: 200px; height: 200px; object-fit: cover;"
+                         alt="Photo de l'agence {{ agence.nomagence }}"
+                         onerror="this.src='{{ asset('img/voyages/user.avif') }}'">
+                </div>
+                <div class="col-md-9">
+                    <h2 class="text-primary mb-3">{{ agence.nomagence }}</h2>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><i class="fas fa-envelope me-2 text-primary"></i> {{ agence.email }}</p>
+                            <p><i class="fas fa-phone me-2 text-primary"></i> {{ agence.numTel ?? 'Non renseigné' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><i class="fas fa-map-marker-alt me-2 text-primary"></i> {{ agence.address ?? 'Adresse non renseignée' }}</p>
+                            <p><i class="fas fa-building me-2 text-primary"></i> {{ agence.typeAgence ?? 'Type non spécifié' }}</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{{ path('app_voyages') }}?agence={{ agence.nomagence }}"
+                           class="btn btn-outline-primary btn-hover">
+                            <i class="fas fa-plane me-1"></i> Voir tous ses voyages
+                        </a>
+                        <a href="{{ path('app_offres') }}?agence={{ agence.nomagence }}"
+                           class="btn btn-outline-success btn-hover">
+                            <i class="fas fa-tag me-1"></i> Voir toutes ses offres
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Voyages -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+                <h6 class="section-title text-center text-primary text-uppercase">Ses Voyages</h6>
+                <h1 class="mb-5">Découvrez les <span class="text-primary">destinations</span> proposées</h1>
+            </div>
+
+            {% if voyages|length > 0 %}
+                <div class="row g-4">
+                    {% for voyage in voyages %}
+                        <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.{{ loop.index }}s">
+                            <div class="room-item shadow rounded overflow-hidden h-100">
+                                <div class="position-relative">
+                                    {% set images = voyage.transformImagePaths(voyage.pathImages)|split('***') %}
+                                    <img class="img-fluid w-100"
+                                         src="{{ asset(images[0]|trim) }}"
+                                         alt="{{ voyage.titre }}"
+                                         style="height: 250px; object-fit: cover;"
+                                         onerror="this.src='{{ asset('img/about-1.jpg') }}'">
+
+                                    {% if voyage.id_offre %}
+                                        <span class="position-absolute top-0 end-0 m-2 badge bg-danger">
+                                            <i class="fas fa-tag me-1"></i> -{{ voyage.id_offre.reduction }}%
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <div class="p-4">
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <h5 class="mb-0">{{ voyage.titre }}</h5>
+                                        <div class="ps-2">
+                                            {% for i in 1..5 %}
+                                                <small class="fa fa-star text-primary"></small>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex mb-3">
+                                        <small class="border-end me-3 pe-3">
+                                            <i class="fa fa-map-marker-alt text-primary me-2"></i>{{ voyage.destination }}
+                                        </small>
+                                        <small class="border-end me-3 pe-3">
+                                            <i class="fa fa-calendar-alt text-primary me-2"></i>{{ voyage.dateDepart|date('d M') }}
+                                        </small>
+                                        <small>
+                                            <i class="fa fa-money-bill-wave text-primary me-2"></i>
+                                            {% if voyage.id_offre %}
+                                                {{ (voyage.prix * (1 - voyage.id_offre.reduction/100))|number_format(2) }} DT
+                                            {% else %}
+                                                {{ voyage.prix }} DT
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                    <div class="d-flex justify-content-center">
+                                        <a class="btn btn-sm btn-primary rounded-pill px-3"
+                                           href="{{ path('app_voyage_show', {'id': voyage.id}) }}">
+                                            <i class="fa fa-arrow-right me-2"></i>Voir détails
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-compass fa-4x text-muted mb-3"></i>
+                    <h4>Cette agence n'a pas encore de voyages publiés</h4>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Section Offres -->
+    <div class="container-xxl py-5 bg-light">
+        <div class="container">
+            <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+                <h6 class="section-title text-center text-primary text-uppercase">Ses Offres</h6>
+                <h1 class="mb-5">Profitez de ses <span class="text-primary">promotions</span> exclusives</h1>
+            </div>
+
+            {% if offres|length > 0 %}
+                <div class="row g-4 justify-content-center">
+                    {% for offre in offres %}
+                        <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.{{ loop.index }}s">
+                            <div class="offer-card rounded shadow overflow-hidden position-relative h-100">
+                                <div class="position-relative overflow-hidden">
+                                    <img class="img-fluid w-100 offer-image"
+                                         src="{{ asset(offre.imagePath ? offre.transformSingleImagePath(offre.imagePath) : 'img/default-offer.jpg') }}"
+                                         alt="{{ offre.titre }}"
+                                         style="height: 200px; object-fit: cover;"
+                                         onerror="this.src='{{ asset('img/about-1.jpg') }}'">
+
+                                    <div class="offer-badge position-absolute top-0 end-0 m-3">
+                                        <span class="badge bg-danger rounded-pill px-3 py-2">
+                                            <i class="fas fa-percentage me-1"></i>-{{ offre.reduction }}%
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="text-center p-4">
+                                    <h5 class="fw-bold mb-3">{{ offre.titre }}</h5>
+                                    <p class="text-muted mb-3">{{ offre.description|u.truncate(100, '...') }}</p>
+
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <small>
+                                            <i class="fas fa-calendar-day text-primary me-2"></i>
+                                            {{ offre.dateDebut|date('d M') }}
+                                        </small>
+                                        <small>
+                                            <i class="fas fa-calendar-check text-primary me-2"></i>
+                                            {{ offre.dateFin|date('d M') }}
+                                        </small>
+                                    </div>
+
+                                    <a href="{{ path('app_offre_details', {'id': offre.id}) }}"
+                                       class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                        <i class="fas fa-info-circle me-2"></i>Voir détails
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-tags fa-4x text-muted mb-3"></i>
+                    <h4>Cette agence n'a pas encore d'offres publiées</h4>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Avis et Commentaires (optionnel) -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+                <h6 class="section-title text-center text-primary text-uppercase">Avis Clients</h6>
+                <h1 class="mb-5">Ce que disent nos <span class="text-primary">voyageurs</span></h1>
+            </div>
+            <div class="text-center">
+                <i class="fas fa-comments fa-4x text-muted mb-3"></i>
+                <p class="lead">Cette agence n'a pas encore reçu d'avis</p>
+                <a href="#" class="btn btn-primary btn-hover">
+                    <i class="fas fa-pen me-2"></i>Laisser un avis
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Newsletter - Version Personnalisée pour contacter l'agence -->
+    <div class="container contact-agence mt-5 wow fadeIn" data-wow-delay="0.1s">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 border rounded p-1">
+                <div class="border rounded p-1" style="background-color: #f8f9fa;">
+                    <div class="bg-white rounded p-5">
+                        <div class="text-center mb-5">
+                            <h4 class="mb-3">Envoyer un message à <span class="text-primary">{{ agence.nomagence }}</span></h4>
+                            <p class="mb-0">Remplissez ce formulaire pour contacter directement l'agence</p>
+                        </div>
+
+                        <!-- Formulaire de contact amélioré -->
+                        <form id="contactAgenceForm" action="#" method="post">
+                            <div class="row g-4">
+                                <!-- Champ Nom -->
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="contactName" name="name" placeholder="Votre nom" required>
+                                        <label for="contactName"><i class="fas fa-user me-2 text-primary"></i>Votre nom complet</label>
+                                    </div>
+                                </div>
+
+                                <!-- Champ Email -->
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="email" class="form-control" id="contactEmail" name="email" placeholder="Votre email" required>
+                                        <label for="contactEmail"><i class="fas fa-envelope me-2 text-primary"></i>Votre email</label>
+                                    </div>
+                                </div>
+
+                                <!-- Champ Sujet -->
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="contactSubject" name="subject" placeholder="Sujet" required>
+                                        <label for="contactSubject"><i class="fas fa-tag me-2 text-primary"></i>Sujet du message</label>
+                                    </div>
+                                </div>
+
+                                <!-- Champ Message -->
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <textarea class="form-control" id="contactMessage" name="message" style="height: 150px" placeholder="Votre message" required></textarea>
+                                        <label for="contactMessage"><i class="fas fa-comment-dots me-2 text-primary"></i>Votre message</label>
+                                    </div>
+                                </div>
+
+                                <!-- Bouton d'envoi -->
+                                <div class="col-12 text-center">
+                                    <button class="btn btn-primary py-3 px-5" type="submit" id="contactSubmitBtn">
+                                        <i class="fas fa-paper-plane me-2"></i>Envoyer le message
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- Informations de contact alternatives -->
+                        <div class="mt-5 pt-4 border-top text-center">
+                            <h5 class="mb-3">Ou contactez-nous directement</h5>
+                            <div class="d-flex justify-content-center flex-wrap gap-3">
+                                <a href="mailto:{{ agence.email }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-envelope me-2"></i>{{ agence.email }}
+                                </a>
+                                {% if agence.numTel %}
+                                    <a href="tel:{{ agence.numTel }}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-phone me-2"></i>{{ agence.numTel }}
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Styles personnalisés -->
+    <style>
+        .contact-agence .form-control {
+            border-radius: 0.5rem;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s;
+        }
+        .contact-agence .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        .contact-agence textarea.form-control {
+            min-height: 150px;
+        }
+        .contact-agence .btn-outline-primary:hover {
+            background-color: #0d6efd;
+            color: white !important;
+        }
+    </style>
+
+    <!-- Script de soumission AJAX -->
+    <script>
+        document.getElementById('contactAgenceForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            const submitBtn = document.getElementById('contactSubmitBtn');
+
+            // Sauvegarde du texte original du bouton
+            const originalBtnText = submitBtn.innerHTML;
+
+            try {
+                // Affichage du statut d'envoi
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Envoi en cours...
+        `;
+
+                // Envoi de la requête
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Succès - Afficher un message et réinitialiser le formulaire
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Message envoyé!',
+                        text: 'Votre message a bien été transmis à l\'agence',
+                        confirmButtonColor: '#0d6efd'
+                    });
+                    form.reset();
+                } else {
+                    // Erreur serveur
+                    throw new Error(result.message || 'Erreur lors de l\'envoi');
+                }
+            } catch (error) {
+                // Erreur réseau ou autre
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: error.message || 'Une erreur est survenue lors de l\'envoi',
+                    confirmButtonColor: '#0d6efd'
+                });
+            } finally {
+                // Restaurer le bouton
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+        });
+    </script>
+
+    <style>
+        .hover-effect {
+            transition: all 0.3s ease;
+        }
+        .hover-effect:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .btn-hover {
+            transition: all 0.3s ease;
+        }
+        .btn-hover:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .room-item {
+            transition: all 0.3s ease;
+        }
+        .room-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .offer-card {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        .offer-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .offer-image {
+            transition: transform 0.5s ease;
+        }
+        .offer-card:hover .offer-image {
+            transform: scale(1.05);
+        }
+    </style>
+{% endblock %}
