@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Utilisateur;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 class Reclamation
@@ -15,18 +16,40 @@ class Reclamation
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: "reclamations")]
     #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id', onDelete: 'CASCADE')]
+    #[Assert\NotNull(message: "L'utilisateur ne peut pas être vide")]
     private Utilisateur $id_user;
 
     #[ORM\Column(name: "dateReclamation", type: "datetime", nullable: true)]
+    #[Assert\Type("\DateTimeInterface", message: "La date doit être valide")]
     private ?\DateTimeInterface $dateReclamation;
 
     #[ORM\Column(name: "description", type: "string", length: 255, nullable: true)]
+    #[Assert\NotBlank(message: "La description ne peut pas être vide")]
+    #[Assert\Length(
+        min: 10,
+        max: 255,
+        minMessage: "La description doit contenir au moins {{ limit }} caractères",
+        maxMessage: "La description ne peut pas dépasser {{ limit }} caractères"
+    )]
     private ?string $description;
 
     #[ORM\Column(name: "sujet", type: "string", length: 255, nullable: true)]
+    #[Assert\NotBlank(message: "Le sujet ne peut pas être vide")]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: "Le sujet ne peut pas dépasser {{ limit }} caractères"
+    )]
+    #[Assert\Choice(
+        choices: ["Problème technique", "Question sur un voyage", "Problème de paiement", "Suggestion", "Autre"],
+        message: "Le sujet sélectionné n'est pas valide"
+    )]
     private ?string $sujet;
 
     #[ORM\Column(name: "etat", type: "string", length: 50, nullable: true)]
+    #[Assert\Choice(
+        choices: ["Non traité", "Traité"],
+        message: "L'état doit être soit 'Non traité' soit 'Traité'"
+    )]
     private ?string $etat;
 
     public function getId(): int
