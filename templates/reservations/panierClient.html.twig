@@ -222,12 +222,7 @@
                             <div class="col-lg-4 col-md-6">
                                 <div class="room-item shadow rounded overflow-hidden h-100">
                                     <div class="position-relative">
-                                        {% if reservation.id_voyage and reservation.id_voyage.pathImages %}
-                                            {% set voyageImages = reservation.id_voyage.pathImages|split('***') %}
-                                            <img class="img-fluid w-100" src="{{ asset(voyageImages[0]) }}" alt="{{ reservation.id_voyage.titre }}" style="height: 200px; object-fit: cover;">
-                                        {% else %}
-                                            <img class="img-fluid w-100" src="{{ asset('img/voyage-default.jpg') }}" alt="Voyage" style="height: 200px; object-fit: cover;">
-                                        {% endif %}
+                                        {% if reservation.id_voyage and reservation.id_voyage.pathImages %}{% set voyageImages = reservation.id_voyage.pathImages|split('***') %}{% set firstImage = voyageImages[0]|replace({'\\': '/'}) %}{% set webPath = '/img/voyages/' ~ firstImage|split('/voyages/')|last %}<img class="img-fluid w-100" src="{{ asset(webPath) }}" alt="{{ reservation.id_voyage.titre }}" style="height: 200px; object-fit: cover;">{% else %}<img class="img-fluid w-100" src="{{ asset('img/voyage-default.jpg') }}" alt="Voyage" style="height: 200px; object-fit: cover;">{% endif %}
                                         <small class="position-absolute start-0 top-100 translate-middle-y bg-primary text-white rounded py-1 px-3 ms-4">{{ reservation.prix }} TND</small>
                                     </div>
                                     <div class="p-4 mt-2">
@@ -261,7 +256,7 @@
                                             <button class="btn btn-sm btn-primary rounded py-2 px-4 details-btn"
                                                     data-reservation-id="{{ reservation.id }}"
                                                     data-reservation-type="voyage"
-                                                    data-images='{% if reservation.id_voyage and reservation.id_voyage.pathImages %}{{ reservation.id_voyage.pathImages|split('***')|json_encode|raw }}{% else %}["{{ asset('img/voyage-default.jpg') }}"]{% endif %}'
+                                                    data-images='{% if reservation.id_voyage and reservation.id_voyage.pathImages %}{{ reservation.id_voyage.pathImages|split("***")|map(image => asset("/img/voyages/" ~ image|replace({"\\": "/"})|split("/voyages/")|last))|json_encode|raw }}{% else %}["{{ asset("img/voyage-default.jpg") }}"]{% endif %}'
                                                     data-title="{{ reservation.id_voyage and reservation.id_voyage.titre ? reservation.id_voyage.titre : 'Voyage #' ~ reservation.id }}"
                                                     data-price="{{ reservation.prix }}"
                                                     data-date="{{ reservation.id_voyage and reservation.id_voyage.dateDepart ? reservation.id_voyage.dateDepart|date('d/m/Y') : reservation.date_reservation|date('d/m/Y') }}"
@@ -275,7 +270,7 @@
                                                     data-reservation-id="{{ reservation.id }}"
                                                     data-reservation-type="voyage"
                                                     data-voyage-places="{{ reservation.id_voyage.nbPlacesD }}"
-                                                    data-images='{% if reservation.id_voyage and reservation.id_voyage.pathImages %}{{ reservation.id_voyage.pathImages|split('***')|json_encode|raw }}{% else %}["{{ asset('img/voyage-default.jpg') }}"]{% endif %}'
+                                                    data-images='{% if reservation.id_voyage and reservation.id_voyage.pathImages %}{{ reservation.id_voyage.pathImages|split("***")|map(image => asset("/img/voyages/" ~ image|replace({"\\": "/"})|split("/voyages/")|last))|json_encode|raw }}{% else %}["{{ asset("img/voyage-default.jpg") }}"]{% endif %}'
                                                     data-title="{{ reservation.id_voyage and reservation.id_voyage.titre ? reservation.id_voyage.titre : 'Voyage #' ~ reservation.id }}"
                                                     data-price="{{ reservation.prix }}"
                                                     data-date="{{ reservation.id_voyage and reservation.id_voyage.dateDepart ? reservation.id_voyage.dateDepart|date('Y-m-d') : reservation.date_reservation|date('Y-m-d') }}"
