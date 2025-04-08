@@ -1,51 +1,663 @@
 {# filepath: c:\Users\asus\TerraNavSymfony1\templates\security\login.html.twig #}
 
-{% extends 'baseClient.html.twig' %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titre %}Connexion - TerraNav{% endblock %}</title>
+    
+    {# Bootstrap et Font Awesome #}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    
+    {# Styles personnalisés #}
+    {% block stylesheets %}
+    <style>
+        :root {
+            --primary-color: #FEA116; /* Couleur orange primaire de baseClient */
+            --secondary-color: #0F172B; /* Couleur bleu foncé de baseClient */
+            --accent-color: #FEA116; /* Orange pour les accents */
+            --light-color: #FFFFFF;
+            --dark-color: #0F172B;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--dark-color);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* Styles pour le carrousel en arrière-plan */
+        .background-carousel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .carousel-item {
+            height: 100vh;
+        }
+        
+        .carousel-item img {
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Overlay pour améliorer la lisibilité */
+        .content-overlay {
+            position: relative;
+            z-index: 1;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #219653;
+            border-color: #219653;
+        }
+        
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border: none;
+            backdrop-filter: blur(5px);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .card-header {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 10px 10px 0 0 !important;
+        }
+        
+        a {
+            color: #FEA116; /* Orange */
+            text-decoration: none;
+        }
+        
+        a:hover {
+            color: #E39015; /* Orange plus foncé */
+        }
+        
+        .main-logo {
+            max-height: 130px;
+            max-width: 320px;
+            filter: drop-shadow(0 8px 15px rgba(0, 0, 0, 0.2));
+            transition: transform 0.3s ease;
+        }
+        
+        .main-logo:hover {
+            transform: scale(1.05);
+        }
+        
+        .form-control:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.25rem rgba(39, 174, 96, 0.25);
+        }
+        
+        .login-logo {
+            max-height: 80px;
+            max-width: 200px;
+            margin: 0 auto;
+            display: block;
+        }
 
-{% block titre %}Connexion - TerraNav{% endblock %}
+        /* Styles améliorés pour la partie connexion */
+        .logo-container {
+            text-align: center;
+            margin-bottom: 20px;
+            animation: fadeIn 1.2s ease-in-out;
+        }
 
-{% block content %}
+        .logo-tagline {
+            font-style: italic;
+            margin-top: 5px;
+            font-size: 1.1rem;
+            color: #FEA116; /* Orange au lieu du vert */
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-card {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+            border: none;
+            background-color: white;
+            transition: transform 0.3s;
+        }
+
+        .login-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header-custom {
+            padding: 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #0F172B, #1A2436); /* Dégradé bleu foncé */
+            color: white;
+            border-bottom: none;
+        }
+
+        .card-header-custom h2 {
+            font-size: 1.5rem;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .header-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: white;
+            background: rgba(254, 161, 22, 0.2); /* Fond légèrement orange */
+            width: 60px;
+            height: 60px;
+            line-height: 60px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .input-group-text {
+            background-color: #f8f9fa;
+            border-right: none;
+            color: #6c757d;
+        }
+
+        .form-control {
+            border-left: none;
+            padding: 12px 15px;
+            height: auto;
+        }
+
+        .form-control:focus {
+            box-shadow: none;
+            border-color: #ced4da;
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-top: 5px;
+            font-size: 0.9rem;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #FEA116, #FEB142); /* Dégradé orange */
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            width: 100%;
+            text-align: center;
+        }
+
+        .btn-login:hover {
+            background: linear-gradient(135deg, #E39015, #FEA116); /* Dégradé orange plus foncé */
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(254, 161, 22, 0.4);
+        }
+
+        .signup-section {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .signup-section a {
+            font-weight: 600;
+            color: #FEA116; /* Orange */
+        }
+
+        .signup-section a:hover {
+            color: #E39015; /* Orange plus foncé */
+        }
+
+        .home-link-container {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .home-link {
+            display: inline-block;
+            background-color: rgba(15, 23, 43, 0.7); /* Bleu foncé semi-transparent */
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            transition: all 0.3s;
+        }
+
+        .home-link:hover {
+            background-color: rgba(15, 23, 43, 0.9); /* Bleu foncé plus intense */
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Importation de nouvelles polices */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        /* Mise en page horizontale à deux colonnes */
+        .split-layout {
+            display: flex;
+            flex-direction: row;
+            align-items: stretch; /* Au lieu de center */
+            min-height: 500px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Colonne du logo */
+        .logo-column {
+            flex: 1;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Centrage vertical */
+            align-items: center;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px 0 0 20px;
+            height: 100%; /* Garantit la même hauteur que l'autre colonne */
+        }
+        
+        /* Colonne du formulaire */
+        .form-column {
+            flex: 1;
+            padding: 0;
+            background: white;
+            border-radius: 0 20px 20px 0;
+            display: flex; /* Ajout pour centrer verticalement */
+            flex-direction: column;
+            justify-content: center; /* Centrage vertical */
+        }
+        
+        /* Logo plus grand */
+        .brand-logo {
+            width: 90%;
+            max-width: 400px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.2));
+            transition: all 0.5s ease;
+        }
+        
+        .brand-logo:hover {
+            transform: scale(1.03);
+            filter: drop-shadow(0 15px 20px rgba(0, 0, 0, 0.3));
+        }
+        
+        .brand-tagline {
+            font-size: 1.3rem;
+            color: #27ae60;
+            font-weight: 500;
+            text-align: center;
+            margin-top: 20px;
+            max-width: 80%;
+        }
+        
+        .brand-description {
+            text-align: center;
+            margin-top: 20px;
+            color: #555;
+            line-height: 1.6;
+            font-size: 0.95rem;
+            max-width: 80%;
+        }
+        
+        /* Adaptation pour mobile */
+        @media (max-width: 991px) {
+            .split-layout {
+                flex-direction: column;
+            }
+            
+            .logo-column, .form-column {
+                width: 100%;
+                border-radius: 20px;
+            }
+            
+            .logo-column {
+                border-radius: 20px 20px 0 0;
+                padding: 30px 20px;
+            }
+            
+            .form-column {
+                border-radius: 0 0 20px 20px;
+            }
+            
+            .brand-logo {
+                width: 70%;
+                margin-bottom: 15px;
+            }
+            
+            .brand-tagline {
+                font-size: 1.1rem;
+            }
+            
+            .brand-description {
+                display: none;
+            }
+        }
+
+        .contact-info-container {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            margin-top: 25px;
+        }
+
+        .contact-heading {
+            color: #FEA116;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .contact-details {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .contact-item {
+            color: #0F172B;
+            font-size: 0.9rem;
+        }
+
+        .contact-item i {
+            color: #FEA116;
+            width: 20px;
+            text-align: center;
+        }
+
+        @media (min-width: 768px) {
+            .contact-details {
+                flex-direction: row;
+                justify-content: center;
+                gap: 30px;
+            }
+        }
+
+        /* Ajuster la carte de connexion */
+        .login-card {
+            height: 100%; /* Prend toute la hauteur */
+            display: flex;
+            flex-direction: column;
+            margin: 0; /* Supprime les marges */
+            border-radius: 0 20px 20px 0 !important;
+        }
+
+        /* Adapter la carte pour qu'elle prenne plus d'espace */
+        .card-body {
+            flex-grow: 1; /* Permet à la carte de s'étendre */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Supprimer les transformations qui peuvent causer un décalage */
+        .login-card:hover {
+            transform: none; /* Supprimer l'animation de hover */
+        }
+
+        /* Footer style pour la page de connexion */
+        .footer-login {
+            margin-top: 100px !important;
+            border-top: 5px solid #FEA116;
+        }
+
+        .btn-social {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .btn-social:hover {
+            background-color: #FEA116;
+            border-color: #FEA116;
+        }
+
+        .section-title {
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            position: absolute;
+            content: "";
+            width: 50%;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background: #FEA116;
+        }
+
+        .text-primary {
+            color: #FEA116 !important;
+        }
+
+        .back-to-top {
+            position: fixed;
+            right: 30px;
+            bottom: 30px;
+            z-index: 99;
+            background-color: #FEA116;
+            border-color: #FEA116;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+        }
+
+        .back-to-top:hover {
+            background-color: #E39015;
+            border-color: #E39015;
+        }
+    </style>
+    {% endblock %}
+</head>
+<body>
+    <!-- Carrousel d'images en arrière-plan -->
+    <div id="backgroundCarousel" class="carousel slide background-carousel" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img src="{{ asset('img/utilisateur/travel1.gif') }}" alt="Voyage 1">
+            </div>
+            <div class="carousel-item">
+                <img src="{{ asset('img/utilisateur/travel2.webp') }}" alt="Voyage 2">
+            </div>
+            <div class="carousel-item">
+                <img src="{{ asset('img/utilisateur/travel3.jpg') }}" alt="Voyage 3">
+            </div>
+            <div class="carousel-item">
+                <img src="{{ asset('img/utilisateur/travel4.jpeg') }}" alt="Voyage 4">
+            </div>
+            <div class="carousel-item">
+                <img src="{{ asset('img/utilisateur/travel5.jpg') }}" alt="Voyage 5">
+            </div>
+        </div>
+    </div>
+    
+    <main>
+        {% block content %}
 <div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h1 class="text-center">Connexion</h1>
+    <div class="content-overlay p-0">
+        <div class="split-layout">
+            <!-- Colonne du logo à gauche -->
+            <div class="logo-column">
+                <img src="{{ asset('img/utilisateur/Terranav.png') }}" alt="TerraNav Logo" class="brand-logo">
+                <div class="brand-tagline">Votre passeport pour l'aventure</div>
+                <div class="brand-description">
+                    Découvrez le monde, créez des souvenirs inoubliables et vivez des expériences uniques avec TerraNav, 
+                    votre compagnon de voyage de confiance.
                 </div>
-                <div class="card-body">
-                    {% if error %}
-                        <div class="alert alert-danger">
-                            {{ error.messageKey|trans(error.messageData, 'security') }}
-                        </div>
-                    {% endif %}
-
-                    <form method="post" action="{{ path('app_login_check') }}">
-                        <div class="mb-3">
-                            <label for="username" class="form-label">Email:</label>
-                            <input type="text" id="username" name="_username" class="form-control" value="{{ last_username }}" required autofocus>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Mot de passe:</label>
-                            <input type="password" id="password" name="_password" class="form-control" required>
-                            <div class="text-end mt-1">
-                                <a href="{{ path('app_forgot_password_request') }}" class="text-decoration-none small">Mot de passe oublié ?</a>
+            </div>
+            
+            <!-- Colonne du formulaire à droite -->
+            <div class="form-column">
+                <div class="login-card" style="box-shadow: none; transform: none; border-radius: 0 20px 20px 0;">
+                    <div class="card-header-custom">
+                        <div class="header-icon"><i class="fas fa-compass"></i></div>
+                        <h2>Connectez-vous à votre compte</h2>
+                    </div>
+                    <div class="card-body p-4">
+                        {% if error %}
+                            <div class="alert alert-danger">
+                                {{ error.messageKey|trans(error.messageData, 'security') }}
                             </div>
-                        </div>
+                        {% endif %}
+        
+                        <form method="post" action="{{ path('app_login_check') }}">
+                            <div class="form-group">
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                    <input type="text" id="username" name="_username" class="form-control" placeholder="Votre email" value="{{ last_username }}" required autofocus>
+                                </div>
+                            </div>
+        
+                            <div class="form-group">
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                    <input type="password" id="password" name="_password" class="form-control" placeholder="Votre mot de passe" required>
+                                </div>
+                                <div class="forgot-password">
+                                    <a href="{{ path('app_forgot_password_request') }}">Mot de passe oublié ?</a>
+                                </div>
+                            </div>
+        
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+        
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn-login">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+                                </button>
+                            </div>
+                            
+                            <div class="signup-section">
+                                <p>Nouveau sur TerraNav ? <a href="{{ path('app_signup') }}">Créer un compte</a></p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="home-link-container mt-4">
+            <a href="{{ path('app_home') }}" class="home-link">
+                <i class="fas fa-arrow-left me-1"></i> Retour à l'accueil
+            </a>
+        </div>
 
-                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">Se connecter</button>
-                        </div>
-                        
-                        <div class="mt-3 text-center">
-                            <p>Pas encore de compte ? <a href="{{ path('app_signup') }}">Inscrivez-vous ici</a></p>
-                        </div>
-                    </form>
+        <div class="contact-info-container mt-4">
+            <h6 class="contact-heading">Contact</h6>
+            <div class="contact-details">
+                <div class="contact-item">
+                    <i class="fa fa-map-marker-alt me-2"></i>
+                    <span>Av. Fethi Zouhir, Cebalat Ben Ammar 2083</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fa fa-phone-alt me-2"></i>
+                    <span>+216 99 072 221</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fa fa-envelope me-2"></i>
+                    <span>terranav3a11@gmail.com</span>
                 </div>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
+    </main>
+    
+    <div class="container-fluid bg-dark text-light footer-login mt-5">
+        <div class="container py-4">
+            <div class="row g-5">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center mb-3">
+                        <h5 class="text-white text-uppercase me-3 mb-0">TerraNav</h5>
+                        <div class="border-start border-primary ps-3">
+                            <small class="text-white">Votre passeport pour l'aventure</small>
+                        </div>
+                    </div>
+                    <p class="text-white mb-0">
+                        Terranav, votre allié pour des voyages sans stress ! Que vous recherchiez un transport fiable, un hébergement confortable ou une aventure inoubliable!
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="section-title text-start text-primary text-uppercase mb-3">Contact</h6>
+                    <p class="mb-2"><i class="fa fa-map-marker-alt me-3"></i>Av. Fethi Zouhir, Cebalat Ben Ammar 2083</p>
+                    <p class="mb-2"><i class="fa fa-phone-alt me-3"></i>+216 99 072 221</p>
+                    <p class="mb-2"><i class="fa fa-envelope me-3"></i>terranav3a11@gmail.com</p>
+                    <div class="d-flex pt-2">
+                        <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-twitter"></i></a>
+                        <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-facebook-f"></i></a>
+                        <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-youtube"></i></a>
+                        <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container py-3 border-top border-secondary">
+            <div class="row">
+                <div class="col text-center">
+                    <p class="mb-0 text-white-50">
+                        &copy; <a class="text-primary" href="#">TerraNav</a>. Tous droits réservés. 
+                        Conçu par <a class="text-primary" href="#">TerraNav Team</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    
+    {% block javascripts %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Configuration du carrousel d'arrière-plan
+        document.addEventListener('DOMContentLoaded', function() {
+            const carousel = new bootstrap.Carousel(document.getElementById('backgroundCarousel'), {
+                interval: 5000, // Changement toutes les 5 secondes
+                pause: false,   // Ne pas mettre en pause au survol
+                wrap: true,     // Boucler indéfiniment
+                keyboard: false // Désactiver les commandes clavier
+            });
+        });
+    </script>
+    {% endblock %}
+</body>
+</html>
