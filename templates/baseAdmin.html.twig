@@ -43,6 +43,12 @@
                     <i class="fas fa-newspaper"></i><span>Publications</span>
                 </a>
                 <a href="{{ path('admin_reclamation') }}">Réclamations</a>
+                </a>
+                <a href="{{ path('admin_statistiques') }}">statistiques</a>
+                <hr/>
+                <a href="{{ path('admin_statistiques') }}" class="nav-button {{ app.request.get('_route') == 'admin_statistiques' ? 'active' : '' }}">
+                    <i class="fas fa-chart-line"></i><span>Statistiques</span>
+                </a>
                 <div id="nav-content-highlight"></div>
             </div>
         </div>
