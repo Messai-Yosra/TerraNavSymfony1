@@ -57,6 +57,45 @@ security:
         # Routes temporairement ouvertes pour débogage
         - { path: ^/DashboardClient, roles: PUBLIC_ACCESS }
         - { path: ^/admin/user, roles: PUBLIC_ACCESS }
+
+
+        # Routes Gestion voyages
+        - { path: ^/AjouterOffre, roles: PUBLIC_ACCESS }
+        - { path: ^/AjouterVoyage, roles: PUBLIC_ACCESS }
+        - { path: ^/Bienvenue, roles: PUBLIC_ACCESS }
+        - { path: ^/statsAgence, roles: PUBLIC_ACCESS }
+        - { path: "^/offres/Details/[0-9]+$", roles: PUBLIC_ACCESS }
+        - { path: ^/agence/[0-9]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/ModifierVoyage/[0-9]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/Supprimer/Voyage/[0-9]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/modifierOffre/[0-9]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/modifierOffreBd/[0-9]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/supprimerOffre/[0-9]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/ModifierVoyagebd/[0-9]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/offresAgence, roles: PUBLIC_ACCESS }
+        - { path: ^/offreAgence/[0-9]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/offres, roles: PUBLIC_ACCESS }
+        - { path: ^/offres/suggestions, roles: PUBLIC_ACCESS }
+        - { path: ^/offres/Details/[0-9]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/AjoutOffre, roles: PUBLIC_ACCESS }
+        - { path: ^/confirmationAjoutOffre, roles: PUBLIC_ACCESS }
+        - { path: ^/publierOffre, roles: PUBLIC_ACCESS }
+        - { path: ^/agence/statistiques, roles: PUBLIC_ACCESS }
+        - { path: ^/agence/statistiques/voyages/csv, roles: PUBLIC_ACCESS }
+        - { path: ^/agence/statistiques/offres/pdf, roles: PUBLIC_ACCESS }
+        - { path: ^/agence/statistiques/voyages/excel, roles: PUBLIC_ACCESS }
+        - { path: ^/agence/voyage/[0-9]+$/export-ics, roles: PUBLIC_ACCESS }
+        - { path: ^/VoyagesAdmin, roles: PUBLIC_ACCESS }
+        - { path: ^/VoyagesAgence, roles: PUBLIC_ACCESS }
+        - { path: ^/voyageAgence/[0-9]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/VoyagesClient, roles: PUBLIC_ACCESS }
+        - { path: "^/voyage/[0-9]+$", roles: PUBLIC_ACCESS }
+        - { path: ^/Reservervoyage/[0-9]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/voyages/suggestions, roles: PUBLIC_ACCESS }
+        - { path: ^/AjoutVoyage, roles: PUBLIC_ACCESS }
+        - { path: ^/confirmationAjout, roles: PUBLIC_ACCESS }
+        - { path: ^/publierVoyage, roles: PUBLIC_ACCESS }
+
         
         # Règle générale - utilisez IS_AUTHENTICATED_ANONYMOUSLY au lieu de PUBLIC_ACCESS
         # pour les routes qui devraient être accessibles sans authentification

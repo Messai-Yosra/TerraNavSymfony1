@@ -1,0 +1,46 @@
+{# templates/emails/nouveau_voyage.html.twig #}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Nouveau voyage disponible</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #f8f9fa; padding: 20px; text-align: center; }
+        .content { padding: 20px; }
+        .voyage-image { max-width: 100%; height: auto; margin: 10px 0; }
+        .button {
+            display: inline-block; padding: 10px 20px; background-color: #0d6efd;
+            color: white; text-decoration: none; border-radius: 5px; margin-top: 15px;
+        }
+        .footer { margin-top: 20px; text-align: center; font-size: 12px; color: #777; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Nouveau voyage disponible !</h1>
+    </div>
+
+    <div class="content">
+        <h2>{{ voyage.titre }}</h2>
+        <p><strong>Destination:</strong> {{ voyage.destination }}</p>
+        <p><strong>Départ:</strong> {{ voyage.pointDepart }}</p>
+        <p><strong>Date de départ:</strong> {{ voyage.dateDepart|date('d/m/Y H:i') }}</p>
+        <p><strong>Prix:</strong> {{ voyage.prix }} DT</p>
+
+        <p>{{ voyage.description }}</p>
+
+        <a href="{{ absolute_url(path('app_voyage_details', {'id': voyage.id})) }}" class="button">
+            Voir les détails du voyage
+        </a>
+    </div>
+
+    <div class="footer">
+        <p>Cet email vous a été envoyé parce que vous êtes inscrit sur notre plateforme.</p>
+        <p>© {{ "now"|date("Y") }} TerraNav. Tous droits réservés.</p>
+    </div>
+</div>
+</body>
+</html>

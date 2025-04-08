@@ -117,4 +117,57 @@ final class DashboardController extends AbstractController
             'message' => 'Utilisateur modifié avec succès'
         ]);
     }
+
+    #[Route('/admin/users/search', name: 'admin_users_search', methods: ['GET'])]
+    public function searchUsers(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        // Log that we hit this route
+        error_log('SEARCH ROUTE HIT at ' . date('Y-m-d H:i:s'));
+        
+        // Add cache prevention headers
+        $response = new Response();
+        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+        $response->headers->set('Pragma', 'no-cache');
+        $response->headers->set('Expires', '0');
+        
+        $query = $request->query->get('q', '');
+        error_log('Search query: "' . $query . '"');
+        
+        try {
+            $repository = $entityManager->getRepository(Utilisateur::class);
+            
+            // Search in multiple fields
+            $qb = $repository->createQueryBuilder('u');
+            
+            if (!empty($query)) {
+                $qb->where('u.prenom LIKE :query')
+                   ->orWhere('u.nom LIKE :query')
+                   ->orWhere('u.email LIKE :query')
+                   ->orWhere('u.username LIKE :query')
+                   ->orWhere('u.role LIKE :query')
+                   ->setParameter('query', '%' . $query . '%');
+            }
+            
+            $utilisateurs = $qb->getQuery()->getResult();
+            
+            // Debug output
+            error_log('Search results count: ' . count($utilisateurs));
+            
+            // Render only the user cards HTML
+            $content = $this->renderView('utilisateurs/_user_cards_partial.html.twig', [
+                'utilisateurs' => $utilisateurs
+            ]);
+            
+            $response->setContent($content);
+            return $response;
+        } catch (\Exception $e) {
+            // Log any errors that occur
+            error_log('ERROR in search: ' . $e->getMessage());
+            
+            // Return a proper error response
+            $response->setContent('<div class="alert alert-danger">Error: ' . $e->getMessage() . '</div>');
+            $response->setStatusCode(500);
+            return $response;
+        }
+    }
 }

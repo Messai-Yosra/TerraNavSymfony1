@@ -1,0 +1,86 @@
+{% for utilisateur in utilisateurs %}
+    <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+        <div class="card user-card shadow-sm">
+            <!-- Banner colored top based on role -->
+            <div class="card-top-banner" 
+                style="background: 
+                {% if utilisateur.role == 'ADMIN' %}linear-gradient(135deg, #e74a3b, #be2617)
+                {% elseif utilisateur.role == 'AGENCE' %}linear-gradient(135deg, #1cc88a, #169d68)
+                {% else %}linear-gradient(135deg, #36b9cc, #258391){% endif %}">
+            </div>
+            
+            <!-- Avatar and User Information -->
+            <div class="d-flex align-items-center p-3">
+                <!-- Avatar plus petit à côté du texte -->
+                <div class="me-3" style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; border: 3px solid white; box-shadow: 0 3px 10px rgba(0,0,0,0.1); flex-shrink: 0; display: flex; justify-content: center; align-items: center;
+                    {% if not utilisateur.photo %}
+                        background: 
+                        {% if utilisateur.role == 'ADMIN' %}linear-gradient(45deg, #e74a3b, #be2617)
+                        {% elseif utilisateur.role == 'AGENCE' %}linear-gradient(45deg, #1cc88a, #169d68)
+                        {% else %}linear-gradient(45deg, #36b9cc, #258391){% endif %};
+                    {% endif %}
+                ">
+                    {% if utilisateur.photo %}
+                        <img src="{{ asset('uploads/profile/' ~ utilisateur.photo) }}" 
+                             alt="Photo de {{ utilisateur.prenom }}"
+                             style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                        <span class="text-white" style="font-size: 1.25rem;">{{ utilisateur.prenom|first|upper }}{{ utilisateur.nom|first|upper }}</span>
+                    {% endif %}
+                </div>
+                
+                <!-- Information utilisateur -->
+                <div>
+                    <h5 class="mb-0">{{ utilisateur.prenom }} {{ utilisateur.nom }}</h5>
+                    <p class="text-muted mb-1">@{{ utilisateur.username }}</p>
+                    <span class="badge 
+                        {% if utilisateur.role == 'ADMIN' %}bg-danger
+                        {% elseif utilisateur.role == 'AGENCE' %}bg-success
+                        {% else %}bg-info{% endif %}">
+                        {{ utilisateur.role }}
+                    </span>
+                </div>
+            </div>
+            
+            <!-- User Information -->
+            <div class="user-info">
+                <div class="user-info-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>{{ utilisateur.email }}</span>
+                </div>
+                
+                {% if utilisateur.role == 'AGENCE' %}
+                <div class="user-info-item">
+                    <i class="fas fa-building"></i>
+                    <span>{{ utilisateur.nomagence ?? 'Non spécifié' }}</span>
+                </div>
+                <div class="user-info-item">
+                    <i class="fas fa-tag"></i>
+                    <span>{{ utilisateur.typeAgence ?? 'Non spécifié' }}</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="action-buttons d-flex justify-content-around">
+                <button 
+                    class="btn btn-primary btn-sm"
+                    onclick="toggleEditForm({{ utilisateur.id }})"
+                >
+                    <i class="fas fa-edit"></i> Modifier
+                </button>
+                <a href="{{ path('admin_user_delete', {'id': utilisateur.id}) }}" 
+                   class="btn btn-danger btn-sm"
+                   onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur?');">
+                    <i class="fas fa-trash"></i> Supprimer
+                </a>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="col-12">
+        <div class="alert alert-info shadow-sm">
+            <i class="fas fa-info-circle me-2"></i> Aucun utilisateur ne correspond à votre recherche
+        </div>
+    </div>
+{% endfor %}

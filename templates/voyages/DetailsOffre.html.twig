@@ -1,0 +1,261 @@
+{% extends "baseClient.html.twig" %}
+
+{% block title %}Détails de l'Offre - {{ offre.titre }}{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    <div class="container-fluid page-header mb-5 p-0"
+         style="background-image: url({{ asset('img/voyages/5.avif') }});">
+        <div class="container-fluid page-header-inner py-5">
+            <div class="container text-center pb-5">
+                <h1 class="display-3 text-white mb-3 animated slideInDown">{{ offre.titre }}</h1>
+                <div class="badge bg-danger fs-4 mb-3">Réduction: -{{ offre.reduction }}%</div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center text-uppercase">
+                        <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+                        <li class="breadcrumb-item text-white active" aria-current="page">Détails Offre</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="row g-5 align-items-center">
+                <div class="col-lg-6">
+                    <h6 class="section-title text-start text-primary text-uppercase">offre proposé par</h6>
+                    <h1 class="mb-4">{{ offre.id_user.nomagence }}</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Agence -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="row g-5 align-items-center bg-light rounded p-4 hover-effect">
+                <div class="col-md-3 text-center">
+                    <img src="{{ asset(offre.id_user.photo ? offre.id_user.photo : 'img/about-1.jpg') }}"
+                         class="rounded-circle img-fluid"
+                         style="width: 150px; height: 150px; object-fit: cover;"
+                         alt="Photo de l'agence {{ offre.id_user.nomagence }}"
+                         onerror="this.src='{{ asset('img/voyages/user.avif') }}'">
+                </div>
+                <div class="col-md-9">
+                    <h3 class="text-primary mb-3">{{ offre.id_user.nomagence }}</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><i class="fas fa-envelope me-2 text-primary"></i> {{ offre.id_user.email }}</p>
+                            <p><i class="fas fa-phone me-2 text-primary"></i> {{ offre.id_user.numTel ?? 'Non renseigné' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><i class="fas fa-map-marker-alt me-2 text-primary"></i> {{ offre.id_user.address ?? 'Adresse non renseignée' }}</p>
+                            <p><i class="fas fa-building me-2 text-primary"></i> {{ offre.id_user.typeAgence ?? 'Type non spécifié' }}</p>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a  class="btn btn-outline-primary btn-sm btn-hover" href="{{ path('app_agence_profile', {'id': offre.id_user.id}) }}">
+                            <i class="fas fa-eye me-1" ></i> Voir Profile d'Agence
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Détails de l'Offre -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="row g-5 align-items-center">
+                <div class="col-lg-6">
+                    <h6 class="section-title text-start text-primary text-uppercase">Détails de l'Offre</h6>
+                    <h1 class="mb-4">{{ offre.titre }}</h1>
+                    <p class="mb-4">{{ offre.description }}</p>
+
+                    <div class="row g-3 pb-4">
+                        <div class="col-md-6 wow fadeIn" data-wow-delay="0.1s">
+                            <div class="border rounded p-1 hover-effect">
+                                <div class="border rounded text-center p-4">
+                                    <i class="fas fa-percentage fa-2x text-primary mb-2"></i>
+                                    <h3 class="h5 mb-1">{{ offre.reduction }}%</h3>
+                                    <p class="mb-0 text-muted">Réduction</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 wow fadeIn" data-wow-delay="0.2s">
+                            <div class="border rounded p-1 hover-effect">
+                                <div class="border rounded text-center p-4">
+                                    <i class="fas fa-calendar-alt fa-2x text-primary mb-2"></i>
+                                    <h3 class="h5 mb-1">Jusqu'au {{ offre.dateFin|date('d M Y') }}</h3>
+                                    <p class="mb-0 text-muted">Date limite</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-success hover-effect">
+                        <h5><i class="fas fa-clock me-2"></i> Valable du {{ offre.dateDebut|date('d M Y') }} au {{ offre.dateFin|date('d M Y') }}</h5>
+                        <p class="mb-0"><i class="fas fa-info-circle me-2"></i> Cette offre s'applique automatiquement aux voyages associés</p>
+                    </div>
+
+                    <div class="d-flex gap-3 mt-4">
+                        <a href="{{ path('app_voyages') }}" class="btn btn-primary btn-hover py-3 px-5">
+                            <i class="fas fa-arrow-left me-2"></i> Voir tous les voyages
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="image-hover-container">
+                        <img class="img-fluid rounded wow zoomIn" data-wow-delay="0.1s"
+                             src="{{ asset(offre.transformSingleImagePath(offre.imagePath) ?? 'img/default-offer.jpg') }}"
+                             alt="Image de l'offre {{ offre.titre }}"
+                             style="width: 100%; height: 400px; object-fit: cover;"
+                             onerror="this.src='{{ asset('img/about-1.jpg') }}'">
+                        <div class="image-hover-overlay">
+                            <div class="image-hover-text">Offre spéciale</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Voyages associés (remplace la section Team) -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+                <h6 class="section-title text-center text-primary text-uppercase">Voyages concernés</h6>
+                <h1 class="mb-5">Voyages avec cette <span class="text-primary text-uppercase">offre</span></h1>
+            </div>
+            <div class="row g-4">
+                {% for voyage in voyagesAssocies %}
+                    <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="{{ 0.1 * loop.index }}s">
+                        <div class="rounded shadow overflow-hidden hover-effect">
+                            <div class="position-relative">
+                                <img class="img-fluid"
+                                     src="{{ asset(voyage.pathImages|split('***')[0]|trim) }}"
+                                     style="height: 200px; width: 100%; object-fit: cover;"
+                                     alt="{{ voyage.titre }}"
+                                     onerror="this.src='{{ asset('img/about-1.jpg') }}'">
+                                <div class="position-absolute top-0 end-0 m-2">
+                                    <span class="badge bg-danger">-{{ offre.reduction }}%</span>
+                                </div>
+                            </div>
+                            <div class="text-center p-4">
+                                <h5 class="fw-bold mb-1">{{ voyage.titre }}</h5>
+                                <small class="text-primary">{{ voyage.destination }}</small>
+                                <div class="d-flex justify-content-center mt-2">
+                                    <small class="me-3"><i class="fas fa-calendar-alt me-1"></i> {{ voyage.dateDepart|date('d M') }}</small>
+                                    <small><i class="fas fa-money-bill-wave me-1"></i> {{ voyage.prix * (1 - offre.reduction/100)|number_format(2) }} DT</small>
+                                </div>
+                                <a href="{{ path('app_voyage_show', {'id': voyage.id}) }}" class="btn btn-sm btn-primary mt-2">
+                                    <i class="fas fa-info-circle me-1"></i> Détails
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-compass fa-4x text-muted mb-3"></i>
+                        <h4>Aucun voyage associé à cette offre pour le moment</h4>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Offres similaires (remplace la section Service) -->
+    <div class="container-xxl py-5 bg-light">
+        <div class="container">
+            <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+                <h6 class="section-title text-center text-primary text-uppercase">Autres offres</h6>
+                <h1 class="mb-5">Découvrez nos <span class="text-primary text-uppercase">meilleures offres</span></h1>
+            </div>
+            <div class="row g-4">
+                {% for autreOffre in meilleuresOffres %}
+                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="{{ 0.1 * loop.index }}s">
+                        <a class="service-item rounded" href="{{ path('app_offre_details', {'id': autreOffre.id}) }}">
+                            <div class="service-icon bg-transparent border rounded p-1">
+                                <div class="w-100 h-100 border rounded d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-tag fa-2x text-primary"></i>
+                                    <span class="fs-5 fw-bold ms-2">{{ autreOffre.reduction }}%</span>
+                                </div>
+                            </div>
+                            <h5 class="mb-3">{{ autreOffre.titre }}</h5>
+                            <p class="text-body mb-0">{{ autreOffre.description|u.truncate(100, '...') }}</p>
+                            <small class="text-muted">Jusqu'au {{ autreOffre.dateFin|date('d M Y') }}</small>
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .hover-effect {
+            transition: all 0.3s ease;
+        }
+
+        .hover-effect:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .btn-hover {
+            transition: all 0.3s ease;
+        }
+
+        .btn-hover:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .image-hover-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .image-hover-overlay {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            width: 100%;
+            opacity: 0;
+            transition: .3s ease;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-hover-container:hover .image-hover-overlay {
+            opacity: 1;
+        }
+
+        .image-hover-text {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .service-item {
+            display: block;
+            background: white;
+            padding: 20px;
+            height: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .service-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+    </style>
+{% endblock %}
