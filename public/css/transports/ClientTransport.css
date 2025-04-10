@@ -1,6 +1,6 @@
 :root {
     --primary-color: #1E3A8A;
-    --accent-color: #FEA116;  /* Orange au lieu de vert */
+    --accent-color: #FEA116;
     --light-gray: #f5f7fa;
     --dark-gray: #4B5563;
     --white: #ffffff;
@@ -32,7 +32,7 @@ h1, h2, h3, h4 {
     position: relative;
     height: 80vh;
     min-height: 500px;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('../images/transport/hero-bg.jpg');
+    background-image: url('../../img/firstpage.jpg');
     background-size: cover;
     background-position: center;
     display: flex;
@@ -111,7 +111,7 @@ h1, h2, h3, h4 {
 .form-group select:focus {
     border-color: var(--accent-color);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(254, 161, 22, 0.2);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
 }
 
 .search-button {
@@ -128,11 +128,11 @@ h1, h2, h3, h4 {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    box-shadow: 0 2px 4px rgba(254, 161, 22, 0.3);
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
 }
 
 .search-button:hover {
-    background-color: #e08a00;
+    background-color: #FEA116;
     transform: translateY(-2px);
 }
 
@@ -427,7 +427,7 @@ h1, h2, h3, h4 {
 }
 
 .btn-primary:hover {
-    background-color: #e08a00;
+    background-color: #FEA116;
     transform: translateY(-2px);
 }
 

@@ -1,0 +1,120 @@
+{% extends "baseAdmin.html.twig" %}
+
+{% block title %}Gestion des Trajets{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="{{ asset('css/transports/adminTransportList.css') }}"/>
+
+    <div class="content-card">
+        <div class="card-header">
+            <h1><i class="fas fa-route"></i> Gestion des Trajets</h1>
+        </div>
+
+        <div class="card-body">
+            <div class="action-buttons">
+                <a href="{{ path('admin_transports') }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left"></i> Retour à l'accueil
+                </a>
+
+                <a href="{{ path('admin_transports_list') }}" class="btn btn-primary">
+                    <i class="fas fa-list"></i> Voir la liste des transports
+                </a>
+
+                <a href="{{ path('admin_trajets_new') }}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Créer un nouveau trajet
+                </a>
+
+                {# Barre de recherche #}
+                <form method="get" action="{{ path('admin_trajets_index') }}" class="form-inline search-form">
+                    <div class="input-group">
+                        <input type="text" 
+                               name="search" 
+                               class="form-control" 
+                               placeholder="Rechercher par point de départ..."
+                               value="{{ searchTerm ?? '' }}">
+                        <div class="input-group-append">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            {% if searchTerm %}
+                                <a href="{{ path('admin_trajets_index') }}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            {% if trajets is defined and trajets is not empty %}
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Départ</th>
+                                <th>Destination</th>
+                                <th>Date/Heure</th>
+                                <th>Durée</th>
+                                <th>Disponibilité</th>
+                                <th>Transports associés</th>
+                                <th class="actions-column">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for trajet in trajets %}
+                                <tr>
+                                    <td>{{ trajet.id }}</td>
+                                    <td>{{ trajet.pointDepart }}</td>
+                                    <td>{{ trajet.destination }}</td>
+                                    <td>{{ trajet.dateDepart|date('d/m/Y H:i') }}</td>
+                                    <td>{{ trajet.duree }} min</td>
+                                    <td>
+                                        <span class="badge badge-{{ trajet.disponibilite ? 'success' : 'secondary' }}">
+                                            {{ trajet.disponibilite ? 'Disponible' : 'Terminé' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if trajet.transports is not empty %}
+                                            <ul class="list-unstyled">
+                                                {% for transport in trajet.transports %}
+                                                    <li>{{ transport.nom }} ({{ transport.type }})</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            <span class="text-muted">Aucun transport</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="actions-column">
+                                        <div class="row-actions">
+                                            <a href="{{ path('admin_trajets_edit', {'id': trajet.id}) }}" 
+                                               class="btn-action btn-edit" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form method="post" action="{{ path('admin_trajets_delete', {'id': trajet.id}) }}" 
+                                                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce trajet ?');">
+                                                <input type="hidden" name="_method" value="POST">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ trajet.id) }}">
+                                                <button class="btn btn-danger btn-sm">
+                                                    <i class="fas fa-trash-alt"></i> Supprimer
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-route empty-icon"></i>
+                    <p>Aucun trajet disponible pour le moment.</p>
+                    <a href="{{ path('admin_trajets_new') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Créer un trajet
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

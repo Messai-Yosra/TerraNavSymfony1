@@ -1,0 +1,153 @@
+{% extends 'baseAdmin.html.twig' %}
+
+{% block title %}Ajouter un nouveau transport{% endblock %}
+
+{% block content %}
+ <script src="{{ asset('js/transportForm.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('css/transports/ajouterTransport.css') }}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <div class="dashboard-container">
+        <main class="main-content">
+            <div class="content-card">
+                <div class="card-header">
+                    <h1><i class="fas fa-shuttle-van"></i> Ajouter un nouveau transport</h1>
+                </div>
+                
+                <div class="card-body">
+                    {{ form_start(form, {'attr': {'class': 'styled-form', 'id': 'transportForm', 'enctype': 'multipart/form-data'}}) }}
+                    
+                    <!-- Messages flash -->
+                    {% for message in app.flashes('success') %}
+                        <div class="alert alert-success">{{ message }}</div>
+                    {% endfor %}
+                    
+                   <!-- Sélecteur de type -->
+<div class="type-selector">
+    <div class="type-option">
+        <input type="radio" id="typeTaxi" name="type_selector" value="taxi" {{ form.type.vars.value == 'taxi' ? 'checked' : '' }}>
+        <label for="typeTaxi">
+            <div class="type-icon"><i class="fas fa-taxi"></i></div>
+            <span class="type-name">Taxi</span>
+        </label>
+    </div>
+    <div class="type-option">
+        <input type="radio" id="typeVoiture" name="type_selector" value="voiture" {{ form.type.vars.value == 'voiture' ? 'checked' : '' }}>
+        <label for="typeVoiture">
+            <div class="type-icon"><i class="fas fa-car"></i></div>
+            <span class="type-name">Voiture privée</span>
+        </label>
+    </div>
+    <div class="type-option">
+        <input type="radio" id="typeBus" name="type_selector" value="bus" {{ form.type.vars.value == 'bus' ? 'checked' : '' }}>
+        <label for="typeBus">
+            <div class="type-icon"><i class="fas fa-bus"></i></div>
+            <span class="type-name">Bus</span>
+        </label>
+    </div>
+    <div class="type-option">
+        <input type="radio" id="typeAutre" name="type_selector" value="autre" {{ form.type.vars.value == 'autre' ? 'checked' : '' }}>
+        <label for="typeAutre">
+            <div class="type-icon"><i class="fas fa-ellipsis-h"></i></div>
+            <span class="type-name">Autre</span>
+        </label>
+    </div>
+</div>
+
+<!-- Champ type caché généré par Symfony -->
+{{ form_widget(form.type, {'attr': {'style': 'display: none;', 'id': 'typeField'}}) }}
+
+<!-- Champ personnalisé pour "Autre" -->
+<div class="form-group custom-type-group" id="customTypeGroup" style="display: none;">
+    <label for="customType">Type personnalisé</label>
+    <input type="text" id="customType" class="form-control" placeholder="Entrez le type de transport">
+</div>
+
+                    <!-- Grille des champs -->
+                    <div class="form-grid">
+                        <!-- Nom -->
+                        <div class="form-group form-floating">
+                            {{ form_label(form.nom, 'Nom du transport') }}
+                            {{ form_widget(form.nom, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Mercedes'}}) }}
+                            {{ form_errors(form.nom) }}
+                        </div>
+
+                        <!-- Prix -->
+                        <div class="form-group form-floating">
+                            {{ form_label(form.prix, 'Prix (€)') }}
+                            {{ form_widget(form.prix, {'attr': {'class': 'form-control', 'placeholder': 'Prix', 'step': '0.01', 'min': '0'}}) }}
+                            {{ form_errors(form.prix) }}
+                        </div>
+
+<div class="form-group capacity-group">
+    {{ form_label(form.capacite, 'Capacité') }}
+    <span class="help-tooltip">
+        <i class="fas fa-question-circle"></i>
+        <span class="tooltip-content">Nombre maximum de passagers</span>
+    </span>
+    <div class="slider-container">
+        {{ form_widget(form.capacite, {
+            'attr': {
+                'class': 'capacity-slider',
+                'min': '1',
+                'max': '60',
+                'value': '4'
+            }
+        }) }}
+        <div class="capacity-value">4 places</div>
+    </div>
+    {{ form_errors(form.capacite) }}
+</div>
+
+                        <!-- Contact -->
+                        <div class="form-group form-floating">
+                            {{ form_label(form.contact, 'Contact') }}
+                            {{ form_widget(form.contact, {'attr': {'class': 'form-control', 'placeholder': 'Information de contact'}}) }}
+                            {{ form_errors(form.contact) }}
+                        </div>
+
+                        <!-- Description -->
+                        <div class="form-group description-group">
+                            {{ form_label(form.description, 'Description') }}
+                            {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': '4', 'placeholder': 'Décrivez ce transport (équipements, services, etc.)'}}) }}
+                            {{ form_errors(form.description) }}
+                        </div>
+
+                        <!-- Dans la partie Image, modifiez comme suit -->
+<div class="form-group image-group">
+    {{ form_label(form.imagePath, 'Image du transport') }}
+    <div class="upload-zone" id="uploadZone">
+        <div class="upload-content">
+            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+            <p class="upload-text">Déposez votre image ici ou cliquez pour parcourir</p>
+            <p class="upload-hint">Format: JPG, PNG - Max 5MB</p>
+        </div>
+        {{ form_widget(form.imagePath, {'attr': {'style': 'display: none;', 'accept': 'image/*', 'id': 'imageInput'}}) }}
+    </div>
+    <div class="preview-container" style="display: none;" id="previewContainer">
+        <img id="imagePreview" class="preview-image" src="" alt="Prévisualisation">
+        <button type="button" id="removeImage" class="btn btn-sm btn-danger remove-image">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    {{ form_errors(form.imagePath) }}
+</div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="form-actions">
+                        <a href="{{ path('admin_transports_list') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Retour
+                        </a>
+                        {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </main>
+    </div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/transportForm.js') }}"></script>
+{% endblock %}

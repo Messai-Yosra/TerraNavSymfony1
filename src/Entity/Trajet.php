@@ -30,7 +30,7 @@ class Trajet
     #[ORM\Column(name: "description", type: "text", nullable: true)]
     private ?string $description;
 
-    #[ORM\Column(name: "disponibilite", type: "integer", options: ["default" => 1])]
+    #[ORM\Column(name: "disponibilite", type: "boolean", options: ["default" => 1])]
     private ?int $disponibilite;
 
     #[ORM\OneToMany(mappedBy: "id_trajet", targetEntity: Transport::class)]
