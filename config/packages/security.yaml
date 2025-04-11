@@ -18,6 +18,7 @@ security:
         main:
             lazy: true
             provider: utilisateur_provider
+            entry_point: form_login  # Ajoutez cette ligne
 
             # Enable form login
             form_login:
@@ -31,6 +32,9 @@ security:
                 use_referer: false
                 use_forward: false
                 
+            custom_authenticators:
+                - App\Security\GoogleAuthenticator  # Assurez-vous que ceci correspond au namespace
+
             logout:
                 path: app_logout
                 target: app_login
@@ -48,6 +52,10 @@ security:
         - { path: ^/signup$, roles: PUBLIC_ACCESS }
         - { path: ^/login_check$, roles: PUBLIC_ACCESS }
         - { path: ^/logout$, roles: PUBLIC_ACCESS }
+        
+        # Routes OAuth Google (ajoutez ces lignes)
+        - { path: ^/connect/google, roles: PUBLIC_ACCESS }
+        - { path: ^/connect/google/check, roles: PUBLIC_ACCESS }
         
         # Routes qui nécessitent authentification
         - { path: ^/profile, roles: ROLE_USER }

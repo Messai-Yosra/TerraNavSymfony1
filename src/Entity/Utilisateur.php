@@ -71,23 +71,13 @@ class Utilisateur implements PasswordAuthenticatedUserInterface, UserInterface
     )]
     private string $role;
 
-    #[ORM\Column(name: "nom", type: "string", length: 40, nullable: true)]
-    #[Assert\Length(
-        min: 2,
-        max: 40,
-        minMessage: "Le nom doit contenir au moins {{ limit }} caractères",
-        maxMessage: "Le nom ne peut pas dépasser {{ limit }} caractères"
-    )]
-    private ?string $nom;
+    #[ORM\Column(name: "nom", type: "string", length: 255)]
+    #[Assert\NotBlank(message: "Le nom ne peut pas être vide")]
+    private string $nom;
 
-    #[ORM\Column(name: "prenom", type: "string", length: 50, nullable: true)]
-    #[Assert\Length(
-        min: 2,
-        max: 50,
-        minMessage: "Le prénom doit contenir au moins {{ limit }} caractères",
-        maxMessage: "Le prénom ne peut pas dépasser {{ limit }} caractères"
-    )]
-    private ?string $prenom;
+    #[ORM\Column(name: "prenom", type: "string", length: 255)]
+    #[Assert\NotBlank(message: "Le prénom ne peut pas être vide")]
+    private string $prenom;
 
     #[ORM\Column(name: "nomagence", type: "string", length: 40, nullable: true)]
     #[Assert\Length(
@@ -603,6 +593,18 @@ class Utilisateur implements PasswordAuthenticatedUserInterface, UserInterface
         }
         
         return array_unique($roles);
+    }
+    
+    /**
+     * Set the roles granted to the user.
+     *
+     * @param array $roles The user roles
+     * @return self
+     */
+    public function setRoles(array $roles): self
+    {
+        // This method is not implemented in this example
+        return $this;
     }
 
     /**

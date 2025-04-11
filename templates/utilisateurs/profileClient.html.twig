@@ -165,7 +165,7 @@
                         <div class="row g-3">
                             <!-- Photo de profil -->
                             <div class="col-12 mb-4">
-                                <label for="photo" class="form-label">Photo de profil</label>
+                                <label class="form-label">Photo de profil</label>
                                 <div class="d-flex align-items-center mb-3">
                                     <div class="profile-avatar me-4" id="profilePreview" style="width: 150px; height: 150px; border-radius: 50%; overflow: hidden; background-color: #f8f9fa; display: flex; align-items: center; justify-content: center;">
                                         {% if app.user.photo %}
@@ -175,17 +175,14 @@
                                         {% endif %}
                                     </div>
                                     <div>
-                                        <div class="d-flex flex-wrap gap-2 mb-2">
+                                        <div class="d-flex flex-wrap gap-2">
                                             <button type="button" id="cameraBtn" class="btn btn-secondary">
                                                 <i class="fas fa-camera me-1"></i> Prendre une photo
                                             </button>
                                             <span class="align-self-center">ou</span>
-                                            <label for="photo_upload" class="btn btn-outline-primary mb-0">
+                                            <label for="photo_upload" class="btn btn-outline-primary">
                                                 <i class="fas fa-upload me-1"></i> Télécharger une image
                                             </label>
-                                            
-                                            <!-- Input pour la caméra (mobile) -->
-                                            <input type="file" class="form-control d-none" id="photo_camera" name="photo_camera" accept="image/*" capture="camera">
                                             
                                             <!-- Input pour l'upload normal -->
                                             <input type="file" class="form-control d-none" id="photo_upload" name="photo_upload" accept="image/*">
@@ -195,42 +192,10 @@
                                         </div>
                                     </div>
                                 </div>
+                                
+                                <!-- Champ caché pour stocker l'image de la caméra -->
+                                <input type="hidden" id="base64_camera_image" name="base64_camera_image">
                             </div>
-
-                            <!-- Modal pour la caméra -->
-                            <div class="modal fade" id="cameraModal" tabindex="-1" aria-labelledby="cameraModalLabel" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="cameraModalLabel">Prendre une photo</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="camera-container">
-                                                <video id="videoElement" autoplay playsinline style="width: 100%; display: block;" class="rounded mb-3"></video>
-                                                <canvas id="canvasElement" style="display: none; width: 100%;" class="rounded mb-3"></canvas>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer justify-content-between">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                            <div>
-                                                <button type="button" id="captureBtn" class="btn btn-primary">
-                                                    <i class="fas fa-camera me-1"></i> Capturer
-                                                </button>
-                                                <button type="button" id="recaptureBtn" class="btn btn-outline-secondary" style="display: none;">
-                                                    <i class="fas fa-redo me-1"></i> Reprendre
-                                                </button>
-                                                <button type="button" id="usePhotoBtn" class="btn btn-success" style="display: none;">
-                                                    <i class="fas fa-check me-1"></i> Utiliser cette photo
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Champ caché pour stocker l'image de la caméra -->
-                            <input type="hidden" id="base64_camera_image" name="base64_camera_image">
 
                             <!-- Informations personnelles -->
                             <div class="col-md-6">
@@ -287,158 +252,69 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Éléments du DOM
     const cameraBtn = document.getElementById('cameraBtn');
-    const photoCamera = document.getElementById('photo_camera');
     const photoUpload = document.getElementById('photo_upload');
     const profilePreview = document.getElementById('profilePreview');
-    const videoElement = document.getElementById('videoElement');
-    const canvasElement = document.getElementById('canvasElement');
-    const captureBtn = document.getElementById('captureBtn');
-    const recaptureBtn = document.getElementById('recaptureBtn');
-    const usePhotoBtn = document.getElementById('usePhotoBtn');
-    const base64Input = document.getElementById('base64_camera_image');
     
-    // Variables globales
-    let stream = null;
-    let cameraModal = new bootstrap.Modal(document.getElementById('cameraModal'));
-    
-    // Fonction pour démarrer la caméra
-    async function startCamera() {
-        console.log("Tentative d'accès à la caméra...");
-        try {
-            stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                },
-                audio: false
-            });
+    // SOLUTION POUR WINDOWS: sans modal, accès direct à la caméra native
+    cameraBtn.addEventListener('click', function() {
+        // Première étape, vérifier si le navigateur est Edge/Chrome sur Windows
+        const isWindows = navigator.userAgent.indexOf("Windows") != -1;
+        const isChrome = navigator.userAgent.indexOf("Chrome") != -1;
+        const isEdge = navigator.userAgent.indexOf("Edg") != -1;
+        
+        console.log("Système détecté:", isWindows ? "Windows" : "Autre");
+        console.log("Navigateur:", isChrome ? "Chrome" : isEdge ? "Edge" : "Autre");
+        
+        // Pour Windows sur Chrome/Edge, utiliser un attribut différent
+        const captureAttribute = (isWindows && (isChrome || isEdge)) ? 'camera' : 'user';
+        
+        console.log("Utilisation de l'attribut capture:", captureAttribute);
+        
+        // Créer un input type=file avec l'attribut de capture adapté
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.capture = captureAttribute;
+        input.style.display = 'none';
+        
+        // Ajouter l'input au document
+        document.body.appendChild(input);
+        
+        // Gérer la sélection d'un fichier
+        input.addEventListener('change', function() {
+            console.log("Fichier sélectionné:", this.files && this.files[0] ? "Oui" : "Non");
             
-            videoElement.srcObject = stream;
-            videoElement.play();
-            console.log("Caméra démarrée avec succès");
-            return true;
-        } catch (err) {
-            console.error("Erreur d'accès à la caméra:", err);
-            alert("Impossible d'accéder à la caméra: " + err.message);
-            return false;
-        }
-    }
-    
-    // Fonction pour arrêter la caméra
-    function stopCamera() {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-            stream = null;
-            videoElement.srcObject = null;
-        }
-    }
-    
-    // Ouvrir la modale et démarrer la caméra
-    cameraBtn.addEventListener('click', async function() {
-        console.log("Bouton caméra cliqué");
-        
-        // Réinitialiser l'interface
-        videoElement.style.display = 'block';
-        canvasElement.style.display = 'none';
-        captureBtn.style.display = 'inline-block';
-        recaptureBtn.style.display = 'none';
-        usePhotoBtn.style.display = 'none';
-        
-        // Afficher la modale
-        cameraModal.show();
-        
-        // Démarrer la caméra après un court délai
-        setTimeout(async function() {
-            const success = await startCamera();
-            if (!success) {
-                cameraModal.hide();
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Afficher la prévisualisation
+                    profilePreview.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = 'Photo de profil';
+                    img.className = 'img-fluid rounded-circle';
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'cover';
+                    profilePreview.appendChild(img);
+                    
+                    // Utiliser l'input caché existant
+                    document.getElementById('base64_camera_image').value = e.target.result;
+                    console.log("Image capturée et stockée en base64");
+                };
+                reader.readAsDataURL(this.files[0]);
             }
-        }, 500);
-    });
-    
-    // Fermer la caméra quand la modale est fermée
-    document.getElementById('cameraModal').addEventListener('hidden.bs.modal', function() {
-        console.log("Modale fermée, arrêt de la caméra");
-        stopCamera();
-    });
-    
-    // Capturer une photo
-    captureBtn.addEventListener('click', function() {
-        console.log("Capture de photo");
+        });
         
-        try {
-            // Prendre une capture de la vidéo
-            canvasElement.width = videoElement.videoWidth;
-            canvasElement.height = videoElement.videoHeight;
-            const context = canvasElement.getContext('2d');
-            context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-            
-            // Afficher la photo capturée
-            videoElement.style.display = 'none';
-            canvasElement.style.display = 'block';
-            captureBtn.style.display = 'none';
-            recaptureBtn.style.display = 'inline-block';
-            usePhotoBtn.style.display = 'inline-block';
-        } catch (error) {
-            console.error("Erreur lors de la capture:", error);
-            alert("Erreur lors de la capture: " + error.message);
-        }
+        // Simuler un clic sur l'input
+        input.click();
     });
     
-    // Reprendre une photo
-    recaptureBtn.addEventListener('click', function() {
-        videoElement.style.display = 'block';
-        canvasElement.style.display = 'none';
-        captureBtn.style.display = 'inline-block';
-        recaptureBtn.style.display = 'none';
-        usePhotoBtn.style.display = 'none';
-    });
-    
-    // Utiliser la photo capturée
-    usePhotoBtn.addEventListener('click', function() {
-        try {
-            // Convertir le canvas en base64
-            const imageData = canvasElement.toDataURL('image/jpeg');
-            
-            // Stocker l'image dans l'input caché
-            base64Input.value = imageData;
-            
-            // Mettre à jour la prévisualisation
-            profilePreview.innerHTML = '';
-            const img = document.createElement('img');
-            img.src = imageData;
-            img.alt = 'Photo de profil';
-            img.className = 'img-fluid rounded-circle';
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'cover';
-            profilePreview.appendChild(img);
-            
-            // Fermer la modale
-            cameraModal.hide();
-        } catch (error) {
-            console.error("Erreur lors de l'utilisation de la photo:", error);
-            alert("Erreur lors de l'utilisation de la photo: " + error.message);
-        }
-    });
-    
-    // Prévisualisation des photos téléchargées
-    photoCamera.addEventListener('change', function() {
-        previewUploadedFile(this);
-    });
-    
+    // Code existant pour l'upload normal...
     photoUpload.addEventListener('change', function() {
-        previewUploadedFile(this);
-    });
-    
-    function previewUploadedFile(input) {
-        if (input.files && input.files[0]) {
+        if (this.files && this.files[0]) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                // Vider l'input base64 car on utilise un fichier
-                base64Input.value = '';
-                
-                // Mettre à jour la prévisualisation
                 profilePreview.innerHTML = '';
                 const img = document.createElement('img');
                 img.src = e.target.result;
@@ -449,9 +325,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 img.style.objectFit = 'cover';
                 profilePreview.appendChild(img);
             };
-            reader.readAsDataURL(input.files[0]);
+            reader.readAsDataURL(this.files[0]);
         }
-    }
+    });
 });
 </script>
+<div class="camera-error alert alert-warning" style="display:none;">
+    <p><i class="fas fa-exclamation-triangle me-2"></i> Impossible d'accéder à votre caméra.</p>
+    <p class="mb-0">Causes possibles:</p>
+    <ul>
+        <li>L'accès a été refusé dans les paramètres de votre navigateur</li>
+        <li>Votre appareil n'a pas de caméra</li>
+        <li>Une autre application utilise déjà la caméra</li>
+    </ul>
+</div>
 {% endblock %}

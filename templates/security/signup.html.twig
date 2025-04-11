@@ -96,6 +96,51 @@
         color: #2980b9;
         text-decoration: underline;
     }
+
+    /* Styles pour les messages d'erreur de validation */
+    .invalid-feedback {
+        display: block;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.875rem;
+        color: #dc3545; /* Rouge */
+        font-weight: 500;
+    }
+
+    .form-error-message {
+        color: #dc3545; /* Rouge */
+        font-weight: 500;
+    }
+
+    .form-error-icon {
+        color: #dc3545; /* Rouge */
+    }
+
+    /* Effet de secousse pour attirer l'attention */
+    @keyframes shake {
+        0%, 100% {transform: translateX(0);}
+        10%, 30%, 50%, 70%, 90% {transform: translateX(-5px);}
+        20%, 40%, 60%, 80% {transform: translateX(5px);}
+    }
+
+    .is-invalid, 
+    .form-control.is-invalid {
+        border-color: #dc3545 !important;
+        padding-right: calc(1.5em + 0.75rem);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        animation: shake 0.5s;
+    }
+
+    /* Style pour les messages de l'Assert spécifiquement */
+    .validation-error {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
 </style>
 {% endblock %}
 
@@ -114,50 +159,67 @@
                         <p>Créez votre compte en quelques étapes simples et commencez votre voyage avec nous.</p>
                     </div>
                     
-                    {{ form_start(form) }}
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
                         <div class="form-section p-4 mb-4 bg-light rounded">
                             <h4 class="text-primary mb-3">Informations personnelles</h4>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     {{ form_label(form.nom, 'Nom') }}
-                                    {{ form_widget(form.nom, {'attr': {'class': 'form-control', 'placeholder': 'Votre nom'}}) }}
-                                    {{ form_errors(form.nom) }}
+                                    {{ form_widget(form.nom, {'attr': {'class': form_errors(form.nom) ? 'form-control is-invalid' : 'form-control', 'placeholder': 'Votre nom'}}) }}
+                                    {% if form_errors(form.nom) %}
+                                        <div class="invalid-feedback">
+                                            {{ form_errors(form.nom) }}
+                                        </div>
+                                    {% endif %}
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
                                     {{ form_label(form.prenom, 'Prénom') }}
-                                    {{ form_widget(form.prenom, {'attr': {'class': 'form-control', 'placeholder': 'Votre prénom'}}) }}
-                                    {{ form_errors(form.prenom) }}
+                                    {{ form_widget(form.prenom, {'attr': {'class': form_errors(form.prenom) ? 'form-control is-invalid' : 'form-control', 'placeholder': 'Votre prénom'}}) }}
+                                    {% if form_errors(form.prenom) %}
+                                        <div class="invalid-feedback">
+                                            {{ form_errors(form.prenom) }}
+                                        </div>
+                                    {% endif %}
                                 </div>
-
-
-
                             </div>
                             
                             <div class="mb-3">
                                 {{ form_label(form.email, 'Adresse email') }}
-                                {{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': 'exemple@email.com'}}) }}
-                                {{ form_errors(form.email) }}
+                                {{ form_widget(form.email, {'attr': {'class': form_errors(form.email) ? 'form-control is-invalid' : 'form-control', 'placeholder': 'exemple@email.com'}}) }}
+                                {% if form_errors(form.email) %}
+                                    <div class="invalid-feedback">
+                                        {{ form_errors(form.email) }}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
 
                         <div class="form-section p-4 mb-4 bg-light rounded">
                             <h4 class="text-primary mb-3">Détails du compte</h4>
                             <div class="mb-3">
-                                {{ form_label(form.username, 'Nom d\'utilisateur') }}
-                                {{ form_widget(form.username, {'attr': {'class': 'form-control', 'placeholder': 'Choisissez un nom d\'utilisateur'}}) }}
-                                {{ form_errors(form.username) }}
+                                {{ form_label(form.username) }}
+                                {{ form_widget(form.username, {'attr': {'class': form_errors(form.username) ? 'form-control is-invalid' : 'form-control'}}) }}
+                                {% if form_errors(form.username) %}
+                                    <div class="invalid-feedback">
+                                        {{ form_errors(form.username) }}
+                                    </div>
+                                {% endif %}
                             </div>
                             
                             <div class="mb-3">
                                 {{ form_label(form.password, 'Mot de passe') }}
                                 {{ form_widget(form.password, {
                                     'attr': {
-                                        'class': 'form-control',
+                                        'class': form_errors(form.password) ? 'form-control is-invalid' : 'form-control',
                                         'placeholder': 'Créez un mot de passe sécurisé'
                                     }
                                 }) }}
-                                {{ form_errors(form.password) }}
+                                {% if form_errors(form.password) %}
+                                    <div class="invalid-feedback">
+                                        {{ form_errors(form.password) }}
+                                    </div>
+                                {% endif %}
                             </div>
                             
                             <div class="mb-3">

@@ -14,10 +14,12 @@ use Symfony\Component\Security\Core\Security;
 class ProfileController extends AbstractController
 {
     private $security;
+    private $entityManager;
     
-    public function __construct(Security $security)
+    public function __construct(Security $security, EntityManagerInterface $entityManager)
     {
         $this->security = $security;
+        $this->entityManager = $entityManager;
     }
 
     /**
@@ -33,8 +35,8 @@ class ProfileController extends AbstractController
     }
     
     
-    #[Route('/profile/update', name: 'user_profile_update', methods: ['POST'])]
-    public function updateProfile(Request $request, EntityManagerInterface $entityManager): Response
+    #[Route('/profile/update', name: 'user_profile_update')]
+    public function updateProfile(Request $request): Response
     {
         // Vérification si l'utilisateur est connecté
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
@@ -45,84 +47,107 @@ class ProfileController extends AbstractController
         }
         
         try {
-            // Récupération des données du formulaire
-            $user->setPrenom($request->request->get('prenom'));
-            $user->setNom($request->request->get('nom'));
+            // Récupérer les données du formulaire
+            $prenom = $request->request->get('prenom');
+            $nom = $request->request->get('nom');
             $email = $request->request->get('email');
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                throw new \Exception('Email invalide');
-            }
-            $user->setEmail($email);
+            $numTelephone = $request->request->get('numTelephone');
+            $cin = $request->request->get('cin');
+            $adresse = $request->request->get('adresse');
             
-            // Utilisation des bonnes méthodes de l'entité Utilisateur
-            $user->setNumTel($request->request->get('numTelephone'));
-            $user->setCin($request->request->get('cin'));
-            $user->setAddress($request->request->get('adresse'));
+            // Mise à jour des données de l'utilisateur
+            $user->setPrenom($prenom);
+            $user->setNom($nom);
+            $user->setNumTel($numTelephone);
+            $user->setCin($cin);
+            $user->setAddress($adresse);
             
-            // Gestion de l'upload de photo
-            $photoFile = $request->files->get('photo_upload') ?: 
-                         $request->files->get('photo_camera') ?: 
-                         $request->files->get('photo');
-            if ($photoFile && $photoFile->getSize() > 2000000) { // 2MB
-                $this->addFlash('warning', 'La photo est trop volumineuse (max 2Mo)');
-                // Ne pas traiter le fichier
-                return $this->redirectToRoute('user_profile');
-            }
-            if ($photoFile) {
-                $originalFilename = pathinfo($photoFile->getClientOriginalName(), PATHINFO_FILENAME);
-                // Sécurisation du nom de fichier
-                $safeFilename = $this->slugify($originalFilename);
-                $newFilename = $safeFilename.'-'.uniqid().'.'.$photoFile->guessExtension();
+            // Vérifier s'il y a une photo de la caméra ou téléchargée
+            $photoCamera = $request->files->get('photo_camera');
+            $photoUpload = $request->files->get('photo_upload');
+            
+            $photo = $photoCamera ?: $photoUpload;
+            
+            if ($photo) {
+                // Vérification du type de fichier
+                $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                
+                if (!in_array($photo->getMimeType(), $allowedMimeTypes)) {
+                    $this->addFlash('danger', 'Type de fichier non autorisé. Veuillez télécharger une image (JPG, PNG, GIF).');
+                    return $this->redirectToRoute('user_profile');
+                }
+                
+                // Vérification de la taille du fichier (2 Mo max)
+                if ($photo->getSize() > 2 * 1024 * 1024) {
+                    $this->addFlash('danger', 'L\'image ne doit pas dépasser 2 Mo.');
+                    return $this->redirectToRoute('user_profile');
+                }
+                
+                // Générer un nom de fichier unique
+                $newFilename = 'profile-' . $user->getId() . '-' . uniqid() . '.' . $photo->guessExtension();
                 
                 try {
-                    // Déplacement du fichier vers le répertoire où les photos sont stockées
-                    $photoFile->move(
-                        $this->getParameter('profile_photos_directory'),
-                        $newFilename
-                    );
+                    // Répertoire de destination
+                    $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/profile';
                     
-                    // Mise à jour de l'URL de la photo dans l'entité
+                    // Créer le répertoire s'il n'existe pas
+                    if (!file_exists($uploadDir)) {
+                        mkdir($uploadDir, 0755, true);
+                    }
+                    
+                    // Déplacer le fichier
+                    $photo->move($uploadDir, $newFilename);
+                    
+                    // Supprimer l'ancienne photo si elle existe
+                    if ($user->getPhoto() && file_exists($uploadDir . '/' . $user->getPhoto())) {
+                        unlink($uploadDir . '/' . $user->getPhoto());
+                    }
+                    
+                    // Mettre à jour l'utilisateur avec le nouveau nom de fichier
                     $user->setPhoto($newFilename);
                 } catch (\Exception $e) {
-                    $this->addFlash('warning', 'Erreur lors du téléchargement de la photo: ' . $e->getMessage());
+                    $this->addFlash('danger', 'Une erreur est survenue lors du téléchargement de l\'image: ' . $e->getMessage());
+                    return $this->redirectToRoute('user_profile');
                 }
             }
             
-            // Vérifier s'il y a une photo base64 envoyée depuis la caméra
+            // Traitement de l'image base64
             $base64Image = $request->request->get('base64_camera_image');
-            if ($base64Image) {
+            if ($base64Image && !empty($base64Image)) {
                 try {
-                    // Extraire les données base64
-                    if (strpos($base64Image, 'data:image') === 0 && strpos($base64Image, 'base64,') !== false) {
-                        list(, $data) = explode('base64,', $base64Image);
-                    } else {
-                        throw new \Exception('Format d\'image invalide');
-                    }
-                    $decodedImage = base64_decode($data);
+                    // Extraire les données d'image
+                    list($type, $data) = explode(';', $base64Image);
+                    list(, $data) = explode(',', $data);
+                    $imageData = base64_decode($data);
                     
                     // Créer un nom de fichier unique
-                    $filename = 'camera-'.uniqid().'.jpg';
+                    $newFilename = 'profile-' . $user->getId() . '-' . uniqid() . '.jpg';
                     
-                    // Vérifier que le répertoire existe
-                    $directory = $this->getParameter('profile_photos_directory');
-                    if (!file_exists($directory)) {
-                        mkdir($directory, 0755, true);
-                    } elseif (!is_writable($directory)) {
-                        throw new \Exception("Le répertoire $directory n'est pas accessible en écriture");
+                    // Enregistrer l'image
+                    $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/profile';
+                    
+                    // Créer le répertoire s'il n'existe pas
+                    if (!file_exists($uploadDir)) {
+                        mkdir($uploadDir, 0755, true);
                     }
                     
-                    // Sauvegarder l'image
-                    file_put_contents($directory.'/'.$filename, $decodedImage);
+                    file_put_contents("$uploadDir/$newFilename", $imageData);
                     
-                    // Mettre à jour l'utilisateur
-                    $user->setPhoto($filename);
+                    // Supprimer l'ancienne photo si elle existe
+                    if ($user->getPhoto() && file_exists($uploadDir . '/' . $user->getPhoto())) {
+                        unlink($uploadDir . '/' . $user->getPhoto());
+                    }
+                    
+                    // Mettre à jour l'utilisateur avec le nouveau nom de fichier
+                    $user->setPhoto($newFilename);
                 } catch (\Exception $e) {
-                    $this->addFlash('warning', 'Erreur lors du traitement de l\'image prise par la caméra: ' . $e->getMessage());
+                    $this->addFlash('danger', 'Une erreur est survenue lors du traitement de l\'image: ' . $e->getMessage());
+                    return $this->redirectToRoute('user_profile');
                 }
             }
             
             // Enregistrement des modifications
-            $entityManager->flush();
+            $this->entityManager->flush();
             
             // Si la requête est en AJAX
             if ($request->isXmlHttpRequest()) {
