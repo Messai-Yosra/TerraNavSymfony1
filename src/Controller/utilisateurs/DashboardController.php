@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;
 use App\Form\UtilisateurType;
+use App\Service\utilisateurs\LoginHistoryLogger;
 
 final class DashboardController extends AbstractController
 {
@@ -176,5 +177,53 @@ final class DashboardController extends AbstractController
             $response->setStatusCode(500);
             return $response;
         }
+    }
+
+    #[Route('/admin/historique-connexions', name: 'admin_login_history')]
+    public function loginHistory(LoginHistoryLogger $loginLogger): Response
+    {
+        // Récupérer l'historique des 30 derniers jours
+        $loginHistory = $loginLogger->getLoginHistory(30);
+        
+        // Analyser et préparer des statistiques
+        $stats = [
+            'totalConnexions' => count($loginHistory),
+            'connexionsAujourdhui' => count(array_filter($loginHistory, function($entry) {
+                return substr($entry['timestamp'], 0, 10) === date('Y-m-d');
+            })),
+            'utilisateursUniques' => count(array_unique(array_column($loginHistory, 'userId'))),
+            'connexionsParRole' => []
+        ];
+        
+        // Agréger les connexions par rôle
+        foreach ($loginHistory as $entry) {
+            $role = $entry['role'] ?? 'unknown';
+            if (!isset($stats['connexionsParRole'][$role])) {
+                $stats['connexionsParRole'][$role] = 0;
+            }
+            $stats['connexionsParRole'][$role]++;
+        }
+        
+        return $this->render('utilisateurs/historique_connexion.html.twig', [
+            'historique' => $loginHistory,
+            'stats' => $stats
+        ]);
+    }
+
+    #[Route('/admin/user/{id}/historique', name: 'admin_user_login_history')]
+    public function userLoginHistory(int $id, LoginHistoryLogger $loginLogger, EntityManagerInterface $entityManager): Response
+    {
+        $utilisateur = $entityManager->getRepository(Utilisateur::class)->find($id);
+        
+        if (!$utilisateur) {
+            throw $this->createNotFoundException('Utilisateur non trouvé');
+        }
+        
+        $loginHistory = $loginLogger->getUserLoginHistory($id);
+        
+        return $this->render('utilisateurs/historique_utilisateur.html.twig', [
+            'utilisateur' => $utilisateur,
+            'historique' => $loginHistory
+        ]);
     }
 }

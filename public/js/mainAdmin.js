@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle navigation clicks (simplified)
     navButtons.forEach(button => {
         button.addEventListener('click', function(e) {
-            e.preventDefault();
             
             // Hide all sections
             contentSections.forEach(section => {

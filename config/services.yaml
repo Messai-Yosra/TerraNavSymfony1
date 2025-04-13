@@ -27,3 +27,17 @@ services:
     App\Security\LoginSuccessHandler:
         arguments:
             $urlGenerator: '@router'
+
+    App\Service\utilisateurs\LoginHistoryLogger:
+        arguments:
+            $requestStack: '@request_stack'
+            $params: '@parameter_bag'
+            $serializer: '@serializer'
+
+    App\EventListener\LoginListener:
+        arguments:
+            $loginLogger: '@App\Service\utilisateurs\LoginHistoryLogger'
+        tags:
+            - { name: kernel.event_subscriber }
+
+    
