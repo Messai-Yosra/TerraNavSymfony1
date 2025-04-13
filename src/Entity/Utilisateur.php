@@ -71,13 +71,13 @@ class Utilisateur implements PasswordAuthenticatedUserInterface, UserInterface
     )]
     private string $role;
 
-    #[ORM\Column(name: "nom", type: "string", length: 255)]
+    #[ORM\Column(name: "nom", type: "string", length: 255, nullable: true)]
     #[Assert\NotBlank(message: "Le nom ne peut pas être vide")]
-    private string $nom;
+    private ?string $nom = null;
 
-    #[ORM\Column(name: "prenom", type: "string", length: 255)]
+    #[ORM\Column(name: "prenom", type: "string", length: 255, nullable: true)]
     #[Assert\NotBlank(message: "Le prénom ne peut pas être vide")]
-    private string $prenom;
+    private ?string $prenom = null;
 
     #[ORM\Column(name: "nomagence", type: "string", length: 40, nullable: true)]
     #[Assert\Length(

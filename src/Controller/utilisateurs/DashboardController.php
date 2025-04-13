@@ -18,8 +18,15 @@ final class DashboardController extends AbstractController
         // Récupérer tous les utilisateurs de la base de données
         $utilisateurs = $entityManager->getRepository(Utilisateur::class)->findAll();
         
+        // Dans votre contrôleur avant de passer les utilisateurs au template
+        $utilisateursFiltres = array_map(function($u) {
+            if ($u->getPrenom() === null) $u->setPrenom('');
+            if ($u->getNom() === null) $u->setNom('');
+            return $u;
+        }, $utilisateurs);
+
         return $this->render('utilisateurs/dashboardAdmin.html.twig', [
-            'utilisateurs' => $utilisateurs
+            'utilisateurs' => $utilisateursFiltres,
         ]);
     }
     

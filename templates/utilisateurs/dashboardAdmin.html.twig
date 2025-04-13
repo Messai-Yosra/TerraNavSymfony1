@@ -599,16 +599,18 @@
                                 ">
                                     {% if utilisateur.photo %}
                                         <img src="{{ asset('uploads/profile/' ~ utilisateur.photo) }}" 
-                                             alt="Photo de {{ utilisateur.prenom }}"
+                                             alt="Photo de {{ utilisateur.prenom|default('Utilisateur') }}"
                                              style="width: 100%; height: 100%; object-fit: cover;">
                                     {% else %}
-                                        <span class="text-white" style="font-size: 1.25rem;">{{ utilisateur.prenom|first|upper }}{{ utilisateur.nom|first|upper }}</span>
+                                        <span class="text-white" style="font-size: 1.25rem;">
+                                            {{ utilisateur.prenom|default('')|first|upper }}{{ utilisateur.nom|default('')|first|upper }}
+                                        </span>
                                     {% endif %}
                                 </div>
                                 
                                 <!-- Information utilisateur -->
                                 <div>
-                                    <h5 class="mb-0">{{ utilisateur.prenom }} {{ utilisateur.nom }}</h5>
+                                    <h5 class="mb-0">{{ utilisateur.prenom|default('') }} {{ utilisateur.nom|default('') }}</h5>
                                     <p class="text-muted mb-1">@{{ utilisateur.username }}</p>
                                     <span class="badge 
                                         {% if utilisateur.role == 'ADMIN' %}bg-danger
@@ -642,7 +644,7 @@
                             <div class="action-buttons d-flex justify-content-around">
                                 <button 
                                     class="btn btn-primary btn-sm"
-                                    onclick="openEditModal({{ utilisateur.id }}, '{{ utilisateur.prenom }}', '{{ utilisateur.nom }}', '{{ utilisateur.email }}', '{{ utilisateur.role }}')"
+                                    onclick="openEditModal({{ utilisateur.id }}, '{{ utilisateur.prenom|default('') }}', '{{ utilisateur.nom|default('') }}', '{{ utilisateur.email }}', '{{ utilisateur.role }}')"
                                 >
                                     <i class="fas fa-edit"></i> Modifier
                                 </button>
@@ -658,7 +660,7 @@
                     <!-- Formulaire d'édition (caché par défaut) -->
                     <div id="edit-form-{{ utilisateur.id }}" class="edit-form-container">
                         <div class="edit-form-header">
-                            <h4>Modifier {{ utilisateur.prenom }} {{ utilisateur.nom }}</h4>
+                            <h4>Modifier {{ utilisateur.prenom|default('') }} {{ utilisateur.nom|default('') }}</h4>
                         </div>
                         
                         <form method="post" action="{{ path('admin_user_update', {'id': utilisateur.id}) }}" class="user-edit-form">
@@ -668,7 +670,7 @@
                                         <label class="form-label">Prénom</label>
                                         <div class="form-input-wrapper">
                                             <i class="fas fa-user form-input-icon"></i>
-                                            <input type="text" name="prenom" class="form-control" value="{{ utilisateur.prenom }}" required>
+                                            <input type="text" name="prenom" class="form-control" value="{{ utilisateur.prenom|default('') }}" required>
                                         </div>
                                     </div>
                                 </div>
@@ -678,7 +680,7 @@
                                         <label class="form-label">Nom</label>
                                         <div class="form-input-wrapper">
                                             <i class="fas fa-user form-input-icon"></i>
-                                            <input type="text" name="nom" class="form-control" value="{{ utilisateur.nom }}" required>
+                                            <input type="text" name="nom" class="form-control" value="{{ utilisateur.nom|default('') }}" required>
                                         </div>
                                     </div>
                                 </div>
