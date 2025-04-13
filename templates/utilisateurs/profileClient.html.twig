@@ -244,92 +244,196 @@
         </div>
     </div>
 </div>
+<script>
+// Use a single initialization approach with a flag to prevent multiple initializations
+let cameraInitialized = false;
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (!cameraInitialized) {
+        initCameraFunctionality();
+        cameraInitialized = true;
+    }
+});
+
+function initCameraFunctionality() {
+    console.log('Initializing camera functionality...');
+    
+    const cameraBtn = document.querySelector('#cameraBtn');
+    const photoUpload = document.querySelector('#photo_upload');
+    
+    if (!cameraBtn) {
+        console.error('Camera button (#cameraBtn) not found in DOM!');
+        return;
+    }
+    
+    // Use a single event attachment method
+    cameraBtn.addEventListener('click', handleCameraClick);
+    
+    // Handle photo upload through file input
+    if (photoUpload) {
+        photoUpload.addEventListener('change', handleFileUpload);
+    }
+    
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                updateProfilePreview(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+    
+    function handleCameraClick(event) {
+        console.log('Camera button clicked!', event);
+        
+        // Check if Bootstrap is available
+        if (typeof bootstrap === 'undefined') {
+            console.error('Bootstrap not found! Modal functionality requires Bootstrap JS.');
+            alert('Camera functionality requires Bootstrap. Please check console for details.');
+            return;
+        }
+        
+        // Rest of camera handling code
+        const video = document.createElement('video');
+        const canvas = document.createElement('canvas');
+        const cameraError = document.querySelector('.camera-error') || document.createElement('div');
+
+        // Request camera access
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            console.error('Media devices API not supported in this browser');
+            showCameraError('Your browser does not support camera access.');
+            return;
+        }
+        
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function(stream) {
+                // Create modal for camera
+                createCameraModal(stream, video, canvas);
+            })
+            .catch(function(error) {
+                console.error('Camera access error:', error);
+                showCameraError();
+            });
+    }
+    
+    // Helper function for camera errors
+    function showCameraError(message) {
+        const errorElement = document.querySelector('.camera-error');
+        if (errorElement) {
+            errorElement.style.display = 'block';
+            setTimeout(() => { errorElement.style.display = 'none'; }, 5000);
+        } else {
+            alert(message || 'Could not access camera. Please check permissions.');
+        }
+    }
+    
+    // Helper function to create camera modal
+    function createCameraModal(stream, video, canvas) {
+        const modal = document.createElement('div');
+        modal.className = 'modal fade';
+        modal.id = 'cameraModal';
+        modal.setAttribute('tabindex', '-1');
+        modal.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Prendre une photo</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <div id="videoContainer" style="width: 100%; max-width: 400px; margin: 0 auto;"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="button" class="btn btn-primary" id="captureBtn">
+                            <i class="fas fa-camera me-1"></i> Capturer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Set up the video stream
+        video.srcObject = stream;
+        video.setAttribute('playsinline', '');
+        video.style.width = '100%';
+        video.style.borderRadius = '8px';
+        
+        document.getElementById('videoContainer').appendChild(video);
+        video.play();
+        
+        // Initialize Bootstrap modal
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
+        
+        // Set up the canvas for capturing
+        canvas.width = 640;
+        canvas.height = 480;
+        
+        // Set up the capture button
+        const captureBtn = document.getElementById('captureBtn');
+        captureBtn.addEventListener('click', function() {
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Convert the canvas to a data URL
+            const imageData = canvas.toDataURL('image/png');
+            
+            // Display the captured image in the profile preview
+            const profilePreview = document.getElementById('profilePreview');
+            profilePreview.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = imageData;
+            img.alt = 'Photo de profil';
+            img.className = 'img-fluid rounded-circle';
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+            profilePreview.appendChild(img);
+            
+            // Store the base64 data in the hidden input
+            document.getElementById('base64_camera_image').value = imageData;
+            
+            // Close modal and stop camera
+            bsModal.hide();
+            stopCamera();
+        });
+        
+        // Clean up when the modal is closed
+        modal.addEventListener('hidden.bs.modal', function() {
+            stopCamera();
+            document.body.removeChild(modal);
+        });
+        
+        function stopCamera() {
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+            }
+        }
+    }
+    
+    function updateProfilePreview(imageData) {
+        const profilePreview = document.getElementById('profilePreview');
+        profilePreview.innerHTML = '';
+        const img = document.createElement('img');
+        img.src = imageData;
+        img.alt = 'Photo de profil';
+        img.className = 'img-fluid rounded-circle';
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        profilePreview.appendChild(img);
+    }
+}
+</script>
 {% endblock %}
 
 {% block javascripts %}
 {{ parent() }}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Éléments du DOM
-    const cameraBtn = document.getElementById('cameraBtn');
-    const photoUpload = document.getElementById('photo_upload');
-    const profilePreview = document.getElementById('profilePreview');
-    
-    // SOLUTION POUR WINDOWS: sans modal, accès direct à la caméra native
-    cameraBtn.addEventListener('click', function() {
-        // Première étape, vérifier si le navigateur est Edge/Chrome sur Windows
-        const isWindows = navigator.userAgent.indexOf("Windows") != -1;
-        const isChrome = navigator.userAgent.indexOf("Chrome") != -1;
-        const isEdge = navigator.userAgent.indexOf("Edg") != -1;
-        
-        console.log("Système détecté:", isWindows ? "Windows" : "Autre");
-        console.log("Navigateur:", isChrome ? "Chrome" : isEdge ? "Edge" : "Autre");
-        
-        // Pour Windows sur Chrome/Edge, utiliser un attribut différent
-        const captureAttribute = (isWindows && (isChrome || isEdge)) ? 'camera' : 'user';
-        
-        console.log("Utilisation de l'attribut capture:", captureAttribute);
-        
-        // Créer un input type=file avec l'attribut de capture adapté
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        input.capture = captureAttribute;
-        input.style.display = 'none';
-        
-        // Ajouter l'input au document
-        document.body.appendChild(input);
-        
-        // Gérer la sélection d'un fichier
-        input.addEventListener('change', function() {
-            console.log("Fichier sélectionné:", this.files && this.files[0] ? "Oui" : "Non");
-            
-            if (this.files && this.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    // Afficher la prévisualisation
-                    profilePreview.innerHTML = '';
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.alt = 'Photo de profil';
-                    img.className = 'img-fluid rounded-circle';
-                    img.style.width = '100%';
-                    img.style.height = '100%';
-                    img.style.objectFit = 'cover';
-                    profilePreview.appendChild(img);
-                    
-                    // Utiliser l'input caché existant
-                    document.getElementById('base64_camera_image').value = e.target.result;
-                    console.log("Image capturée et stockée en base64");
-                };
-                reader.readAsDataURL(this.files[0]);
-            }
-        });
-        
-        // Simuler un clic sur l'input
-        input.click();
-    });
-    
-    // Code existant pour l'upload normal...
-    photoUpload.addEventListener('change', function() {
-        if (this.files && this.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                profilePreview.innerHTML = '';
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.alt = 'Photo de profil';
-                img.className = 'img-fluid rounded-circle';
-                img.style.width = '100%';
-                img.style.height = '100%';
-                img.style.objectFit = 'cover';
-                profilePreview.appendChild(img);
-            };
-            reader.readAsDataURL(this.files[0]);
-        }
-    });
-});
-</script>
 <div class="camera-error alert alert-warning" style="display:none;">
     <p><i class="fas fa-exclamation-triangle me-2"></i> Impossible d'accéder à votre caméra.</p>
     <p class="mb-0">Causes possibles:</p>
