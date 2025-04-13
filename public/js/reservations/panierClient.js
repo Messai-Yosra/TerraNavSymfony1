@@ -288,76 +288,12 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('saveReservationChanges').addEventListener('click', function() {
         const formData = new FormData(document.getElementById('editReservationForm'));
         const reservationId = document.getElementById('editReservationId').value;
-        const reservationType = document.getElementById('editReservationType').value;
-
-        // Validate date for chambre and transport
-        if (reservationType === 'chambre' || reservationType === 'transport') {
-            const dateValue = document.getElementById('editDate').value;
-            if (!dateValue) {
-                showNotification('La date est requise', 'error');
-                return;
-            }
-
-            const selectedDate = new Date(dateValue);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            if (selectedDate < today) {
-                showNotification('La date doit être aujourd\'hui ou dans le futur', 'error');
-                return;
-            }
-        }
-
-        // Validate type-specific fields and update price
-        if (reservationType === 'voyage') {
-            const nbPlaces = parseInt(document.getElementById('editNbPlaces').value);
-            if (nbPlaces <= 0) {
-                showNotification('Le nombre de places doit être positif', 'error');
-                return;
-            }
-
-            // Update price in form data based on current calculation
-            const pricePerPlace = parseFloat(document.getElementById('editNbPlaces').getAttribute('data-price-per-place'));
-            const newPrice = pricePerPlace * nbPlaces;
-            formData.set('prix', newPrice.toString());
-        } else if (reservationType === 'chambre') {
-            const nbJours = parseInt(document.getElementById('editNbJours').value);
-            if (nbJours <= 0) {
-                showNotification('Le nombre de jours doit être positif', 'error');
-                return;
-            }
-
-            // Update price in form data based on current calculation
-            const pricePerDay = parseFloat(document.getElementById('editNbJours').getAttribute('data-price-per-day'));
-            const newPrice = pricePerDay * nbJours;
-            formData.set('prix', newPrice.toString());
-        }
-
-        // Store form data for later submission
-        pendingFormData = formData;
-
-        // Close edit modal first
-        editModal.hide();
-
-        // When edit modal is fully hidden, show confirmation
-        document.getElementById('editReservationModal').addEventListener('hidden.bs.modal', function onEditModalHidden() {
-            this.removeEventListener('hidden.bs.modal', onEditModalHidden);
-
-            // Update confirmation message if needed
-            document.getElementById('confirmEditMessage').textContent =
-                'Êtes-vous sûr de vouloir modifier cette réservation ?';
-
-            // Show confirmation modal
-            confirmEditModal.show();
-        }, {once: true});
-    });
-
-    // Handle confirmation button click
-    document.getElementById('confirmEditButton').addEventListener('click', function() {
-        if (!pendingFormData) return;
-
-        const reservationId = pendingFormData.get('id');
         const saveButton = document.getElementById('saveReservationChanges');
+
+        // Get the dynamically calculated price
+        const currentPrice = document.getElementById('editPrix').textContent;
+        const priceValue = parseFloat(currentPrice.replace(' TND', ''));
+        formData.append('prix', priceValue.toString());
 
         // Show loading state
         saveButton.disabled = true;
@@ -365,20 +301,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
         fetch(`/reservation/${reservationId}/update`, {
             method: 'POST',
-            body: pendingFormData
+            body: formData,
+            headers: {
+                'Accept': 'application/json'
+            }
         })
-            .then(response => {
+            .then(async response => {
+                const contentType = response.headers.get('content-type');
+
                 if (!response.ok) {
-                    return response.json().then(err => {
-                        throw new Error(err.message || 'Network response was not ok');
-                    });
+                    if (contentType && contentType.includes('application/json')) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Erreur du serveur');
+                    } else {
+                        const text = await response.text();
+                        throw new Error(text || 'Erreur du serveur');
+                    }
                 }
-                return response.json();
+
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json();
+                }
+
+                return response.text();
             })
             .then(data => {
                 if (data.success) {
-                    confirmEditModal.hide();
-                    showNotification('La réservation a été modifiée avec succès', 'success');
+                    showNotification(data.message, 'success');
                     setTimeout(() => {
                         window.location.reload();
                     }, 1000);
@@ -388,15 +337,18 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.error('Error:', error);
-                confirmEditModal.hide();
-                showNotification(`Erreur: ${error.message}`, 'error');
-                // Reopen edit modal so user can try again
+
+                let errorMessage = error.message;
+                if (errorMessage.startsWith('<!DOCTYPE') || errorMessage.startsWith('<!--')) {
+                    errorMessage = "Une erreur s'est produite. Veuillez réessayer.";
+                }
+
+                showNotification(`Erreur: ${errorMessage}`, 'error');
                 editModal.show();
             })
             .finally(() => {
                 saveButton.disabled = false;
                 saveButton.textContent = 'Enregistrer';
-                pendingFormData = null;
             });
     });
 
@@ -433,7 +385,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     paymentModal.hide();
                     showNotification(`Paiement confirmé! ${data.count} réservations mises à jour`, 'success');
 
-                    // Reload the page after a delay to show updated statuses
                     setTimeout(() => {
                         window.location.reload();
                     }, 1500);
@@ -458,7 +409,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData(this);
         const url = this.action;
 
-        // Show loading state on delete button
         const deleteButton = this.querySelector('button[type="submit"]');
         const originalText = deleteButton.innerHTML;
         deleteButton.disabled = true;
@@ -473,27 +423,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
             .then(response => {
-                // First check if the response is JSON
                 const contentType = response.headers.get('content-type');
                 if (contentType && contentType.includes('application/json')) {
                     return response.json();
                 }
-                // If not JSON but response is ok, return success
                 if (response.ok) {
                     return { success: true };
                 }
-                // Otherwise throw error
                 throw new Error('Network response was not ok');
             })
             .then(data => {
                 if (data.success) {
-                    // Hide the modal
                     deleteModal.hide();
-
-                    // Show success notification
                     showNotification('La réservation a été annulée avec succès', 'success');
-
-                    // Reload the page after a short delay
                     setTimeout(() => {
                         window.location.reload();
                     }, 1000);
@@ -503,7 +445,6 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.error('Error:', error);
-                // Show error notification
                 showNotification('Erreur lors de l\'annulation de la réservation: ' + error.message, 'error');
             })
             .finally(() => {
@@ -514,14 +455,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Notification function
     function showNotification(message, type = 'success') {
-        // Create notification element
         const notification = document.createElement('div');
         notification.className = 'position-fixed top-0 start-50 translate-middle-x mt-3';
         notification.style.zIndex = '9999';
         notification.style.opacity = '0';
         notification.style.transition = 'opacity 0.3s ease';
 
-        // Set styles based on type
         if (type === 'success') {
             notification.className += ' alert alert-success';
         } else {
@@ -529,16 +468,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         notification.textContent = message;
-
-        // Add to body
         document.body.appendChild(notification);
 
-        // Trigger animation
         setTimeout(() => {
             notification.style.opacity = '1';
         }, 10);
 
-        // Auto-remove after 4 seconds
         setTimeout(() => {
             notification.style.opacity = '0';
             setTimeout(() => {

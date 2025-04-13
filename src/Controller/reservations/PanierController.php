@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class PanierController extends AbstractController
 {
@@ -99,7 +100,8 @@ final class PanierController extends AbstractController
         ReservationRepository $reservationRepository,
         EntityManagerInterface $entityManager,
         PanierRepository $panierRepository,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        ValidatorInterface $validator
     ): JsonResponse {
         if (!$this->isCsrfTokenValid('update-reservation', $request->request->get('_token'))) {
             return new JsonResponse(['success' => false, 'message' => 'Jeton CSRF invalide'], 403);
@@ -112,70 +114,90 @@ final class PanierController extends AbstractController
 
         try {
             $type = $reservation->gettype_service();
+            $newPrice = $reservation->getPrix();
 
             switch ($type) {
                 case 'Voyage':
                     $nbPlaces = (int)$request->request->get('nb_places');
-                    if ($nbPlaces <= 0) {
-                        return new JsonResponse(['success' => false, 'message' => 'Le nombre de places doit être positif'], 400);
+                    $oldPlaces = $reservation->getNb_places();
+
+                    // Validate places using Symfony asserts
+                    $reservation->setNb_places($nbPlaces);
+                    $errors = $validator->validate($reservation);
+                    if (count($errors) > 0) {
+                        $errorMessages = [];
+                        foreach ($errors as $error) {
+                            $errorMessages[] = $error->getMessage();
+                        }
+                        return new JsonResponse(['success' => false, 'message' => implode(', ', $errorMessages)], 400);
                     }
 
+                    // Check available places
                     $voyage = $reservation->getId_voyage();
                     if ($voyage) {
-                        $oldPlaces = $reservation->getNb_places();
                         $placeDifference = $nbPlaces - $oldPlaces;
-
-                        // Vérifier les places disponibles
                         if ($placeDifference > $voyage->getNbPlacesD()) {
                             return new JsonResponse([
                                 'success' => false,
                                 'message' => 'Pas assez de places disponibles. Seulement ' . $voyage->getNbPlacesD() . ' places restantes.'
                             ], 400);
                         }
-
-                        // Mettre à jour les places disponibles du voyage
                         $voyage->setNbPlacesD($voyage->getNbPlacesD() - $placeDifference);
-
-                        // Calculer le nouveau prix
-                        $pricePerPlace = $reservation->getPrix() / $oldPlaces;
-                        $newPrice = $pricePerPlace * $nbPlaces;
-                        $reservation->setPrix($newPrice);
                     }
 
-                    $reservation->setNb_places($nbPlaces);
+                    // Calculate new price
+                    $pricePerPlace = $reservation->getPrix() / $oldPlaces;
+                    $newPrice = $pricePerPlace * $nbPlaces;
+                    $reservation->setPrix($newPrice);
                     break;
 
                 case 'Chambre':
                     $nbJours = (int)$request->request->get('nbJoursHebergement');
-                    if ($nbJours <= 0) {
-                        return new JsonResponse(['success' => false, 'message' => 'Le nombre de jours doit être positif'], 400);
+                    $oldDays = $reservation->getnbJoursHebergement();
+                    $dateValue = $request->request->get('date_reservation');
+
+                    // First validate required fields
+                    if (!$dateValue) {
+                        return new JsonResponse(['success' => false, 'message' => 'La date est requise'], 400);
                     }
 
-                    // Calculer le nouveau prix basé sur le prix par jour
-                    $chambre = $reservation->getId_Chambre();
-                    if ($chambre) {
-                        $pricePerDay = $reservation->getPrix() / $reservation->getnbJoursHebergement();
-                        $newPrice = $pricePerDay * $nbJours;
-                        $reservation->setPrix($newPrice);
-                    }
-
+                    // Set all properties that need validation at once
                     $reservation->setnbJoursHebergement($nbJours);
+                    $reservation->setdate_reservation(new \DateTime($dateValue));
 
+                    // Validate the entity including both nbJours and date
+                    $errors = $validator->validate($reservation);
+                    if (count($errors) > 0) {
+                        $errorMessages = [];
+                        foreach ($errors as $error) {
+                            $errorMessages[] = $error->getMessage();
+                        }
+                        return new JsonResponse(['success' => false, 'message' => implode(', ', $errorMessages)], 400);
+                    }
+
+                    // Calculate new price only after validation passes
+                    $pricePerDay = $reservation->getPrix() / $oldDays;
+                    $newPrice = $pricePerDay * $nbJours;
+                    $reservation->setPrix($newPrice);
+
+                    break;
+
+                case 'Transport':
+
+                    // Validate date using Symfony asserts
                     $dateValue = $request->request->get('date_reservation');
                     if (!$dateValue) {
                         return new JsonResponse(['success' => false, 'message' => 'La date est requise'], 400);
                     }
                     $reservation->setdate_reservation(new \DateTime($dateValue));
-                    break;
-
-                case 'Transport':
-                    $dateValue = $request->request->get('date_reservation');
-                    if (!$dateValue) {
-                        return new JsonResponse(['success' => false, 'message' => 'La date est requise'], 400);
+                    $errors = $validator->validate($reservation);
+                    if (count($errors) > 0) {
+                        $errorMessages = [];
+                        foreach ($errors as $error) {
+                            $errorMessages[] = $error->getMessage();
+                        }
+                        return new JsonResponse(['success' => false, 'message' => implode(', ', $errorMessages)], 400);
                     }
-                    $dateReservation = new \DateTime($dateValue);
-                    $reservation->setdate_reservation($dateReservation);
-                    $reservation->setdateAffectation($dateReservation);
                     break;
             }
 
@@ -187,12 +209,12 @@ final class PanierController extends AbstractController
                 'message' => 'Réservation mise à jour avec succès',
                 'reservation' => [
                     'id' => $reservation->getId(),
-                    'type' => $reservation->gettype_service(),
-                    'price' => $reservation->getPrix(),
-                    'date' => $reservation->getdate_reservation()->format('Y-m-d'),
+                    'type' => $type,
+                    'price' => $newPrice,
+                    'date' => $reservation->getdate_reservation() ? $reservation->getdate_reservation()->format('Y-m-d') : null,
                     'status' => $reservation->getEtat(),
-                    'nb_places' => $reservation->getNb_places(),
-                    'nb_jours' => $reservation->getnbJoursHebergement()
+                    'nb_places' => $type === 'Voyage' ? $nbPlaces : null,
+                    'nb_jours' => $type === 'Chambre' ? $nbJours : null
                 ]
             ]);
 
