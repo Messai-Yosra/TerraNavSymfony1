@@ -16,16 +16,6 @@
             </div>
         </div>
     </div>
-    {% block flash_messages %}
-        {% for type, messages in app.flashes %}
-            {% for message in messages %}
-                <div class="alert alert-{{ type }} alert-dismissible fade show">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            {% endfor %}
-        {% endfor %}
-    {% endblock %}
 
     <!-- About Start - Informations du voyage -->
     <div class="container-xxl py-5">

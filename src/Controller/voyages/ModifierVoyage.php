@@ -10,11 +10,30 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class ModifierVoyage extends AbstractController
 {
+    #[Route('/ModifierVoyage/{id}', name: 'app_modifier_voyage')]
+    public function ModifierVoyage(Voyage $voyage, OffreRepository $offreRepository): Response
+    {
+        $offres = $offreRepository->findOffresByAgence(1);
+
+        return $this->render('voyages/ModifierVoyage.html.twig', [
+            'voyage' => $voyage,
+            'offres' => $offres,
+            'errors' => []
+        ]);
+    }
+
     #[Route('/ModifierVoyagebd/{id}', name: 'app_modifier_voyage_bd', methods: ['POST'])]
-    public function ModifierVoyage(Request $request, Voyage $voyage, OffreRepository $offreRepository, EntityManagerInterface $entityManager): Response {
+    public function ModifierVoyagebd(
+        Request $request,
+        Voyage $voyage,
+        OffreRepository $offreRepository,
+        EntityManagerInterface $entityManager,
+        ValidatorInterface $validator
+    ): Response {
         if ($request->isMethod('POST')) {
             try {
                 // Mise à jour des propriétés du voyage
@@ -37,17 +56,30 @@ class ModifierVoyage extends AbstractController
                     $voyage->setId_offre(null);
                 }
 
+                // Validation des données
+                $errors = $validator->validate($voyage);
+
+                if (count($errors) > 0) {
+                    $errorMessages = [];
+                    foreach ($errors as $error) {
+                        $errorMessages[$error->getPropertyPath()] = $error->getMessage();
+                    }
+
+                    $offres = $offreRepository->findOffresByAgence(1);
+                    return $this->render('voyages/ModifierVoyage.html.twig', [
+                        'voyage' => $voyage,
+                        'offres' => $offres,
+                        'errors' => $errorMessages
+                    ]);
+                }
+
                 // Gestion des images
                 $uploadedFiles = $request->files->get('images');
                 $existingImages = $request->request->all()['existing_images'] ?? [];
 
-                // Si de nouvelles images sont uploadées, on les traite
                 if ($uploadedFiles && count($uploadedFiles) > 0) {
                     $projectDir = $this->getParameter('kernel.project_dir');
                     $imagePaths = [];
-
-                    // Supprimer les anciennes images si nécessaire
-                    // (À implémenter selon votre logique de gestion des fichiers)
 
                     foreach ($uploadedFiles as $uploadedFile) {
                         if ($uploadedFile) {
@@ -55,28 +87,23 @@ class ModifierVoyage extends AbstractController
                             $relativePath = 'img/voyages/'.$newFilename;
                             $absolutePath = $projectDir.'/public/'.$relativePath;
 
-                            // Déplacer le fichier
                             $uploadedFile->move(
                                 $projectDir.'/public/img/voyages/',
                                 $newFilename
                             );
 
-                            // Stocker le chemin absolu Windows
                             $windowsPath = str_replace('/', '\\', $absolutePath);
                             $imagePaths[] = $windowsPath;
                         }
                     }
 
-                    // Si on a de nouvelles images, on les utilise
                     if (!empty($imagePaths)) {
                         $voyage->setPathImages(implode('***', $imagePaths));
                     }
                 } elseif (!empty($existingImages)) {
-                    // Sinon, on conserve les images existantes
                     $voyage->setPathImages(implode('***', $existingImages));
                 }
 
-                // Enregistrement en base de données
                 $entityManager->persist($voyage);
                 $entityManager->flush();
 
@@ -89,7 +116,6 @@ class ModifierVoyage extends AbstractController
             }
         }
 
-        // Si la méthode n'est pas POST, rediriger vers la page d'édition
         return $this->redirectToRoute('app_modifier_voyage', ['id' => $voyage->getId()]);
     }
 }

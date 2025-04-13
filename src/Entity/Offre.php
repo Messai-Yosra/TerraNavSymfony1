@@ -22,7 +22,7 @@ class Offre
     #[Assert\NotNull(message: "L'utilisateur associé est obligatoire")]
     private Utilisateur $id_user;
 
-    #[ORM\Column(type: "string", length: 50, nullable: true)]
+    #[ORM\Column(type: "string", length: 50)]
     #[Assert\NotBlank(message: "Le titre de l'offre est obligatoire")]
     #[Assert\Length(
         min: 5,
@@ -30,43 +30,47 @@ class Offre
         minMessage: "Le titre doit faire au moins {{ limit }} caractères",
         maxMessage: "Le titre ne peut pas dépasser {{ limit }} caractères"
     )]
-    private ?string $titre;
+    private string $titre;
 
-    #[ORM\Column(type: "text", nullable: true)]
+    #[ORM\Column(type: "text")]
     #[Assert\NotBlank(message: "La description est obligatoire")]
     #[Assert\Length(
         min: 20,
         minMessage: "La description doit faire au moins {{ limit }} caractères"
     )]
-    private ?string $description;
+    private string $description ;
 
-    #[ORM\Column(type: "float", nullable: true)]
+    #[ORM\Column(type: "float")]
     #[Assert\NotBlank(message: "La réduction est obligatoire")]
+    #[Assert\Type(
+        type: "float",
+        message: "La réduction doit être un nombre valide"
+    )]
     #[Assert\Range(
         min: 0,
         max: 100,
         notInRangeMessage: "La réduction doit être entre {{ min }}% et {{ max }}%"
     )]
-    private ?float $reduction;
+    private ?float $reduction = null; // Rend la propriété nullable
 
-    #[ORM\Column(name: "dateDebut", type: "datetime", nullable: true)]
+    #[ORM\Column(name: "dateDebut", type: "datetime")]
     #[Assert\NotBlank(message: "La date de début est obligatoire")]
     #[Assert\GreaterThanOrEqual(
         "today",
         message: "La date de début doit être aujourd'hui ou dans le futur"
     )]
-    private ?\DateTimeInterface $dateDebut;
+    private ?\DateTimeInterface $dateDebut = null; // Initialisation à null
 
-    #[ORM\Column(name: "dateFin", type: "datetime", nullable: true)]
+    #[ORM\Column(name: "dateFin", type: "datetime")]
     #[Assert\NotBlank(message: "La date de fin est obligatoire")]
     #[Assert\Expression(
-        "this.getDateFin() > this.getDateDebut()",
+        "this.getDateFin() !== null && this.getDateDebut() !== null && this.getDateFin() > this.getDateDebut()",
         message: "La date de fin doit être après la date de début"
     )]
-    private ?\DateTimeInterface $dateFin;
+    private ?\DateTimeInterface $dateFin = null; // Initialisation à null
 
     #[ORM\Column(name: "imagePath", type: "string", length: 255, nullable: true)]
-    private ?string $imagePath;
+    private ?string $imagePath = null;
 
     #[ORM\OneToMany(mappedBy: "id_offre", targetEntity: Voyage::class)]
     private Collection $voyages;
@@ -76,6 +80,7 @@ class Offre
         $this->voyages = new ArrayCollection();
     }
 
+    // Les getters et setters restent identiques à ce que vous aviez déjà
     public function getId(): int
     {
         return $this->id;
@@ -98,23 +103,23 @@ class Offre
         return $this;
     }
 
-    public function getTitre(): ?string
+    public function getTitre(): string
     {
         return $this->titre;
     }
 
-    public function setTitre(?string $titre): self
+    public function setTitre(string $titre): self
     {
         $this->titre = $titre;
         return $this;
     }
 
-    public function getDescription(): ?string
+    public function getDescription(): string
     {
         return $this->description;
     }
 
-    public function setDescription(?string $description): self
+    public function setDescription(string $description): self
     {
         $this->description = $description;
         return $this;
@@ -131,7 +136,7 @@ class Offre
         return $this;
     }
 
-    public function getDateDebut(): ?\DateTimeInterface
+    public function getDateDebut(): \DateTimeInterface
     {
         return $this->dateDebut;
     }

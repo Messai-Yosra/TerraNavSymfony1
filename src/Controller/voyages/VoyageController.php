@@ -89,8 +89,6 @@ class VoyageController extends AbstractController
                 }
             }
         }
-        dump($voyage);
-        dump($form->getErrors(true));
 
         $offres = $offreRepository->findAll();
         return $this->render('voyages/AjouterVoyage.html.twig', [

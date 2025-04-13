@@ -51,20 +51,31 @@
                                     <div class="row g-3">
                                         <!-- Titre -->
                                         <div class="col-12">
-                                            <div class="form-floating">
-                                                <input type="text" class="form-control" id="titre" name="titre"
-                                                       placeholder="Titre de l'offre" value="{{ offre.titre }}" required>
+                                            <div class="form-floating {% if errors.titre is defined %}has-error{% endif %}">
+                                                <input type="text" class="form-control {% if errors.titre is defined %}is-invalid{% endif %}"
+                                                       id="titre" name="titre" placeholder="Titre de l'offre"
+                                                       value="{{ offre.titre }}" >
                                                 <label for="titre"><i class="fas fa-heading me-2 text-primary"></i>Titre de l'offre</label>
+                                                {% if errors.titre is defined %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ errors.titre }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </div>
 
                                         <!-- Réduction -->
                                         <div class="col-md-6">
-                                            <div class="form-floating">
-                                                <input type="number" class="form-control" id="reduction" name="reduction"
-                                                       min="1" max="100" step="1" placeholder="Réduction"
-                                                       value="{{ offre.reduction }}" required>
+                                            <div class="form-floating {% if errors.reduction is defined %}has-error{% endif %}">
+                                                <input type="number" class="form-control {% if errors.reduction is defined %}is-invalid{% endif %}"
+                                                       id="reduction" name="reduction"   step="0.5"
+                                                       placeholder="Réduction" value="{{ offre.reduction }}" >
                                                 <label for="reduction"><i class="fas fa-percent me-2 text-primary"></i>Réduction (%)</label>
+                                                {% if errors.reduction is defined %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ errors.reduction }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </div>
                                     </div>
@@ -80,19 +91,31 @@
                                     <div class="row g-3">
                                         <!-- Date de début -->
                                         <div class="col-md-6">
-                                            <div class="form-floating">
-                                                <input type="datetime-local" class="form-control" id="dateDebut"
-                                                       name="dateDebut" value="{{ offre.dateDebut|date('Y-m-d\\TH:i') }}" required>
+                                            <div class="form-floating {% if errors.dateDebut is defined %}has-error{% endif %}">
+                                                <input type="datetime-local" class="form-control {% if errors.dateDebut is defined %}is-invalid{% endif %}"
+                                                       id="dateDebut" name="dateDebut"
+                                                       value="{{ offre.dateDebut|date('Y-m-d\\TH:i') }}" >
                                                 <label for="dateDebut"><i class="fas fa-hourglass-start me-2 text-primary"></i>Date de début</label>
+                                                {% if errors.dateDebut is defined %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ errors.dateDebut }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </div>
 
                                         <!-- Date de fin -->
                                         <div class="col-md-6">
-                                            <div class="form-floating">
-                                                <input type="datetime-local" class="form-control" id="dateFin"
-                                                       name="dateFin" value="{{ offre.dateFin|date('Y-m-d\\TH:i') }}" required>
+                                            <div class="form-floating {% if errors.dateFin is defined %}has-error{% endif %}">
+                                                <input type="datetime-local" class="form-control {% if errors.dateFin is defined %}is-invalid{% endif %}"
+                                                       id="dateFin" name="dateFin"
+                                                       value="{{ offre.dateFin|date('Y-m-d\\TH:i') }}" >
                                                 <label for="dateFin"><i class="fas fa-hourglass-end me-2 text-primary"></i>Date de fin</label>
+                                                {% if errors.dateFin is defined %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ errors.dateFin }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </div>
                                     </div>
@@ -117,10 +140,16 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="form-floating mt-3">
-                                        <textarea class="form-control" placeholder="Description détaillée"
-                                                  id="description" name="description" style="height: 100px">{{ offre.description }}</textarea>
+                                    <div class="form-group mt-3 {% if errors.description is defined %}has-error{% endif %}">
                                         <label for="description"><i class="fas fa-info-circle me-2 text-primary"></i>Description détaillée</label>
+                                        <textarea class="form-control {% if errors.description is defined %}is-invalid{% endif %}"
+                                                  placeholder="Description détaillée" id="description"
+                                                  name="description" style="height: 100px" >{{ offre.description }}</textarea>
+                                        {% if errors.description is defined %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ errors.description }}
+                                            </div>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -221,31 +250,38 @@
             border-radius: 4px;
             padding: 5px;
         }
+
+        /* Style des messages d'erreur */
+        .invalid-feedback {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: block;
+        }
+
+        /* Style des champs invalides */
+        .is-invalid {
+            border-color: #dc3545 !important;
+        }
+
+        .is-invalid:focus {
+            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
+        }
+
+        /* Positionnement des messages d'erreur */
+        .form-floating {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        /* Espacement supplémentaire pour les champs avec erreur */
+        .has-error {
+            margin-bottom: 1.5rem;
+        }
     </style>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Gestion de la soumission du formulaire
-            document.getElementById('offreForm').addEventListener('submit', function (e) {
-                // Validation des dates
-                const dateDebut = new Date(document.getElementById('dateDebut').value);
-                const dateFin = new Date(document.getElementById('dateFin').value);
-
-                if (dateFin <= dateDebut) {
-                    alert('La date de fin doit être postérieure à la date de début');
-                    e.preventDefault();
-                    return;
-                }
-
-                // Validation de la réduction
-                const reduction = parseInt(document.getElementById('reduction').value);
-                if (reduction <= 0 || reduction > 100) {
-                    alert('La réduction doit être comprise entre 1% et 100%');
-                    e.preventDefault();
-                    return;
-                }
-            });
-
             // Gestion du bouton Annuler
             document.getElementById('cancelBtn').addEventListener('click', function (e) {
                 e.preventDefault();

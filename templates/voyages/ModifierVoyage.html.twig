@@ -26,6 +26,7 @@
                 <h6 class="section-title text-center text-primary text-uppercase">Formulaire de modification</h6>
                 <h1 class="mb-5">Modifier <span class="text-primary text-uppercase">{{ voyage.titre }}</span></h1>
             </div>
+
             <form id="voyageForm" action="{{ path('app_modifier_voyage_bd', {'id': voyage.id}) }}" method="POST" enctype="multipart/form-data">
                 <div class="row g-5">
                     <div class="col-lg-6">
@@ -72,33 +73,46 @@
                                     <div class="row g-3">
                                         <!-- Destination -->
                                         <div class="col-md-6">
-                                            <div class="form-floating">
-                                                <input type="text" class="form-control" id="destination"
-                                                       name="destination" placeholder="Destination"
+                                            <div class="form-floating {% if errors.destination is defined %}has-error{% endif %}">
+                                                <input type="text" class="form-control {% if errors.destination is defined %}is-invalid{% endif %}"
+                                                       id="destination" name="destination" placeholder="Destination"
                                                        value="{{ voyage.destination }}" required>
-                                                <label for="destination"><i
-                                                            class="fas fa-map-marked-alt me-2 text-primary"></i>Destination</label>
+                                                <label for="destination"><i class="fas fa-map-marked-alt me-2 text-primary"></i>Destination</label>
+                                                {% if errors.destination is defined %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ errors.destination }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </div>
 
                                         <!-- Point de départ -->
                                         <div class="col-md-6">
-                                            <div class="form-floating">
-                                                <input type="text" class="form-control" id="pointDepart"
-                                                       name="pointDepart" placeholder="Point de départ"
+                                            <div class="form-floating {% if errors.pointDepart is defined %}has-error{% endif %}">
+                                                <input type="text" class="form-control {% if errors.pointDepart is defined %}is-invalid{% endif %}"
+                                                       id="pointDepart" name="pointDepart" placeholder="Point de départ"
                                                        value="{{ voyage.pointDepart }}" required>
-                                                <label for="pointDepart"><i
-                                                            class="fas fa-map-marker-alt me-2 text-primary"></i>Point de départ</label>
+                                                <label for="pointDepart"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Point de départ</label>
+                                                {% if errors.pointDepart is defined %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ errors.pointDepart }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </div>
 
                                         <!-- Titre du voyage -->
                                         <div class="col-12">
-                                            <div class="form-floating">
-                                                <input type="text" class="form-control" id="titre" name="titre"
-                                                       placeholder="Titre du voyage"
+                                            <div class="form-floating {% if errors.titre is defined %}has-error{% endif %}">
+                                                <input type="text" class="form-control {% if errors.titre is defined %}is-invalid{% endif %}"
+                                                       id="titre" name="titre" placeholder="Titre du voyage"
                                                        value="{{ voyage.titre }}" required>
                                                 <label for="titre"><i class="fas fa-heading me-2 text-primary"></i>Titre du voyage</label>
+                                                {% if errors.titre is defined %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ errors.titre }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </div>
                                     </div>
@@ -114,23 +128,31 @@
                                     <div class="row g-3">
                                         <!-- Date de départ -->
                                         <div class="col-md-6">
-                                            <div class="form-floating date" id="date3" data-target-input="nearest">
-                                                <input type="datetime-local" class="form-control" id="dateDepart"
-                                                       name="dateDepart"
+                                            <div class="form-floating {% if errors.dateDepart is defined %}has-error{% endif %}">
+                                                <input type="datetime-local" class="form-control {% if errors.dateDepart is defined %}is-invalid{% endif %}"
+                                                       id="dateDepart" name="dateDepart"
                                                        value="{{ voyage.dateDepart|date('Y-m-d\\TH:i') }}" required>
-                                                <label for="dateDepart"><i
-                                                            class="fas fa-plane-departure me-2 text-primary"></i>Date de départ</label>
+                                                <label for="dateDepart"><i class="fas fa-plane-departure me-2 text-primary"></i>Date de départ</label>
+                                                {% if errors.dateDepart is defined %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ errors.dateDepart }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </div>
 
                                         <!-- Date de retour -->
                                         <div class="col-md-6">
-                                            <div class="form-floating date" id="date4" data-target-input="nearest">
-                                                <input type="datetime-local" class="form-control" id="dateRetour"
-                                                       name="dateRetour"
+                                            <div class="form-floating {% if errors.dateRetour is defined %}has-error{% endif %}">
+                                                <input type="datetime-local" class="form-control {% if errors.dateRetour is defined %}is-invalid{% endif %}"
+                                                       id="dateRetour" name="dateRetour"
                                                        value="{{ voyage.dateRetour|date('Y-m-d\\TH:i') }}" required>
-                                                <label for="dateRetour"><i
-                                                            class="fas fa-plane-arrival me-2 text-primary"></i>Date de retour</label>
+                                                <label for="dateRetour"><i class="fas fa-plane-arrival me-2 text-primary"></i>Date de retour</label>
+                                                {% if errors.dateRetour is defined %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ errors.dateRetour }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </div>
                                     </div>
@@ -146,36 +168,49 @@
                                     <div class="row g-3">
                                         <!-- Type de voyage -->
                                         <div class="col-md-6">
-                                            <div class="form-floating">
-                                                <select class="form-select" id="type" name="type" required>
+                                            <div class="form-floating {% if errors.type is defined %}has-error{% endif %}">
+                                                <select class="form-select {% if errors.type is defined %}is-invalid{% endif %}" id="type" name="type" required>
                                                     <option value="">Sélectionner un type</option>
                                                     <option value="Avion" {% if voyage.type == 'Avion' %}selected{% endif %}>Avion</option>
                                                     <option value="Train" {% if voyage.type == 'Train' %}selected{% endif %}>Train</option>
                                                     <option value="Bateau" {% if voyage.type == 'Bateau' %}selected{% endif %}>Bateau</option>
                                                 </select>
                                                 <label for="type"><i class="fas fa-tags me-2 text-primary"></i>Type de voyage</label>
+                                                {% if errors.type is defined %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ errors.type }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </div>
 
                                         <!-- Nombre de places -->
                                         <div class="col-md-6">
-                                            <div class="form-floating">
-                                                <input type="number" class="form-control" id="nbPlacesD"
-                                                       name="nbPlacesD" min="1" placeholder="Nombre de places"
+                                            <div class="form-floating {% if errors.nbPlacesD is defined %}has-error{% endif %}">
+                                                <input type="number" class="form-control {% if errors.nbPlacesD is defined %}is-invalid{% endif %}"
+                                                       id="nbPlacesD" name="nbPlacesD"  placeholder="Nombre de places"
                                                        value="{{ voyage.nbPlacesD }}" required>
-                                                <label for="nbPlacesD"><i
-                                                            class="fas fa-users me-2 text-primary"></i>Nombre de places</label>
+                                                <label for="nbPlacesD"><i class="fas fa-users me-2 text-primary"></i>Nombre de places</label>
+                                                {% if errors.nbPlacesD is defined %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ errors.nbPlacesD }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </div>
 
                                         <!-- Prix -->
                                         <div class="col-md-6">
-                                            <div class="form-floating">
-                                                <input type="number" step="0.5" class="form-control" id="prix"
-                                                       name="prix" min="0" placeholder="Prix"
+                                            <div class="form-floating {% if errors.prix is defined %}has-error{% endif %}">
+                                                <input type="number" step="0.01" class="form-control {% if errors.prix is defined %}is-invalid{% endif %}"
+                                                       id="prix" name="prix"  placeholder="Prix"
                                                        value="{{ voyage.prix }}" required>
-                                                <label for="prix"><i
-                                                            class="fas fa-money-bill-wave me-2 text-primary"></i>Prix (DT)</label>
+                                                <label for="prix"><i class="fas fa-money-bill-wave me-2 text-primary"></i>Prix (DT)</label>
+                                                {% if errors.prix is defined %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ errors.prix }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </div>
 
@@ -191,8 +226,7 @@
                                                         </option>
                                                     {% endfor %}
                                                 </select>
-                                                <label for="id_offre"><i
-                                                            class="fas fa-percent me-2 text-primary"></i>Offre associée</label>
+                                                <label for="id_offre"><i class="fas fa-percent me-2 text-primary"></i>Offre associée</label>
                                             </div>
                                         </div>
                                     </div>
@@ -223,9 +257,10 @@
 
                                         <!-- Description -->
                                         <div class="col-12">
-                                            <div class="form-floating">
+                                            <div class="form-group {% if errors.description is defined %}has-error{% endif %}">
+                                                <label for="description"><i class="fas fa-align-left me-2 text-primary"></i>Description détaillée</label>
                                                 <div class="input-group">
-                                                    <textarea class="form-control"
+                                                    <textarea class="form-control {% if errors.description is defined %}is-invalid{% endif %}"
                                                               placeholder="Description détaillée" id="description"
                                                               name="description" style="height: 100px"
                                                               required>{{ voyage.description }}</textarea>
@@ -233,9 +268,12 @@
                                                             id="generateDescBtn" style="height: 58px;">
                                                         <i class="fas fa-magic me-1"></i> Générer
                                                     </button>
-                                                    <label for="description"><i
-                                                                class="fas fa-align-left me-2 text-primary"></i>Description détaillée</label>
                                                 </div>
+                                                {% if errors.description is defined %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ errors.description }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </div>
                                     </div>
@@ -265,6 +303,59 @@
     <!-- Voyage Form End -->
 
     <style>
+        /* Style spécifique pour le champ description */
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group .input-group {
+            width: 100%;
+        }
+
+        /* Style du bouton générer */
+        #generateDescBtn {
+            height: 58px;
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+            margin-left: -1px; /* Pour coller au textarea */
+        }
+
+        /* Style des messages d'erreur */
+        .invalid-feedback {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: block;
+        }
+
+        /* Style des champs invalides */
+        .is-invalid {
+            border-color: #dc3545 !important;
+        }
+
+        .is-invalid:focus {
+            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
+        }
+
+        /* Positionnement des messages d'erreur */
+        .form-floating {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        /* Espacement supplémentaire pour les champs avec erreur */
+        .has-error {
+            margin-bottom: 1.5rem;
+        }
+
+        /* Correction du hover pour tous les champs */
+        .form-control:hover,
+        .form-select:hover {
+            border-color: #0d6efd;
+            background-color: #f8f9fa;
+        }
+
         /* Effets de hover */
         .hover-effect {
             transition: all 0.3s ease;
@@ -305,18 +396,6 @@
             background-color: #f8f9fa;
         }
 
-        /* Style pour le bouton générer */
-        #generateDescBtn {
-            transition: all 0.3s ease;
-            border-top-left-radius: 0;
-            border-bottom-left-radius: 0;
-        }
-
-        #generateDescBtn:hover {
-            background-color: #0d6efd;
-            color: white;
-        }
-
         /* Style pour les labels avec icônes */
         .form-floating label i {
             width: 20px;
@@ -325,7 +404,20 @@
 
         /* Animation pour les champs */
         .form-control {
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:hover {
+            border-color: #666;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-control.is-invalid:hover {
+            border-color: #c82333;
+            box-shadow: 0 0 5px rgba(220, 53, 69, 0.25);
         }
 
         .form-control:focus {
@@ -340,47 +432,22 @@
         .col-lg-6:last-child {
             padding-right: 2rem;
         }
+
+        /* Style spécifique pour le groupe description */
+        .input-group {
+            margin-top: 0.5rem;
+        }
+
+        /* Ajustement du bouton générer */
+        #generateDescBtn {
+            height: 58px !important;
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
     </style>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Gestion de la soumission du formulaire
-            document.getElementById('voyageForm').addEventListener('submit', function (e) {
-                // Validation des dates
-                const dateDepart = new Date(document.getElementById('dateDepart').value);
-                const dateRetour = new Date(document.getElementById('dateRetour').value);
-
-                if (dateRetour <= dateDepart) {
-                    alert('La date de retour doit être postérieure à la date de départ');
-                    e.preventDefault();
-                    return;
-                }
-
-                // Validation du nombre de places
-                const nbPlaces = parseInt(document.getElementById('nbPlacesD').value);
-                if (nbPlaces <= 0) {
-                    alert('Le nombre de places doit être supérieur à 0');
-                    e.preventDefault();
-                    return;
-                }
-
-                // Validation du prix
-                const prix = parseFloat(document.getElementById('prix').value);
-                if (prix <= 0) {
-                    alert('Le prix doit être supérieur à 0');
-                    e.preventDefault();
-                    return;
-                }
-            });
-
-            // Gestion du bouton Annuler
-            document.getElementById('cancelBtn').addEventListener('click', function (e) {
-                e.preventDefault();
-                if (confirm('Êtes-vous sûr de vouloir annuler les modifications ?')) {
-                    window.location.href = '{{ path('app_voyages_agence') }}';
-                }
-            });
-
             // Gestion de l'affichage des nouvelles images sélectionnées
             document.getElementById('images').addEventListener('change', function(e) {
                 const preview = document.getElementById('imagePreview');

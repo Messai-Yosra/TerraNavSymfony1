@@ -1,5 +1,573 @@
 {% extends "baseAdmin.html.twig" %}
 
-{% block titre %} Voyages {% endblock %}
+{% block titre %} Gestion des Voyages et Offres {% endblock %}
 
-{% block content %} voyages d'utilisateur 1 {% endblock %}
+{% block content %}
+    <link rel="stylesheet" href="{{ asset('css/voyages/RayenAdmin.css') }}"/>
+
+    <div class="voyages-container">
+        <div class="header">
+            <h1><i class="fas fa-suitcase-rolling"></i> Gestion des Voyages et Offres</h1>
+        </div>
+
+        <div class="voyages-content">
+            <!-- Navigation Tabs -->
+            <div class="tabs-nav">
+                <button class="tab-btn active" data-tab="voyages">Voyages</button>
+                <button class="tab-btn" data-tab="offres">Offres</button>
+            </div>
+
+            <!-- Voyages Tab -->
+            <div id="voyages" class="tab-pane active">
+                <div class="table-header">
+                    <div class="search-filter">
+                        <div class="search-box">
+                            <input type="text" id="voyageSearch" placeholder="Rechercher des voyages...">
+                            <button class="search-btn"><i class="fas fa-search"></i></button>
+                        </div>
+                        <div class="filters">
+                            <select id="voyageTypeFilter">
+                                <option value="all">Tous les types</option>
+                                <option value="Avion">Avion</option>
+                                <option value="Train">Train</option>
+                                <option value="Bateau">Bateau</option>
+                            </select>
+                            <select id="voyageStatusFilter">
+                                <option value="all">Tous les statuts</option>
+                                <option value="active">Actifs</option>
+                                <option value="past">Passés</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="add-btn">
+                        <i class="fas fa-plus"></i> Ajouter un voyage
+                    </button>
+                </div>
+
+                <div class="voyages-list">
+                    {% for voyage in voyages %}
+                        <div class="voyage-card"
+                             data-type="{{ voyage.type }}"
+                             data-status="{{ voyage.dateDepart > date() ? 'active' : 'past' }}"
+                             data-voyage-id="{{ voyage.id }}">
+                            <div class="voyage-image">
+                                {% if voyage.pathImages %}
+                                    {% set transformedPath = voyage.transformImagePaths(voyage.pathImages) %}
+                                    {% set firstImage = transformedPath|split('***')[0] %}
+                                    <img src="{{ asset(firstImage) }}" alt="{{ voyage.titre }}">
+                                {% else %}
+                                    <div class="no-image">
+                                        <i class="fas fa-image"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="voyage-details">
+                                <div class="voyage-main-info">
+                                    <h3>{{ voyage.titre }}</h3>
+                                    <div class="voyage-meta">
+                                    <span class="destination">
+                                        <i class="fas fa-map-marker-alt"></i> {{ voyage.destination }}
+                                    </span>
+                                        <span class="dates">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        {{ voyage.dateDepart|date('d/m/Y') }} - {{ voyage.dateRetour|date('d/m/Y') }}
+                                    </span>
+                                    </div>
+                                </div>
+                                <div class="voyage-secondary-info">
+                                    <div class="voyage-price">
+                                        <span class="price">{{ voyage.prix }} TND</span>
+                                        {% if voyage.id_offre %}
+                                            <span class="discount-badge">
+                                            -{{ voyage.id_offre.reduction }}%
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="voyage-places">
+                                        <i class="fas fa-users"></i> {{ voyage.nbPlacesD }} places
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="voyage-actions">
+                                <button class="action-btn view-btn" onclick="openVoyageModal({{ voyage.id }})">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="action-btn edit-btn">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete-btn">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="no-voyages">
+                            <i class="fas fa-info-circle"></i>
+                            <p>Aucun voyage trouvé</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Offres Tab -->
+            <div id="offres" class="tab-pane">
+                <div class="table-header">
+                    <div class="search-filter">
+                        <div class="search-box">
+                            <input type="text" id="offreSearch" placeholder="Rechercher des offres...">
+                            <button class="search-btn"><i class="fas fa-search"></i></button>
+                        </div>
+                        <div class="filters">
+                            <select id="offreStatusFilter">
+                                <option value="all">Toutes les offres</option>
+                                <option value="active">Actives</option>
+                                <option value="upcoming">À venir</option>
+                                <option value="expired">Expirées</option>
+                            </select>
+                            <select id="offreSort">
+                                <option value="recent">Plus récentes</option>
+                                <option value="discount-high">Réduction (haute)</option>
+                                <option value="discount-low">Réduction (basse)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="add-btn">
+                        <i class="fas fa-plus"></i> Ajouter une offre
+                    </button>
+                </div>
+
+                <div class="offres-list">
+                    {% for offre in offres %}
+                        <div class="offre-card"
+                             data-status="{{ offre.dateFin > date() ? (offre.dateDebut <= date() ? 'active' : 'upcoming') : 'expired' }}"
+                             data-discount="{{ offre.reduction }}"
+                             data-date="{{ offre.dateDebut|date('Y-m-d') }}"
+                             data-offre-id="{{ offre.id }}">
+                            <div class="offre-image">
+                                {% if offre.imagePath %}
+                                    <img src="{{ asset(offre.imagePath) }}" alt="{{ offre.titre }}">
+                                {% else %}
+                                    <div class="no-image">
+                                        <i class="fas fa-percentage"></i>
+                                    </div>
+                                {% endif %}
+                                <div class="offre-badge">
+                                    -{{ offre.reduction }}%
+                                </div>
+                            </div>
+                            <div class="offre-details">
+                                <h3>{{ offre.titre }}</h3>
+                                <p class="offre-description">
+                                    {{ offre.description|slice(0, 100) }}{% if offre.description|length > 100 %}...{% endif %}
+                                </p>
+                                <div class="offre-meta">
+                                <span class="dates">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    {{ offre.dateDebut|date('d/m/Y') }} - {{ offre.dateFin|date('d/m/Y') }}
+                                </span>
+                                    <span class="voyages-count">
+                                    <i class="fas fa-suitcase-rolling"></i>
+                                    {{ offre.voyages|length }} voyage(s)
+                                </span>
+                                </div>
+                            </div>
+                            <div class="offre-actions">
+                                <button class="action-btn view-btn" onclick="openOffreModal({{ offre.id }})">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="action-btn edit-btn">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete-btn">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="no-offres">
+                            <i class="fas fa-info-circle"></i>
+                            <p>Aucune offre trouvée</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Voyage Details Modal -->
+    <div id="voyageModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2>Détails du voyage</h2>
+
+            <div class="modal-body">
+                <!-- Le contenu sera rempli par JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Offre Details Modal -->
+    <div id="offreModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2>Détails de l'offre</h2>
+
+            <div class="modal-body">
+                <!-- Le contenu sera rempli par JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ asset('js/voyages/voyageAdmin.js') }}"></script>
+    <script>
+        // Store voyages and offres data for JavaScript access
+        const voyagesData = [
+            {% for voyage in voyages %}
+            {
+                id: {{ voyage.id }},
+                titre: "{{ voyage.titre }}",
+                destination: "{{ voyage.destination }}",
+                pointDepart: "{{ voyage.pointDepart }}",
+                dateDepart: "{{ voyage.dateDepart|date('Y-m-d') }}",
+                dateRetour: "{{ voyage.dateRetour|date('Y-m-d') }}",
+                nbPlacesD: {{ voyage.nbPlacesD }},
+                type: "{{ voyage.type }}",
+                prix: {{ voyage.prix }},
+                description: "{{ voyage.description|escape('js') }}",
+                pathImages: "{{ voyage.pathImages ? voyage.transformImagePaths(voyage.pathImages)|split('***')[0] : '' }}",
+                offre: {% if voyage.id_offre %}{
+                    id: {{ voyage.id_offre.id }},
+                    titre: "{{ voyage.id_offre.titre }}",
+                    reduction: {{ voyage.id_offre.reduction }}
+                }{% else %}null{% endif %},
+                status: "{{ voyage.dateDepart > date() ? 'active' : 'past' }}"
+            },
+            {% endfor %}
+        ];
+
+        const offresData = [
+            {% for offre in offres %}
+            {
+                id: {{ offre.id }},
+                titre: "{{ offre.titre }}",
+                description: "{{ offre.description|escape('js') }}",
+                reduction: {{ offre.reduction }},
+                dateDebut: "{{ offre.dateDebut|date('Y-m-d') }}",
+                dateFin: "{{ offre.dateFin|date('Y-m-d') }}",
+                imagePath: "{{ offre.imagePath ? asset(offre.imagePath) : '' }}",
+                voyages: [
+                    {% for voyage in offre.voyages %}
+                    {
+                        id: {{ voyage.id }},
+                        titre: "{{ voyage.titre }}",
+                        destination: "{{ voyage.destination }}",
+                        dateDepart: "{{ voyage.dateDepart|date('Y-m-d') }}"
+                    },
+                    {% endfor %}
+                ],
+                status: "{{ offre.dateFin > date() ? (offre.dateDebut <= date() ? 'active' : 'upcoming') : 'expired' }}"
+            },
+            {% endfor %}
+        ];
+
+        // Tab functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabPanes = document.querySelectorAll('.tab-pane');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+
+                    // Update active tab button
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Show corresponding tab pane
+                    tabPanes.forEach(pane => pane.classList.remove('active'));
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+
+            // Voyage search functionality
+            const voyageSearch = document.getElementById('voyageSearch');
+            voyageSearch.addEventListener('input', filterVoyages);
+
+            // Voyage filters
+            document.getElementById('voyageTypeFilter').addEventListener('change', filterVoyages);
+            document.getElementById('voyageStatusFilter').addEventListener('change', filterVoyages);
+
+            // Offre search functionality
+            const offreSearch = document.getElementById('offreSearch');
+            offreSearch.addEventListener('input', filterOffres);
+
+            // Offre filters
+            document.getElementById('offreStatusFilter').addEventListener('change', filterOffres);
+            document.getElementById('offreSort').addEventListener('change', filterOffres);
+        });
+
+        function filterVoyages() {
+            const searchTerm = document.getElementById('voyageSearch').value.toLowerCase();
+            const typeFilter = document.getElementById('voyageTypeFilter').value;
+            const statusFilter = document.getElementById('voyageStatusFilter').value;
+
+            const voyageCards = document.querySelectorAll('.voyage-card');
+
+            voyageCards.forEach(card => {
+                const voyageId = parseInt(card.getAttribute('data-voyage-id'));
+                const voyage = voyagesData.find(v => v.id === voyageId);
+
+                if (!voyage) return;
+
+                const matchesSearch = voyage.titre.toLowerCase().includes(searchTerm) ||
+                    voyage.destination.toLowerCase().includes(searchTerm);
+                const matchesType = typeFilter === 'all' || voyage.type === typeFilter;
+                const matchesStatus = statusFilter === 'all' || voyage.status === statusFilter;
+
+                if (matchesSearch && matchesType && matchesStatus) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Show no results message if all are hidden
+            const visibleCards = Array.from(voyageCards).filter(card => card.style.display !== 'none');
+            const noVoyagesMsg = document.querySelector('.no-voyages');
+
+            if (visibleCards.length === 0) {
+                noVoyagesMsg.style.display = 'flex';
+            } else {
+                noVoyagesMsg.style.display = 'none';
+            }
+        }
+
+        function filterOffres() {
+            const searchTerm = document.getElementById('offreSearch').value.toLowerCase();
+            const statusFilter = document.getElementById('offreStatusFilter').value;
+            const sortValue = document.getElementById('offreSort').value;
+
+            const offreCards = document.querySelectorAll('.offre-card');
+            const filteredCards = [];
+
+            offreCards.forEach(card => {
+                const offreId = parseInt(card.getAttribute('data-offre-id'));
+                const offre = offresData.find(o => o.id === offreId);
+
+                if (!offre) return;
+
+                const matchesSearch = offre.titre.toLowerCase().includes(searchTerm) ||
+                    offre.description.toLowerCase().includes(searchTerm);
+                const matchesStatus = statusFilter === 'all' || offre.status === statusFilter;
+
+                if (matchesSearch && matchesStatus) {
+                    card.style.display = 'flex';
+                    filteredCards.push({
+                        element: card,
+                        discount: parseFloat(card.getAttribute('data-discount')),
+                        date: card.getAttribute('data-date')
+                    });
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Sort the filtered cards
+            filteredCards.sort((a, b) => {
+                if (sortValue === 'recent') {
+                    return new Date(b.date) - new Date(a.date);
+                } else if (sortValue === 'discount-high') {
+                    return b.discount - a.discount;
+                } else if (sortValue === 'discount-low') {
+                    return a.discount - b.discount;
+                }
+                return 0;
+            });
+
+            // Reorder in DOM
+            const container = document.querySelector('.offres-list');
+            filteredCards.forEach(card => {
+                container.appendChild(card.element);
+            });
+
+            // Show no results message if all are hidden
+            const visibleCards = Array.from(offreCards).filter(card => card.style.display !== 'none');
+            const noOffresMsg = document.querySelector('.no-offres');
+
+            if (visibleCards.length === 0) {
+                noOffresMsg.style.display = 'flex';
+            } else {
+                noOffresMsg.style.display = 'none';
+            }
+        }
+
+        function openVoyageModal(voyageId) {
+            const voyage = voyagesData.find(v => v.id === voyageId);
+            if (!voyage) return;
+
+            const imageHtml = voyage.pathImages ?
+                `<img src="${voyage.pathImages}" alt="Voyage image">` :
+                `<div class="no-image-large"><i class="fas fa-image"></i></div>`;
+
+            const modalContent = `
+                <div class="modal-row">
+                    <div class="modal-col image-col">
+                        ${imageHtml}
+                    </div>
+                    <div class="modal-col details-col">
+                        <div class="detail-group">
+                            <h3>${voyage.titre}</h3>
+                            <div class="detail-row">
+                                <span class="detail-label">Destination:</span>
+                                <span class="detail-value">${voyage.destination}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Départ:</span>
+                                <span class="detail-value">${formatDate(voyage.dateDepart)}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Retour:</span>
+                                <span class="detail-value">${formatDate(voyage.dateRetour)}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Type:</span>
+                                <span class="detail-value">${voyage.type}</span>
+                            </div>
+                        </div>
+
+                        <div class="detail-group">
+                            <div class="detail-row">
+                                <span class="detail-label">Prix:</span>
+                                <span class="detail-value">${voyage.prix} TND</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Places disponibles:</span>
+                                <span class="detail-value">${voyage.nbPlacesD}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Offre associée:</span>
+                                <span class="detail-value">
+                                    ${voyage.offre ?
+                `${voyage.offre.titre} (-${voyage.offre.reduction}%)` :
+                'Aucune offre'
+            }
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-group full-width">
+                    <h4>Description</h4>
+                    <p>${voyage.description}</p>
+                </div>
+            `;
+
+            document.querySelector('#voyageModal .modal-body').innerHTML = modalContent;
+            document.getElementById('voyageModal').style.display = 'block';
+        }
+
+        function openOffreModal(offreId) {
+            const offre = offresData.find(o => o.id === offreId);
+            if (!offre) return;
+
+            let statusText = '';
+            if (offre.status === 'active') {
+                statusText = 'Active';
+            } else if (offre.status === 'upcoming') {
+                statusText = 'À venir';
+            } else {
+                statusText = 'Expirée';
+            }
+
+            let voyagesList = '';
+            if (offre.voyages.length > 0) {
+                offre.voyages.forEach(voyage => {
+                    voyagesList += `
+                        <div class="voyage-item">
+                            <span class="voyage-title">${voyage.titre}</span>
+                            <span class="voyage-destination">${voyage.destination}</span>
+                            <span class="voyage-date">${formatDate(voyage.dateDepart)}</span>
+                        </div>
+                    `;
+                });
+            } else {
+                voyagesList = '<p>Aucun voyage associé à cette offre</p>';
+            }
+
+            const modalContent = `
+                <div class="modal-row">
+                    <div class="modal-col image-col">
+                        ${offre.imagePath ?
+                `<img src="${offre.imagePath}" alt="Offre image">` :
+                `<div class="no-image-large"><i class="fas fa-percentage"></i></div>`
+            }
+                        <div class="discount-badge-large">
+                            -${offre.reduction}%
+                        </div>
+                    </div>
+                    <div class="modal-col details-col">
+                        <div class="detail-group">
+                            <h3>${offre.titre}</h3>
+                            <div class="detail-row">
+                                <span class="detail-label">Réduction:</span>
+                                <span class="detail-value">${offre.reduction}%</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Date début:</span>
+                                <span class="detail-value">${formatDate(offre.dateDebut)}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Date fin:</span>
+                                <span class="detail-value">${formatDate(offre.dateFin)}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Statut:</span>
+                                <span class="detail-value">${statusText}</span>
+                            </div>
+                        </div>
+
+                        <div class="detail-group">
+                            <div class="detail-row">
+                                <span class="detail-label">Voyages associés:</span>
+                                <span class="detail-value">${offre.voyages.length}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-group full-width">
+                    <h4>Description</h4>
+                    <p>${offre.description}</p>
+                </div>
+
+                <div class="detail-group full-width">
+                    <h4>Voyages associés</h4>
+                    <div class="associated-voyages">
+                        ${voyagesList}
+                    </div>
+                </div>
+            `;
+
+            document.querySelector('#offreModal .modal-body').innerHTML = modalContent;
+            document.getElementById('offreModal').style.display = 'block';
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('fr-FR');
+        }
+
+        function closeModal() {
+            document.getElementById('voyageModal').style.display = 'none';
+            document.getElementById('offreModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            if (event.target.className === 'modal') {
+                closeModal();
+            }
+        }
+    </script>
+{% endblock %}

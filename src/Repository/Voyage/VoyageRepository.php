@@ -208,4 +208,15 @@ class VoyageRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+    // Dans VoyageRepository.php
+
+    public function findAllWithOffres(): array
+    {
+        return $this->createQueryBuilder('v')
+            ->leftJoin('v.id_offre', 'o')
+            ->addSelect('o')
+            ->orderBy('v.dateDepart', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }
