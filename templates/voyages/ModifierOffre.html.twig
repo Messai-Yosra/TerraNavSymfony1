@@ -136,7 +136,7 @@
                                                    name="image" accept="image/*">
                                             <small class="form-text text-muted">Sélectionnez une nouvelle image pour remplacer l'actuelle</small>
                                             <div id="imagePreview" class="mt-2">
-                                                <input type="hidden" name="existing_image" value="{{ offre.imagePath }}">
+                                                <input type="hidden" name="existing_image" value="{{ asset(offre.transformSingleImagePath(offre.imagePath)) }}">
                                             </div>
                                         </div>
                                     </div>
@@ -310,7 +310,7 @@
                 const hiddenInput = document.createElement('input');
                 hiddenInput.type = 'hidden';
                 hiddenInput.name = 'existing_image';
-                hiddenInput.value = '{{ offre.imagePath }}';
+                hiddenInput.value = '{{ asset(offre.transformSingleImagePath(offre.imagePath)) }}';
                 preview.appendChild(hiddenInput);
 
                 if (this.files && this.files[0]) {

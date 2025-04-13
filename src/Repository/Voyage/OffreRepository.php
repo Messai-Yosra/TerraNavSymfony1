@@ -21,18 +21,45 @@ class OffreRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-    public function findFilteredOffres(array $filters = [])
+    public function findFilteredOffres(array $criteria): array
     {
         $qb = $this->createQueryBuilder('o')
-            ->where('o.titre IS NOT NULL')
-            ->andWhere('o.dateFin >= :now OR o.dateFin IS NULL')
-            ->setParameter('now', new \DateTime());
+            ->where('o.reduction > 0');
 
-        // Filtres
-        $this->applyFilters($qb, $filters);
+        if (!empty($criteria['search'])) {
+            $qb->andWhere('o.titre LIKE :search')
+                ->setParameter('search', '%'.$criteria['search'].'%');
+        }
+
+        if (!empty($criteria['minReduction'])) {
+            $qb->andWhere('o.reduction >= :minReduction')
+                ->setParameter('minReduction', $criteria['minReduction']);
+        }
+
+        if (!empty($criteria['dateDebut'])) {
+            $qb->andWhere('o.dateDebut >= :dateDebut')
+                ->setParameter('dateDebut', new \DateTime($criteria['dateDebut']));
+        }
+
+        if (!empty($criteria['dateFin'])) {
+            $qb->andWhere('o.dateFin <= :dateFin')
+                ->setParameter('dateFin', new \DateTime($criteria['dateFin']));
+        }
 
         // Tri
-        $this->applySorting($qb, $filters['sort'] ?? null);
+        switch ($criteria['sort'] ?? '') {
+            case 'alpha':
+                $qb->orderBy('o.titre', 'ASC');
+                break;
+            case 'reduction_asc':
+                $qb->orderBy('o.reduction', 'ASC');
+                break;
+            case 'reduction_desc':
+                $qb->orderBy('o.reduction', 'DESC');
+                break;
+            default:
+                $qb->orderBy('o.dateDebut', 'DESC');
+        }
 
         return $qb->getQuery()->getResult();
     }
@@ -160,8 +187,8 @@ class OffreRepository extends ServiceEntityRepository
     public function findTitlesStartingWith(string $query): array
     {
         return $this->createQueryBuilder('o')
-            ->select('o.titre')
-            ->where('o.titre LIKE :query')
+            ->select('o.titre', 'o.reduction')
+            ->where('LOWER(o.titre) LIKE LOWER(:query)')
             ->setParameter('query', $query.'%')
             ->setMaxResults(10)
             ->getQuery()

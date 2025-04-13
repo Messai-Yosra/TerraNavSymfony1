@@ -27,7 +27,7 @@
                 <h1 class="mb-5">Modifier <span class="text-primary text-uppercase">{{ voyage.titre }}</span></h1>
             </div>
 
-            <form id="voyageForm" action="{{ path('app_modifier_voyage_bd', {'id': voyage.id}) }}" method="POST" enctype="multipart/form-data">
+            <form id="voyageForm" action="{{ path('app_modifier_voyage_bd', {'id': voyage.id}) }}" method="POST" enctype="multipart/form-data" novalidate>
                 <div class="row g-5">
                     <div class="col-lg-6">
                         <!-- Affichage des images existantes -->
@@ -131,7 +131,7 @@
                                             <div class="form-floating {% if errors.dateDepart is defined %}has-error{% endif %}">
                                                 <input type="datetime-local" class="form-control {% if errors.dateDepart is defined %}is-invalid{% endif %}"
                                                        id="dateDepart" name="dateDepart"
-                                                       value="{{ voyage.dateDepart|date('Y-m-d\\TH:i') }}" required>
+                                                       value="{{ voyage.dateDepart ? voyage.dateDepart|date('Y-m-d\\TH:i') : '' }}">
                                                 <label for="dateDepart"><i class="fas fa-plane-departure me-2 text-primary"></i>Date de départ</label>
                                                 {% if errors.dateDepart is defined %}
                                                     <div class="invalid-feedback d-block">
@@ -146,7 +146,7 @@
                                             <div class="form-floating {% if errors.dateRetour is defined %}has-error{% endif %}">
                                                 <input type="datetime-local" class="form-control {% if errors.dateRetour is defined %}is-invalid{% endif %}"
                                                        id="dateRetour" name="dateRetour"
-                                                       value="{{ voyage.dateRetour|date('Y-m-d\\TH:i') }}" required>
+                                                       value="{{ voyage.dateRetour ? voyage.dateRetour|date('Y-m-d\\TH:i') : '' }}">
                                                 <label for="dateRetour"><i class="fas fa-plane-arrival me-2 text-primary"></i>Date de retour</label>
                                                 {% if errors.dateRetour is defined %}
                                                     <div class="invalid-feedback d-block">

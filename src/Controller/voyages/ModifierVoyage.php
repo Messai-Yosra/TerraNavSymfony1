@@ -37,24 +37,21 @@ class ModifierVoyage extends AbstractController
         if ($request->isMethod('POST')) {
             try {
                 // Mise à jour des propriétés du voyage
-                $voyage->setTitre($request->request->get('titre'));
-                $voyage->setDestination($request->request->get('destination'));
-                $voyage->setPointDepart($request->request->get('pointDepart'));
-                $voyage->setDateDepart(new \DateTime($request->request->get('dateDepart')));
-                $voyage->setDateRetour(new \DateTime($request->request->get('dateRetour')));
-                $voyage->setType($request->request->get('type'));
-                $voyage->setNbPlacesD((int)$request->request->get('nbPlacesD'));
-                $voyage->setPrix((float)$request->request->get('prix'));
-                $voyage->setDescription($request->request->get('description'));
+                $formData = $request->request->all();
 
-                // Gestion de l'offre
-                $idOffre = $request->request->get('id_offre');
-                if ($idOffre) {
-                    $offre = $offreRepository->find($idOffre);
-                    $voyage->setId_offre($offre);
-                } else {
-                    $voyage->setId_offre(null);
-                }
+                // Gestion des dates
+                $dateDepart = $formData['dateDepart'] ? new \DateTime($formData['dateDepart']) : null;
+                $dateRetour = $formData['dateRetour'] ? new \DateTime($formData['dateRetour']) : null;
+
+                $voyage->setTitre($formData['titre']);
+                $voyage->setDestination($formData['destination']);
+                $voyage->setPointDepart($formData['pointDepart']);
+                $voyage->setDateDepart($dateDepart);
+                $voyage->setDateRetour($dateRetour);
+                $voyage->setType($formData['type']);
+                $voyage->setNbPlacesD((int)$formData['nbPlacesD']);
+                $voyage->setPrix((float)$formData['prix']);
+                $voyage->setDescription($formData['description']);
 
                 // Validation des données
                 $errors = $validator->validate($voyage);
@@ -62,7 +59,8 @@ class ModifierVoyage extends AbstractController
                 if (count($errors) > 0) {
                     $errorMessages = [];
                     foreach ($errors as $error) {
-                        $errorMessages[$error->getPropertyPath()] = $error->getMessage();
+                        $field = preg_replace('/^data\./', '', $error->getPropertyPath());
+                        $errorMessages[$field] = $error->getMessage();
                     }
 
                     $offres = $offreRepository->findOffresByAgence(1);

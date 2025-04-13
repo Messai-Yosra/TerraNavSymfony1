@@ -26,7 +26,7 @@
                 <h6 class="section-title text-center text-primary text-uppercase">Formulaire d'ajout</h6>
                 <h1 class="mb-5">Proposer un <span class="text-primary text-uppercase">Nouveau Voyage</span></h1>
             </div>
-            <form id="voyageForm" action="{{ path('app_ajout_voyage') }}" method="POST" enctype="multipart/form-data">
+            <form id="voyageForm" action="{{ path('app_ajout_voyage') }}" method="POST" enctype="multipart/form-data" novalidate>
                 <div class="row g-5">
                     <div class="col-lg-6">
                         <!-- Première série d'images -->
@@ -444,7 +444,136 @@
             border-top-left-radius: 0;
             border-bottom-left-radius: 0;
         }
+        /* Styles pour le champ titre */
+        .auto-generated {
+            border-left: 3px solid #28a745 !important;
+            background-color: #f8fff8 !important;
+        }
+
+        .user-modified {
+            border-left: 3px solid #ffc107 !important;
+            background-color: #fffdf5 !important;
+        }
+
+        .titre-hint {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+            display: block;
+        }
+
+        /* Style pour le bouton de reset */
+        #resetTitreBtn {
+            transition: all 0.3s ease;
+            height: 58px; /* Pour correspondre à la hauteur du champ */
+        }
+
+        #resetTitreBtn:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Ajustement pour le groupe input */
+        .input-group .form-control {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .input-group .btn {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
     </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Éléments du formulaire
+            const destinationInput = document.getElementById('{{ form.destination.vars.id }}');
+            const departInput = document.getElementById('{{ form.pointDepart.vars.id }}');
+            const titreInput = document.getElementById('{{ form.titre.vars.id }}');
+            const resetTitreBtn = document.getElementById('resetTitreBtn');
+            const titreContainer = titreInput.closest('.form-floating');
+
+            // Créer l'élément d'aide
+            const hintElement = document.createElement('small');
+            hintElement.className = 'titre-hint';
+            titreContainer.appendChild(hintElement);
+
+            let titreModifiedManually = false;
+
+            // Fonction pour mettre à jour l'état visuel
+            function updateTitleState() {
+                if (titreModifiedManually) {
+                    titreInput.classList.remove('auto-generated');
+                    titreInput.classList.add('user-modified');
+                    hintElement.textContent = 'Modification manuelle - vous pouvez éditer librement';
+                    resetTitreBtn.style.display = 'block';
+                } else {
+                    titreInput.classList.remove('user-modified');
+                    titreInput.classList.add('auto-generated');
+                    hintElement.textContent = 'Généré automatiquement - cliquez pour modifier';
+                    resetTitreBtn.style.display = 'none';
+                }
+            }
+
+            // Fonction pour générer le titre automatique
+            function generateAutoTitle() {
+                if (titreModifiedManually) return;
+
+                const destination = destinationInput.value.trim();
+                const depart = departInput.value.trim();
+
+                if (destination && depart) {
+                    const destCode = destination.substring(0, 3).toUpperCase();
+                    const departCode = depart.substring(0, 3).toUpperCase();
+                    titreInput.value = `${departCode}-${destCode}`;
+                    updateTitleState();
+                }
+            }
+
+            // Écouteurs d'événements
+            destinationInput.addEventListener('input', generateAutoTitle);
+            departInput.addEventListener('input', generateAutoTitle);
+
+            titreInput.addEventListener('focus', function() {
+                if (!titreModifiedManually && !titreInput.value) {
+                    generateAutoTitle();
+                }
+            });
+
+            titreInput.addEventListener('input', function() {
+                if (!titreModifiedManually && titreInput.value) {
+                    titreModifiedManually = true;
+                    updateTitleState();
+                }
+            });
+
+            // Bouton de réinitialisation
+            resetTitreBtn.addEventListener('click', function() {
+                titreModifiedManually = false;
+                generateAutoTitle();
+            });
+
+            // Réinitialisation si les champs sont vidés
+            [destinationInput, departInput].forEach(input => {
+                input.addEventListener('change', function() {
+                    if (!destinationInput.value && !departInput.value && titreInput.value) {
+                        titreInput.value = '';
+                        titreModifiedManually = false;
+                        updateTitleState();
+                    }
+                });
+            });
+
+            // Initialisation des tooltips Bootstrap
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Initialisation de l'état
+            updateTitleState();
+            resetTitreBtn.style.display = 'none'; // Cache le bouton au départ
+        });
+    </script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -476,5 +605,20 @@
                 }
             });
         });
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('voyageForm');
+            let submitted = false;
+
+            form.addEventListener('submit', function() {
+                if (!submitted) {
+                    // Première soumission - laisse le navigateur faire sa validation
+                    submitted = true;
+                } else {
+                    // Soumissions suivantes - désactive la validation HTML5
+                    form.setAttribute('novalidate', 'novalidate');
+                }
+            });
+        });
     </script>
+
 {% endblock %}

@@ -17,64 +17,35 @@ final class VoyageClientController extends AbstractController
     #[Route('/VoyagesClient', name: 'app_voyages')]
     public function index(Request $request, VoyageRepository $voyageRepository): Response
     {
-        // Récupérer les paramètres de filtrage
-        $searchTerm = $request->query->get('search');
-        $minPrice = $request->query->get('minPrice');
-        $maxPrice = $request->query->get('maxPrice');
-        $minPlaces = $request->query->get('minPlaces');
-        $type = $request->query->get('type');
-        $onSale = $request->query->get('onSale');
-        $sortType = $request->query->get('sort');
+        $filterParams = $request->query->all();
 
-        // Construire les critères de filtrage
-        $criteria = [];
-        if ($minPrice !== null) {
-            $criteria['minPrice'] = $minPrice;
-        }
-        if ($maxPrice !== null) {
-            $criteria['maxPrice'] = $maxPrice;
-        }
-        if ($minPlaces !== null) {
-            $criteria['minPlaces'] = $minPlaces;
-        }
-        if ($type !== null && $type !== 'all') {
-            $criteria['type'] = $type;
-        }
-        if ($onSale !== null) {
-            $criteria['onSale'] = true;
-        }
-        if ($searchTerm !== null) {
-            $criteria['search'] = $searchTerm;
-        }
-        if ($sortType !== null) {
-            $criteria['sort'] = $sortType;
+        // Nettoyage des paramètres
+        $criteria = [
+            'search' => $filterParams['search'] ?? null,
+            'minPrice' => isset($filterParams['minPrice']) && is_numeric($filterParams['minPrice']) ?
+                (float)$filterParams['minPrice'] : null,
+            'maxPrice' => isset($filterParams['maxPrice']) && is_numeric($filterParams['maxPrice']) ?
+                (float)$filterParams['maxPrice'] : null,
+            'minPlaces' => isset($filterParams['minPlaces']) && is_numeric($filterParams['minPlaces']) ?
+                (int)$filterParams['minPlaces'] : null,
+            'type' => $filterParams['type'] ?? null,
+            'onSale' => $request->query->has('onSale'),
+            'sort' => $filterParams['sort'] ?? null
+        ];
+
+        // Validation des prix
+        if ($criteria['minPrice'] !== null && $criteria['maxPrice'] !== null
+            && $criteria['minPrice'] > $criteria['maxPrice']) {
+            $criteria['maxPrice'] = $criteria['minPrice'];
         }
 
-
-        // Récupérer les voyages filtrés
+        // Récupération des voyages
         $voyages = $voyageRepository->findByFilters($criteria);
-
-        // Traitement des images multiples
-        foreach ($voyages as $voyage) {
-            if ($voyage->getPathImages()) {
-                $images = explode('***', $voyage->getPathImages());
-                $voyage->setImageList(array_map(function($path) {
-                    return str_replace('\\', '/', $path);
-                }, $images));
-            }
-        }
 
         return $this->render('voyages/voyageClient.html.twig', [
             'voyages' => $voyages,
-            'filterParams' => [
-                'search' => $searchTerm,
-                'minPrice' => $minPrice,
-                'maxPrice' => $maxPrice,
-                'minPlaces' => $minPlaces,
-                'type' => $type,
-                'onSale' => $onSale,
-                'sort' => $sortType
-            ]
+            'filterParams' => $criteria,
+            'searchTerm' => $criteria['search']
         ]);
     }
 

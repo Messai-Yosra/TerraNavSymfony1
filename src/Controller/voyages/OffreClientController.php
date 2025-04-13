@@ -16,43 +16,29 @@ class OffreClientController extends AbstractController
     #[Route('/offres', name: 'app_offres')]
     public function index(Request $request, OffreRepository $offreRepository): Response
     {
-        // Récupérer les paramètres de filtrage
-        $searchTerm = $request->query->get('search');
-        $minReduction = $request->query->get('minReduction');
-        $dateDebut = $request->query->get('dateDebut');
-        $dateFin = $request->query->get('dateFin');
-        $sortType = $request->query->get('sort');
+        // Nettoyage des paramètres
+        $criteria = [
+            'search' => $request->query->get('search'),
+            'minReduction' => $request->query->get('minReduction'),
+            'dateDebut' => $request->query->get('dateDebut'),
+            'dateFin' => $request->query->get('dateFin'),
+            'sort' => $request->query->get('sort')
+        ];
 
-        // Construire les critères de filtrage
-        $criteria = [];
-        if ($searchTerm !== null) {
-            $criteria['search'] = $searchTerm;
+        // Validation des dates
+        if ($criteria['dateDebut'] && !\DateTime::createFromFormat('Y-m-d', $criteria['dateDebut'])) {
+            unset($criteria['dateDebut']);
         }
-        if ($minReduction !== null) {
-            $criteria['minReduction'] = $minReduction;
-        }
-        if ($dateDebut !== null) {
-            $criteria['dateDebut'] = $dateDebut;
-        }
-        if ($dateFin !== null) {
-            $criteria['dateFin'] = $dateFin;
-        }
-        if ($sortType !== null) {
-            $criteria['sort'] = $sortType;
+        if ($criteria['dateFin'] && !\DateTime::createFromFormat('Y-m-d', $criteria['dateFin'])) {
+            unset($criteria['dateFin']);
         }
 
-        // Récupérer les offres filtrées
         $offres = $offreRepository->findFilteredOffres($criteria);
 
         return $this->render('voyages/OffreClient.html.twig', [
             'offres' => $offres,
-            'searchTerm' => $searchTerm,
-            'filterParams' => [
-                'minReduction' => $minReduction,
-                'dateDebut' => $dateDebut,
-                'dateFin' => $dateFin,
-                'sort' => $sortType
-            ]
+            'searchTerm' => $criteria['search'],
+            'filterParams' => $criteria
         ]);
     }
 
@@ -62,8 +48,7 @@ class OffreClientController extends AbstractController
         $query = $request->query->get('q', '');
         $suggestions = $offreRepository->findTitlesStartingWith($query);
 
-        // Retourne directement un tableau simple de strings
-        return $this->json(array_column($suggestions, 'titre'));
+        return $this->json($suggestions);
     }
 
     #[Route('/offres/Details/{id}', name: 'app_offre_details')]

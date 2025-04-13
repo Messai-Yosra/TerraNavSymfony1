@@ -12,7 +12,7 @@
                 <h1 class="display-3 text-white mb-3 animated slideInDown">Gestion de vos voyages</h1>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb justify-content-center text-uppercase">
-                        <li class="breadcrumb-item"><a href="#">Tableau de bord</a></li>
+                        <li class="breadcrumb-item"><a href="{{ path('app_bienvenue_agence') }}">Tableau de bord</a></li>
                         <li class="breadcrumb-item text-white active" aria-current="page">Vos voyages</li>
                     </ol>
                 </nav>
@@ -101,9 +101,15 @@
                             </div>
                         </div>
 
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary w-100 py-2">Filtrer</button>
+                        <div class="col-md-2 d-flex flex-column gap-2">
+                            <button type="button" class="btn btn-secondary py-2" onclick="resetFilters()">
+                                <i class="fas fa-sync-alt me-2"></i>Réinitialiser
+                            </button>
+                            <button type="submit" class="btn btn-primary py-2">
+                                <i class="fas fa-filter me-2"></i>Filtrer
+                            </button>
                         </div>
+
                     </div>
                 </form>
             </div>
@@ -122,6 +128,7 @@
                     </button>
                 </form>
             </div>
+
         </div>
     </div>
     <!-- Barre d'actions agence -->
@@ -283,6 +290,21 @@
                 }
             });
         });
+
+        function resetFilters() {
+            // Réinitialiser les valeurs des filtres
+            document.getElementById('minPriceSlider').value = 0;
+            document.getElementById('maxPriceSlider').value = 10000;
+            document.getElementById('minPrice').value = 0;
+            document.getElementById('maxPrice').value = 10000;
+            document.getElementById('minPlaces').value = '';
+            document.getElementById('type').value = 'all';
+            document.getElementById('sort').selectedIndex = 0;
+            document.getElementById('onSale').checked = false;
+
+            // Soumettre le formulaire
+            document.getElementById('filterForm').submit();
+        }
 
     </script>
     <style>
