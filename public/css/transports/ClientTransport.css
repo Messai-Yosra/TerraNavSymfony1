@@ -478,4 +478,92 @@ h1, h2, h3, h4 {
     .cta-content h2 {
         font-size: 2rem;
     }
+    .transport-cards {
+        padding: 40px 20px;
+        text-align: center;
+    }
+    
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .transport-card {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    
+    .transport-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .card-image img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+    
+    .card-content {
+        padding: 20px;
+    }
+    
+    .card-content h3 {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.5rem;
+        color: var(--primary-color);
+        margin-bottom: 10px;
+    }
+    
+    .card-content p {
+        font-family: 'Poppins', sans-serif;
+        font-size: 1rem;
+        color: var(--dark-gray);
+        margin: 5px 0;
+    }
+    
+    .card-content p strong {
+        color: #333;
+    }
+    
+    .card-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 15px;
+    }
+    
+    .btn-view {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 16px;
+        background: var(--primary-color);
+        color: #fff;
+        border-radius: 5px;
+        text-decoration: none;
+        font-family: 'Poppins', sans-serif;
+        font-size: 0.9rem;
+        transition: background 0.3s ease;
+    }
+    
+    .btn-view:hover {
+        background: #005566;
+    }
+    
+    .btn-delete {
+        background: #dc3545;
+    }
+    
+    .btn-delete:hover {
+        background: #c82333;
+    }
+    
+    .btn-view i, .btn-delete i {
+        margin-right: 5px;
+    }
 }

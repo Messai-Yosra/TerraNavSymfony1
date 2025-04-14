@@ -1,26 +1,96 @@
-{% extends "baseAdmin.html.twig" %}
+{% extends "baseClient.html.twig" %}
 
 {% block titre %}Résultats de recherche | Transport{% endblock %}
 
 {% block content %}
-<div class="search-results-container">
-    <h2>Résultats pour votre recherche</h2>
-    
-    <div class="search-parameters">
-        <p><strong>Trajet :</strong> {{ departure }} → {{ destination }}</p>
-        <p><strong>Date :</strong> {{ date|date('d/m/Y') }}</p>
-        <p><strong>Passagers :</strong> {{ passengers }}</p>
-    </div>
-    
-    <div class="results-list">
-        {# Ici vous afficherez les résultats réels de votre recherche #}
-        <div class="no-results">
-            <i class="fas fa-search"></i>
-            <p>Fonctionnalité de recherche en cours de développement</p>
-            <a href="{{ path('app_transports') }}" class="btn btn-primary">
-                Retour à l'accueil
-            </a>
+    <link rel="stylesheet" href="{{ asset('css/transports/searchpage.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <div class="transport-booking-container">
+        <!-- Header Section -->
+        <section class="results-header">
+            <div class="hero-content">
+                <h1>Résultats de votre recherche</h1>
+                <p>
+                    Trajets disponibles depuis <strong>{{ departure|capitalize }}</strong>
+                    {% if destination %} vers <strong>{{ destination|capitalize }}</strong>{% endif %}
+                    {% if date %} pour le <strong>{{ date|date('d/m/Y') }}</strong>{% endif %}
+                    {% if passengers %} pour <strong>{{ passengers }} passager{{ passengers > 1 ? 's' : '' }}</strong>{% endif %}
+                </p>
+            </div>
+        </section>
+
+        <!-- Search Summary and Back Link -->
+        <div class="search-container">
+            <div class="search-summary">
+                <a href="{{ path('app_transports') }}" class="btn-secondary"><i class="fas fa-arrow-left"></i> Nouvelle recherche</a>
+            </div>
         </div>
+
+        <!-- Transport Results -->
+        <section class="popular-routes">
+            {% if transports|length > 0 %}
+                <div class="routes-grid">
+                    {% for transport in transports %}
+                        <div class="route-card">
+                            {% if transport.imagePath %}
+                                <img src="{{ asset(transport.imagePath) }}" alt="{{ transport.nom }}" class="route-image">
+                            {% else %}
+                                <img src="{{ asset('img/default-transport.jpg') }}" alt="Transport" class="route-image">
+                            {% endif %}
+                            <div class="route-info">
+                                <h3>{{ transport.id_trajet.depart|capitalize }} → {{ transport.id_trajet.arrivee|capitalize }}</h3>
+                                <p class="transport-type">
+                                    <i class="fas {{ transport.type == 'bus' ? 'fa-bus' : transport.type == 'train' ? 'fa-train' : 'fa-shuttle-van' }}"></i>
+                                    {{ transport.type|capitalize }}
+                                </p>
+                                <p><i class="fas fa-clock"></i> Départ : {{ transport.date|date('d/m/Y H:i') }}</p>
+                                <p><i class="fas fa-users"></i> Places : {{ transport.capacite }}</p>
+                                <p><i class="fas fa-money-bill"></i> {{ transport.prix }}€ / passager</p>
+                                <a href="{{ path('app_transport_book', {'id': transport.id}) }}" class="btn-primary">Réserver</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="no-results">
+                    <h2>Aucun trajet trouvé</h2>
+                    <p>Nous n'avons trouvé aucun trajet correspondant à vos critères. Essayez de modifier votre recherche.</p>
+                    <a href="{{ path('app_transports') }}" class="btn-primary">Retour à la recherche</a>
+                </div>
+            {% endif %}
+        </section>
     </div>
-</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate cards on scroll
+            const animateOnScroll = function() {
+                const cards = document.querySelectorAll('.route-card');
+                cards.forEach(card => {
+                    const cardPosition = card.getBoundingClientRect().top;
+                    const windowHeight = window.innerHeight;
+                    if (cardPosition < windowHeight - 100) {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }
+                });
+            };
+
+            // Set initial state
+            const cards = document.querySelectorAll('.route-card');
+            cards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            });
+
+            animateOnScroll();
+            window.addEventListener('scroll', animateOnScroll);
+        });
+    </script>
 {% endblock %}
