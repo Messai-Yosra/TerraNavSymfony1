@@ -213,17 +213,44 @@ final class DashboardController extends AbstractController
     #[Route('/admin/user/{id}/historique', name: 'admin_user_login_history')]
     public function userLoginHistory(int $id, LoginHistoryLogger $loginLogger, EntityManagerInterface $entityManager): Response
     {
-        $utilisateur = $entityManager->getRepository(Utilisateur::class)->find($id);
+        // Ajouter du débogage
+        error_log("Accès à l'historique de l'utilisateur ID: $id");
         
-        if (!$utilisateur) {
-            throw $this->createNotFoundException('Utilisateur non trouvé');
+        try {
+            $utilisateur = $entityManager->getRepository(Utilisateur::class)->find($id);
+            
+            if (!$utilisateur) {
+                throw $this->createNotFoundException('Utilisateur non trouvé');
+            }
+            
+            error_log("Utilisateur trouvé: " . $utilisateur->getUsername());
+            
+            $loginHistory = $loginLogger->getUserLoginHistory($id);
+            error_log("Historique récupéré: " . count($loginHistory) . " entrées");
+            
+            // Rendre le template avec try/catch pour capturer les erreurs
+            try {
+                return $this->render('utilisateurs/historique_utilisateur.html.twig', [
+                    'utilisateur' => $utilisateur,
+                    'historique' => $loginHistory
+                ]);
+            } catch (\Exception $e) {
+                error_log("ERREUR TEMPLATE: " . $e->getMessage());
+                
+                // Afficher une page d'erreur explicite au lieu d'une page blanche
+                return new Response(
+                    '<html><body><h1>Erreur d\'affichage</h1><p>' . $e->getMessage() . '</p>' .
+                    '<a href="' . $this->generateUrl('admin_dashboard') . '">Retour au tableau de bord</a></body></html>'
+                );
+            }
+        } catch (\Exception $e) {
+            error_log("ERREUR CONTROLEUR: " . $e->getMessage());
+            
+            // Afficher une page d'erreur explicite au lieu d'une page blanche
+            return new Response(
+                '<html><body><h1>Erreur</h1><p>' . $e->getMessage() . '</p>' .
+                '<a href="' . $this->generateUrl('admin_dashboard') . '">Retour au tableau de bord</a></body></html>'
+            );
         }
-        
-        $loginHistory = $loginLogger->getUserLoginHistory($id);
-        
-        return $this->render('utilisateurs/historique_utilisateur.html.twig', [
-            'utilisateur' => $utilisateur,
-            'historique' => $loginHistory
-        ]);
     }
 }

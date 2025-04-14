@@ -1,0 +1,122 @@
+{% extends 'baseAdmin.html.twig' %}
+
+{% block title %}Historique Utilisateur - {{ utilisateur.username }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .profile-header {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .history-section {
+            margin-bottom: 40px;
+        }
+        
+        .nav-tabs {
+            margin-bottom: 20px;
+        }
+        
+        .empty-message {
+            font-style: italic;
+            color: #6c757d;
+        }
+        
+        .card {
+            margin-bottom: 15px;
+        }
+        
+        .profile-image {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    {# Débogage #}
+    <div class="container mt-3 alert alert-info">
+        <h5>Informations de l'utilisateur</h5>
+        <p> Nom d'utilisateur: {{ utilisateur.username }}</p>
+        <p>Historique: {% if historique is defined %}{{ historique|length }} entrée(s){% else %}Non défini{% endif %}</p>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row profile-header">
+            <div class="col-md-3 text-center">
+                {% if utilisateur.photo %}
+                    <img src="{{ asset('uploads/profile/' ~ utilisateur.photo) }}" alt="Photo de profil" class="profile-image">
+                {% else %}
+                    <img src="{{ asset('images/default-avatar.png') }}" alt="Photo par défaut" class="profile-image">
+                {% endif %}
+            </div>
+            <div class="col-md-9">
+                <h2>{{ utilisateur.nom|default('') }} {{ utilisateur.prenom|default('') }}</h2>
+                <p><i class="fas fa-user"></i> {{ utilisateur.username }}</p>
+                <p><i class="fas fa-envelope"></i> {{ utilisateur.email }}</p>
+                {% if utilisateur.numTel %}
+                    <p><i class="fas fa-phone"></i> {{ utilisateur.numTel }}</p>
+                {% endif %}
+                <p><i class="fas fa-user-tag"></i> Rôle: {{ utilisateur.role }}</p>
+                <small>ID Utilisateur: {{ utilisateur.id }}</small>
+            </div>
+        </div>
+
+        <!-- Section d'historique des connexions -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4>Historique des connexions</h4>
+            </div>
+            <div class="card-body">
+                {% if historique is defined and historique is not empty %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Heure</th>
+                                    <th>Adresse IP</th>
+                                    <th>Appareil</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for connexion in historique %}
+                                    <tr>
+                                        <td>{{ connexion.timestamp is defined ? connexion.timestamp|date('d/m/Y') : 'N/A' }}</td>
+                                        <td>{{ connexion.timestamp is defined ? connexion.timestamp|date('H:i:s') : 'N/A' }}</td>
+                                        <td>{{ connexion.ip|default('Non disponible') }}</td>
+                                        <td>{{ connexion.userAgent is defined ? (connexion.userAgent|default('Non disponible')|slice(0, 50) ~ '...') : 'N/A' }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="empty-message">Aucun historique de connexion trouvé pour cet utilisateur.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Retour au tableau de bord -->
+        <div class="mb-4">
+            <a href="{{ path('admin_dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Retour au tableau de bord
+            </a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // Script minimal pour éviter les erreurs JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page chargée pour l\'utilisateur ID: {{ utilisateur.id }}');
+        });
+    </script>
+{% endblock %}
