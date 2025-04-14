@@ -109,7 +109,7 @@ final class TransportClientController extends AbstractController
                 ],
             ])
             ->add('prix', NumberType::class, [
-                'label' => 'Prix (€)',
+                'label' => 'Prix (DTN)',
                 'scale' => 2,
                 'attr' => ['class' => 'form-control'],
                 'constraints' => [
@@ -118,7 +118,7 @@ final class TransportClientController extends AbstractController
                     new Assert\Range([
                         'min' => 0.01,
                         'max' => 10000,
-                        'notInRangeMessage' => 'Le prix doit être entre {{ min }}€ et {{ max }}€',
+                        'notInRangeMessage' => 'Le prix doit être entre {{ min }}DTN et {{ max }}DTN',
                     ]),
                 ],
             ])
@@ -164,10 +164,7 @@ final class TransportClientController extends AbstractController
                     ]),
                 ],
             ])
-            ->add('save', SubmitType::class, [
-                'label' => 'Enregistrer',
-                'attr' => ['class' => 'btn btn-primary'],
-            ])
+          
             ->getForm();
     
         $form->handleRequest($request);
@@ -280,7 +277,7 @@ public function edit(Request $request, Transport $transport, EntityManagerInterf
             'attr' => ['class' => 'form-control'],
         ])
         ->add('prix', NumberType::class, [
-            'label' => 'Prix (€)',
+            'label' => 'Prix (DTN)',
             'scale' => 2,
             'attr' => ['class' => 'form-control'],
         ])
@@ -299,10 +296,7 @@ public function edit(Request $request, Transport $transport, EntityManagerInterf
             'label' => 'Image',
             'attr' => ['class' => 'form-control'],
         ])
-        ->add('save', SubmitType::class, [
-            'label' => 'Mettre à jour',
-            'attr' => ['class' => 'btn btn-primary'],
-        ])
+       
         ->getForm();
 
     $form->handleRequest($request);

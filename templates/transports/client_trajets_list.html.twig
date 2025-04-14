@@ -14,6 +14,7 @@
             <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
                 <h1 class="mb-5">Mes <span class="text-primary text-uppercase">Trajets</span></h1>
                 <a href="{{ path('client_trajet_new') }}" class="btn btn-primary rounded-pill py-3 px-5 mb-4">Ajouter un Trajet</a>
+                <a href="{{ path('client_transports_list') }}" class="btn btn-primary rounded-pill py-3 px-5 mb-4">Voir liste Transport</a>
             </div>
             <!-- Flash Messages -->
             {% for message in app.flashes('success') %}

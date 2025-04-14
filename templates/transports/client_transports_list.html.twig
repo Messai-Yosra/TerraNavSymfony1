@@ -17,6 +17,7 @@
                 
                 <h1 class="mb-5">Mes <span class="text-primary text-uppercase">Transports</span></h1>
                 <a href="{{ path('client_transport_new') }}" class="btn btn-primary rounded-pill py-3 px-5 mb-4">Ajouter un Transport</a>
+                <a href="{{ path('client_trajets_list') }}" class="btn btn-primary rounded-pill py-3 px-5 mb-4">Voir liste Trajet</a>
             </div>
             <!-- Flash Messages -->
             {% for message in app.flashes('success') %}

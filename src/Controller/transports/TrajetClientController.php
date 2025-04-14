@@ -32,18 +32,16 @@ final class TrajetClientController extends AbstractController
         $searchTerm = $request->query->get('search');
 
         $queryBuilder = $entityManager->getRepository(Trajet::class)
-            ->createQueryBuilder('t')
-            ->where('t.id_user = :user')
-            ->setParameter('user', $entityManager->getReference(Utilisateur::class, 251));
+            ->createQueryBuilder('t');
 
         if ($searchTerm) {
-            $queryBuilder->andWhere('t.pointDepart LIKE :searchTerm OR t.destination LIKE :searchTerm')
+            $queryBuilder->where('t.pointDepart LIKE :searchTerm OR t.destination LIKE :searchTerm')
                          ->setParameter('searchTerm', '%'.$searchTerm.'%');
         }
 
         $trajets = $queryBuilder->getQuery()->getResult();
 
-        return $this->render('trajets/client_trajets_list.html.twig', [
+        return $this->render('transports/client_trajets_list.html.twig', [
             'trajets' => $trajets,
             'searchTerm' => $searchTerm,
         ]);
@@ -83,17 +81,19 @@ final class TrajetClientController extends AbstractController
                 'label' => 'Description',
                 'required' => false,
                 'attr' => ['class' => 'form-control', 'rows' => 4],
-                
+                'constraints' => [
+                    new Assert\Length([
+                        'max' => 1000,
+                        'maxMessage' => 'La description ne peut pas dépasser {{ limit }} caractères',
+                    ]),
+                ],
             ])
             ->add('disponibilite', CheckboxType::class, [
                 'label' => 'Disponible',
                 'required' => false,
                 'attr' => ['class' => 'form-check-input'],
             ])
-            ->add('save', SubmitType::class, [
-                'label' => 'Enregistrer',
-                'attr' => ['class' => 'btn btn-primary'],
-            ])
+          
             ->getForm();
 
         $form->handleRequest($request);
@@ -155,10 +155,7 @@ final class TrajetClientController extends AbstractController
     #[Route('/trajets/modifier/{id}', name: 'client_trajet_edit')]
     public function edit(Request $request, Trajet $trajet, EntityManagerInterface $em): Response
     {
-        if ($trajet->getId_User()->getId() !== 251) {
-            $this->addFlash('error', 'Vous ne pouvez modifier que vos propres trajets');
-            return $this->redirectToRoute('client_trajets_list');
-        }
+       
 
         $form = $this->createFormBuilder($trajet, [
             'attr' => ['id' => 'trajet-form'],
@@ -191,10 +188,7 @@ final class TrajetClientController extends AbstractController
                 'required' => false,
                 'attr' => ['class' => 'form-check-input'],
             ])
-            ->add('save', SubmitType::class, [
-                'label' => 'Mettre à jour',
-                'attr' => ['class' => 'btn btn-primary'],
-            ])
+           
             ->getForm();
 
         $form->handleRequest($request);
