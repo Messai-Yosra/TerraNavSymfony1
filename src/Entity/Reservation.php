@@ -33,7 +33,6 @@ class Reservation
     private ?string $type_service = null;
 
     #[ORM\Column(name: "prix", type: "decimal", precision: 10, scale: 2, nullable: true)]
-    #[Assert\Positive(message: "Le prix doit être un nombre positif")]
     private ?string $prix = null;
 
     #[ORM\Column(name: "date_reservation", type: "datetime", nullable: true, options: ["default" => "CURRENT_TIMESTAMP"])]
