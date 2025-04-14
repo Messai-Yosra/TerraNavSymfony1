@@ -245,7 +245,7 @@ final class TransportClientController extends AbstractController
             }
         }
     
-        return $this->render('transports/client_new.html.twig', [
+        return $this->render('transports/Client_Transport_new.html.twig', [
             'form' => $form->createView(),
         ]);
     }
@@ -261,23 +261,10 @@ public function edit(Request $request, Transport $transport, EntityManagerInterf
         'attr' => ['id' => 'transport-form'],
         'data_class' => Transport::class
     ])
-        ->add('nom', TextType::class, [
-            'label' => 'Nom du transport',
-            'attr' => ['class' => 'form-control'],
-            'constraints' => [
-                new Assert\NotBlank(['message' => 'Le nom du transport est requis']),
-                new Assert\Length([
-                    'min' => 3,
-                    'max' => 50,
-                    'minMessage' => 'Le nom doit contenir au moins {{ limit }} caractères',
-                    'maxMessage' => 'Le nom ne peut pas dépasser {{ limit }} caractères',
-                ]),
-                new Assert\Regex([
-                    'pattern' => '/^[a-zA-Z0-9\s\-]+$/',
-                    'message' => 'Le nom ne peut contenir que des lettres, chiffres, espaces ou tirets',
-                ]),
-            ],
-        ])
+    ->add('nom', TextType::class, [
+        'label' => 'Nom du transport',
+        'attr' => ['class' => 'form-control'],
+    ])
         ->add('type', ChoiceType::class, [
             'label' => 'Type de transport',
             'choices' => [
@@ -287,82 +274,30 @@ public function edit(Request $request, Transport $transport, EntityManagerInterf
             ],
             'attr' => ['class' => 'form-control'],
             'placeholder' => 'Choisissez un type',
-            'constraints' => [
-                new Assert\NotBlank(['message' => 'Veuillez sélectionner un type de transport']),
-                new Assert\Choice([
-                    'choices' => ['Voiture privée', 'Taxi', 'Bus'],
-                    'message' => 'Type de transport invalide',
-                ]),
-            ],
         ])
         ->add('capacite', IntegerType::class, [
             'label' => 'Capacité',
             'attr' => ['class' => 'form-control'],
-            'constraints' => [
-                new Assert\NotBlank(['message' => 'La capacité est requise']),
-                new Assert\Positive(['message' => 'La capacité doit être positive']),
-                new Assert\Range([
-                    'min' => 1,
-                    'max' => 500,
-                    'notInRangeMessage' => 'La capacité doit être entre {{ min }} et {{ max }}',
-                ]),
-            ],
         ])
         ->add('prix', NumberType::class, [
             'label' => 'Prix (€)',
             'scale' => 2,
             'attr' => ['class' => 'form-control'],
-            'constraints' => [
-                new Assert\NotBlank(['message' => 'Le prix est requis']),
-                new Assert\Positive(['message' => 'Le prix doit être positif']),
-                new Assert\Range([
-                    'min' => 0.01,
-                    'max' => 10000,
-                    'notInRangeMessage' => 'Le prix doit être entre {{ min }}€ et {{ max }}€',
-                ]),
-            ],
         ])
         ->add('description', TextareaType::class, [
             'label' => 'Description',
             'required' => false,
             'attr' => ['class' => 'form-control', 'rows' => 4],
-            'constraints' => [
-                new Assert\Length([
-                    'max' => 1000,
-                    'maxMessage' => 'La description ne peut pas dépasser {{ limit }} caractères',
-                ]),
-            ],
         ])
         ->add('contact', TextType::class, [
             'label' => 'Contact',
             'attr' => ['class' => 'form-control'],
-            'constraints' => [
-                new Assert\NotBlank(['message' => 'Le contact est requis']),
-                new Assert\Length([
-                    'min' => 5,
-                    'max' => 20,
-                    'minMessage' => 'Le contact doit contenir au moins {{ limit }} caractères',
-                    'maxMessage' => 'Le contact ne peut pas dépasser {{ limit }} caractères',
-                ]),
-                new Assert\Regex([
-                    'pattern' => '/^([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}|[\+]?[0-9\s\-()]{5,20})$/',
-                    'message' => 'Veuillez entrer un email ou numéro de téléphone valide',
-                ]),
-            ],
         ])
         ->add('imagePath', FileType::class, [
             'required' => false,
             'mapped' => false,
             'label' => 'Image',
             'attr' => ['class' => 'form-control'],
-            'constraints' => [
-                new Assert\File([
-                    'maxSize' => '5M',
-                    'mimeTypes' => ['image/jpeg', 'image/png'],
-                    'mimeTypesMessage' => 'Veuillez uploader une image JPEG ou PNG',
-                    'maxSizeMessage' => 'La taille maximale est de {{ limit }}',
-                ]),
-            ],
         ])
         ->add('save', SubmitType::class, [
             'label' => 'Mettre à jour',
@@ -454,7 +389,7 @@ public function edit(Request $request, Transport $transport, EntityManagerInterf
         }
     }
 
-    return $this->render('transports/client_edit.html.twig', [
+    return $this->render('transports/Client_Transport_edit.html.twig', [
         'form' => $form->createView(),
         'transport' => $transport,
     ]);

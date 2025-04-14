@@ -1,0 +1,114 @@
+{% extends "baseClient.html.twig" %}
+
+{% block titre %}Modifier un Transport{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="{{ asset('css/transports/CrudAgence.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <div class="transport-booking-container">
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1>Modifier un Transport</h1>
+                <p>Modifiez les détails de votre transport</p>
+            </div>
+        </section>
+
+        <div class="search-container">
+            <h2>Modifier Transport</h2>
+            {{ form_start(form, {
+                'attr': {
+                    'class': 'search-form', 
+                    'novalidate': 'novalidate', 
+                    'id': 'transport-form',
+                    'enctype': 'multipart/form-data'
+                }
+            }) }}
+                <div class="form-section">
+                    <h3>Informations de base</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            {{ form_label(form.nom) }}
+                            {{ form_widget(form.nom, {'attr': {'class': 'form-control'}}) }}
+                            <span class="form-error" data-for="nom"></span>
+                        </div>
+                        <div class="form-group">
+                            {{ form_label(form.type) }}
+                            {{ form_widget(form.type, {'attr': {'class': 'form-control'}}) }}
+                            <span class="form-error" data-for="type"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Détails</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            {{ form_label(form.capacite) }}
+                            {{ form_widget(form.capacite, {'attr': {'class': 'form-control'}}) }}
+                            <span class="form-error" data-for="capacite"></span>
+                        </div>
+                        <div class="form-group">
+                            {{ form_label(form.prix) }}
+                            {{ form_widget(form.prix, {'attr': {'class': 'form-control'}}) }}
+                            <span class="form-error" data-for="prix"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Informations supplémentaires</h3>
+                    <div class="form-group full-width">
+                        {{ form_label(form.id_trajet) }}
+                        {{ form_widget(form.id_trajet, {'attr': {'class': 'form-control'}}) }}
+                        <span class="form-error" data-for="id_trajet"></span>
+                    </div>
+                    <div class="form-group full-width">
+                        {{ form_label(form.description) }}
+                        {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 4}}) }}
+                        <span class="form-error" data-for="description"></span>
+                    </div>
+                    <div class="form-group full-width">
+                        {{ form_label(form.contact) }}
+                        {{ form_widget(form.contact, {'attr': {'class': 'form-control'}}) }}
+                        <span class="form-error" data-for="contact"></span>
+                    </div>
+                    <div class="form-group full-width">
+                        {{ form_label(form.imagePath) }}
+                        {{ form_widget(form.imagePath, {'attr': {'class': 'form-control file-input'}}) }}
+                        <span class="file-msg">Aucun fichier sélectionné</span>
+                        <span class="form-error" data-for="imagePath"></span>
+                        {% if transport.imagePath %}
+                            <div class="current-image">
+                                <p>Image actuelle :</p>
+                                <img src="{{ asset(transport.imagePath) }}" alt="Image actuelle" style="max-width: 200px;">
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group text-center mt-4">
+                    <button type="submit" class="btn btn-primary search-button">
+                        <span class="submit-text">Mettre à jour</span>
+                        <span class="loading-spinner" style="display: none;">
+                            <i class="fas fa-spinner fa-spin"></i> Mise à jour...
+                        </span>
+                    </button>
+                </div>
+            {{ form_end(form) }}
+        </div>
+
+        <section class="cta-section">
+            <div class="cta-content">
+                <h2>Gérez vos transports</h2>
+                <p>Créez et modifiez vos transports pour offrir les meilleures options à vos clients</p>
+                <div class="cta-buttons">
+                    <a href="{{ path('client_transports_list') }}" class="btn-primary">Voir tous les transports</a>
+                </div>
+            </div>
+        </section>
+    </div>
+
+{% endblock %}
