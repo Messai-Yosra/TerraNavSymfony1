@@ -195,5 +195,80 @@ class OffreRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function getReductionDistribution(): array
+    {
+        $results = $this->createQueryBuilder('o')
+            ->select('o.reduction', 'COUNT(o.id) as count')
+            ->groupBy('o.reduction')
+            ->getQuery()
+            ->getResult();
+
+        // Formatage des résultats en plages
+        $ranges = [
+            '0-10%' => 0,
+            '11-20%' => 0,
+            '21-30%' => 0,
+            '30%+' => 0
+        ];
+
+        foreach ($results as $result) {
+            $reduction = $result['reduction'];
+            if ($reduction <= 10) {
+                $ranges['0-10%'] += $result['count'];
+            } elseif ($reduction <= 20) {
+                $ranges['11-20%'] += $result['count'];
+            } elseif ($reduction <= 30) {
+                $ranges['21-30%'] += $result['count'];
+            } else {
+                $ranges['30%+'] += $result['count'];
+            }
+        }
+
+        // Conversion en format attendu par le frontend
+        $formatted = [];
+        foreach ($ranges as $range => $count) {
+            $formatted[] = ['range' => $range, 'count' => $count];
+        }
+
+        return $formatted;
+    }
+
+
+
+    // Ajoutez cette méthode pour obtenir les statistiques de statut
+    public function getOfferStatusStats(): array
+    {
+        $now = new \DateTime();
+
+        $active = $this->createQueryBuilder('o')
+            ->select('COUNT(o.id)')
+            ->where('o.dateDebut <= :now AND o.dateFin >= :now')
+            ->setParameter('now', $now)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $upcoming = $this->createQueryBuilder('o')
+            ->select('COUNT(o.id)')
+            ->where('o.dateDebut > :now')
+            ->setParameter('now', $now)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $expired = $this->createQueryBuilder('o')
+            ->select('COUNT(o.id)')
+            ->where('o.dateFin < :now')
+            ->setParameter('now', $now)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return [
+            ['status' => 'active', 'count' => (int)$active],
+            ['status' => 'upcoming', 'count' => (int)$upcoming],
+            ['status' => 'expired', 'count' => (int)$expired]
+        ];
+    }
+
+
+
 }
 

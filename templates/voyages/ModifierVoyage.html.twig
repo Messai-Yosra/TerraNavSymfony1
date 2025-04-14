@@ -488,4 +488,146 @@
             });
         });
     </script>
+    <!-- Modal de confirmation -->
+    <div class="modal fade" id="confirmCancelModal" tabindex="-1" aria-labelledby="confirmCancelModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="confirmCancelModalLabel"><i class="fas fa-exclamation-triangle me-2"></i>Confirmation</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Êtes-vous sûr de vouloir annuler la modification de ce voyage ?<br>
+                    <small class="text-muted">Toutes les informations non enregistrées seront perdues.</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-hover" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Annuler
+                    </button>
+                    <button type="button" class="btn btn-primary btn-hover" id="confirmCancelBtn">
+                        <i class="fas fa-check me-2"></i>Confirmer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Ajouts de style pour la modale */
+        .modal-content {
+            border: 2px solid #0d6efd;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(13, 110, 253, 0.3);
+        }
+
+        .modal-header {
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 13px 13px 0 0;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Gestion du bouton Annuler avec modale Bootstrap
+            const cancelBtn = document.getElementById('cancelBtn');
+            const confirmCancelModal = new bootstrap.Modal(document.getElementById('confirmCancelModal'));
+
+            cancelBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                confirmCancelModal.show();
+            });
+
+            // Confirmation de l'annulation
+            document.getElementById('confirmCancelBtn').addEventListener('click', function () {
+                window.location.href = cancelBtn.href;
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Éléments du formulaire
+            const destinationInput = document.getElementById('destination');
+            const departInput = document.getElementById('pointDepart');
+            const titreInput = document.getElementById('titre');
+            const titreContainer = titreInput.closest('.form-floating');
+
+            // Créer l'élément d'aide
+            const hintElement = document.createElement('small');
+            hintElement.className = 'titre-hint';
+            titreContainer.appendChild(hintElement);
+
+            let titreModifiedManually = false;
+
+            // Fonction pour mettre à jour l'état visuel
+            function updateTitleState() {
+                if (titreModifiedManually) {
+                    titreInput.classList.remove('auto-generated');
+                    titreInput.classList.add('user-modified');
+                    hintElement.textContent = 'Modification manuelle - vous pouvez éditer librement';
+                } else {
+                    titreInput.classList.remove('user-modified');
+                    titreInput.classList.add('auto-generated');
+                    hintElement.textContent = 'Généré automatiquement - cliquez pour modifier';
+                }
+            }
+
+            // Fonction pour générer le titre automatique
+            function generateAutoTitle() {
+                const destination = destinationInput.value.trim();
+                const depart = departInput.value.trim();
+
+                if (destination && depart && !titreModifiedManually) {
+                    const destCode = destination.substring(0, 3).toUpperCase();
+                    const departCode = depart.substring(0, 3).toUpperCase();
+                    titreInput.value = `${departCode}-${destCode}`;
+                    updateTitleState();
+                }
+            }
+
+            // Écouteurs d'événements
+            destinationInput.addEventListener('input', generateAutoTitle);
+            departInput.addEventListener('input', generateAutoTitle);
+
+            titreInput.addEventListener('focus', function() {
+                if (!titreInput.value) {
+                    generateAutoTitle();
+                }
+            });
+
+            titreInput.addEventListener('input', function() {
+                if (titreInput.value) {
+                    titreModifiedManually = true;
+                    updateTitleState();
+                } else {
+                    titreModifiedManually = false;
+                    generateAutoTitle();
+                }
+            });
+
+            // Initialisation
+            generateAutoTitle(); // Génère le titre initial
+            updateTitleState();
+
+            // Style CSS dynamique
+            const style = document.createElement('style');
+            style.textContent = `
+            .auto-generated {
+                border-left: 3px solid #28a745 !important;
+                background-color: #f8fff8 !important;
+            }
+            .user-modified {
+                border-left: 3px solid #ffc107 !important;
+                background-color: #fffdf5 !important;
+            }
+            .titre-hint {
+                font-size: 0.8rem;
+                color: #6c757d;
+                margin-top: 0.25rem;
+                display: block;
+            }
+        `;
+            document.head.appendChild(style);
+        });
+    </script>
 {% endblock %}

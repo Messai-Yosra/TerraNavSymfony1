@@ -304,42 +304,58 @@
         }
     </style>
 
+    <!-- Modal de confirmation -->
+    <div class="modal fade" id="confirmCancelModal" tabindex="-1" aria-labelledby="confirmCancelModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="confirmCancelModalLabel"><i class="fas fa-exclamation-triangle me-2"></i>Confirmation</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Êtes-vous sûr de vouloir annuler la création de cette offre ?<br>
+                    <small class="text-muted">Toutes les informations non enregistrées seront perdues.</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-hover" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Annuler
+                    </button>
+                    <button type="button" class="btn btn-primary btn-hover" id="confirmCancelBtn">
+                        <i class="fas fa-check me-2"></i>Confirmer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Ajouts de style pour la modale */
+        .modal-content {
+            border: 2px solid #0d6efd;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(13, 110, 253, 0.3);
+        }
+
+        .modal-header {
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 13px 13px 0 0;
+        }
+    </style>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Gestion du bouton Annuler
-            document.getElementById('cancelBtn').addEventListener('click', function (e) {
+            // Gestion du bouton Annuler avec modale Bootstrap
+            const cancelBtn = document.getElementById('cancelBtn');
+            const confirmCancelModal = new bootstrap.Modal(document.getElementById('confirmCancelModal'));
+
+            cancelBtn.addEventListener('click', function (e) {
                 e.preventDefault();
-                if (confirm('Êtes-vous sûr de vouloir annuler la création de cette offre ?')) {
-                    window.location.href = this.href;
-                }
+                confirmCancelModal.show();
             });
 
-            // Animation au survol des champs
-            const formControls = document.querySelectorAll('.form-control, .form-select');
-            formControls.forEach(control => {
-                control.addEventListener('mouseenter', function () {
-                    this.style.borderColor = '#0d6efd';
-                });
-                control.addEventListener('mouseleave', function () {
-                    this.style.borderColor = '#ced4da';
-                });
-            });
-
-            // Preview de l'image
-            document.getElementById('image').addEventListener('change', function(e) {
-                const preview = document.getElementById('imagePreview');
-                preview.innerHTML = '';
-
-                if (this.files && this.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.className = 'img-thumbnail';
-                        preview.appendChild(img);
-                    }
-                    reader.readAsDataURL(this.files[0]);
-                }
+            // Confirmation de l'annulation
+            document.getElementById('confirmCancelBtn').addEventListener('click', function () {
+                window.location.href = cancelBtn.href;
             });
         });
     </script>

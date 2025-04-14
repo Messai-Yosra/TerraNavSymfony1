@@ -22,8 +22,9 @@
     <div class="container-xxl py-5">
         <div class="container">
             <div class="row g-4">
-                <!-- Left Column - Reservation Form -->
                 <div class="col-lg-6 pe-lg-4">
+
+                    <!-- Reservation Form -->
                     <div class="border rounded p-4 mb-4 hover-effect">
                         <h3 class="text-primary mb-4">Votre réservation</h3>
                         <form method="post" action="{{ path('app_voyage_reserver', {'id': voyage.id}) }}" id="reservationForm">
@@ -60,6 +61,7 @@
                             </div>
                         </form>
                     </div>
+                    <!-- Reservation Form -->
 
                     <!-- Voyage Details Box -->
                     <div class="border rounded p-4 hover-effect">
@@ -168,7 +170,7 @@
         </div>
     </div>
 
-    <!-- Toast Notification (unchanged) -->
+    <!-- Toast Notification : For reservation -->
     <div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 11">
         <div id="notificationToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-header">
@@ -179,27 +181,14 @@
         </div>
     </div>
 
-    <!-- JavaScript (unchanged) -->
+    <!-- JavaScript : For reservation-->
     <script>
         document.getElementById('reservationForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const form = e.target;
-            const nbPlaces = parseInt(form.nbPlaces.value);
-            const maxPlaces = parseInt({{ voyage.nbPlacesD }});
             const submitBtn = form.querySelector('button[type="submit"]');
             const originalBtnText = submitBtn.innerHTML;
-
-            // Client-side validation
-            if (nbPlaces <= 0) {
-                showToast('Le nombre de places doit être supérieur à zéro.', false);
-                return;
-            }
-
-            if (nbPlaces > maxPlaces) {
-                showToast(`Seulement ${maxPlaces} places disponibles.`, false);
-                return;
-            }
 
             // Show loading state
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Traitement...';
@@ -211,26 +200,27 @@
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'application/json',
-                        'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    body: new URLSearchParams(new FormData(form))
+                    body: new FormData(form)
                 });
 
-                if (!response.ok) throw new Error('Erreur réseau');
-
                 const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Une erreur est survenue');
+                }
 
                 if (result.success) {
                     showToast(result.message, true);
                     // Update available places
-                    document.getElementById('nbPlaces').max = result.remainingPlaces;
                     document.querySelector('.form-text').textContent =
                         `Maximum ${result.remainingPlaces} places disponibles`;
+                    document.getElementById('nbPlaces').max = result.remainingPlaces;
                 } else {
                     showToast(result.message, false);
                 }
             } catch (error) {
-                showToast(error.message || 'Une erreur est survenue', false);
+                showToast(error.message, false);
             } finally {
                 submitBtn.innerHTML = originalBtnText;
                 submitBtn.disabled = false;

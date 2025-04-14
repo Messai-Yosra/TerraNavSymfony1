@@ -4,6 +4,7 @@
 
 {% block content %}
     <link rel="stylesheet" href="{{ asset('css/voyages/RayenAdmin.css') }}"/>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-heatmap@3.0.0/dist/index.min.js"></script>
 
     <div class="voyages-container">
         <div class="header">
@@ -15,6 +16,7 @@
             <div class="tabs-nav">
                 <button class="tab-btn active" data-tab="voyages">Voyages</button>
                 <button class="tab-btn" data-tab="offres">Offres</button>
+                <button class="tab-btn" data-tab="stats">Statistiques</button>
             </div>
 
             <!-- Voyages Tab -->
@@ -217,8 +219,47 @@
             </div>
         </div>
     </div>
+    <div id="stats" class="tab-pane">
+        <div class="stats-grid">
+            <!-- Carte 1: Top Destinations -->
+            <div class="stat-card">
+                <h3><i class="fas fa-map-marked-alt"></i> Top 10 des Destinations</h3>
+                <canvas id="destinationChart"></canvas>
+            </div>
+
+            <!-- Carte 2: Activité Mensuelle -->
+            <div class="stat-card">
+                <h3><i class="fas fa-chart-line"></i> Activité des Voyages</h3>
+                <canvas id="timelineChart"></canvas>
+            </div>
+
+            <!-- Carte 3: Répartition des Réductions -->
+            <div class="stat-card">
+                <h3><i class="fas fa-percentage"></i> Réduction des Offres</h3>
+                <canvas id="reductionChart"></canvas>
+            </div>
+
+            <!-- Carte 4: Statut des Offres -->
+            <div class="stat-card">
+                <h3><i class="fas fa-tags"></i> Statut des Offres</h3>
+                <canvas id="statusChart"></canvas>
+            </div>
+
+            <div class="stat-card">
+                <h3><i class="fas fa-calendar-alt"></i> Distribution des durées de voyage</h3>
+                <canvas id="durationHistogram"></canvas>
+            </div>
+
+            <div class="stat-card">
+                <h3><i class="fas fa-fire"></i> Popularité des destinations par mois</h3>
+                <canvas id="reservationHeatmap"></canvas>
+            </div>
+        </div>
+    </div>
+
 
     <script src="{{ asset('js/voyages/voyageAdmin.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Store voyages and offres data for JavaScript access
         const voyagesData = [
@@ -269,6 +310,7 @@
             },
             {% endfor %}
         ];
+        const statsData = {{ stats|json_encode|raw }};
 
         // Tab functionality
         document.addEventListener('DOMContentLoaded', function() {
@@ -286,8 +328,18 @@
                     // Show corresponding tab pane
                     tabPanes.forEach(pane => pane.classList.remove('active'));
                     document.getElementById(tabId).classList.add('active');
+
+                    // Initialize charts when stats tab is activated
+                    if (tabId === 'stats') {
+                        initializeCharts();
+                    }
                 });
             });
+
+// Initialiser les graphiques si l'onglet stats est actif au chargement
+            if (document.querySelector('.tab-btn[data-tab="stats"]').classList.contains('active')) {
+                initializeCharts();
+            }
 
             // Voyage search functionality
             const voyageSearch = document.getElementById('voyageSearch');
@@ -570,4 +622,346 @@
             }
         }
     </script>
+    <style>
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .stat-card {
+                min-width: 100%;
+            }
+        }
+        /* Styles pour les statistiques *//* Remplacer tout le CSS existant pour les stats par ceci */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            min-height: 400px;
+        }
+
+
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card h3 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            font-size: 1.2em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 0.5rem;
+        }
+
+        .stat-card canvas {
+            max-height: 300px;
+            width: 100% !important;
+        }
+
+        #reservationHeatmap {
+            min-height: 500px;
+            width: 100%;
+        }
+
+        .stat-card {
+            overflow-x: auto;
+        }
+    </style>
+
+    <script>
+        // Après la déclaration de voyagesData et offresData
+
+
+        // Initialisation des graphiques
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabPanes = document.querySelectorAll('.tab-pane');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+
+                    // Update active tab button
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Show corresponding tab pane
+                    tabPanes.forEach(pane => pane.classList.remove('active'));
+                    document.getElementById(tabId).classList.add('active');
+
+                    // Initialize charts when stats tab is activated
+                    if (tabId === 'stats') {
+                        initializeCharts();
+                    }
+                });
+            });
+
+            // Initialize charts if stats tab is active by default
+            if (document.querySelector('.tab-btn[data-tab="stats"]').classList.contains('active')) {
+                initializeCharts();
+            }
+
+            // Vos fonctions existantes filterVoyages() et filterOffres()
+        });
+
+        function initializeCharts() {
+            const chartColors = [
+                '#3498db', '#2ecc71', '#e74c3c', '#9b59b6',
+                '#f1c40f', '#1abc9c', '#34495e', '#e67e22'
+            ];
+
+            // Destination Chart
+            new Chart(document.getElementById('destinationChart'), {
+                type: 'bar',
+                data: {
+                    labels: statsData.destinations.map(d => d.name),
+                    datasets: [{
+                        label: 'Nombre de voyages',
+                        data: statsData.destinations.map(d => d.count),
+                        backgroundColor: chartColors,
+                        borderColor: '#2c3e50',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {display: false},
+                        title: {display: false}
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Nombre de voyages'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Destinations'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Timeline Chart
+            new Chart(document.getElementById('timelineChart'), {
+                type: 'line',
+                data: {
+                    labels: statsData.monthly_voyages.map(m => m.month),
+                    datasets: [{
+                        label: 'Voyages créés',
+                        data: statsData.monthly_voyages.map(m => m.count),
+                        borderColor: '#e74c3c',
+                        backgroundColor: '#e74c3c33',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {position: 'top'}
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Nombre de voyages'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Mois'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Reduction Chart
+            new Chart(document.getElementById('reductionChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: statsData.reductions.map(r => r.range),
+                    datasets: [{
+                        data: statsData.reductions.map(r => r.count),
+                        backgroundColor: chartColors,
+                        hoverOffset: 20
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {position: 'right'},
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ` ${ctx.label}: ${ctx.raw} offres`
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Status Chart
+            new Chart(document.getElementById('statusChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Actives', 'À venir', 'Expirées'],
+                    datasets: [{
+                        data: [
+                            statsData.offer_status.find(s => s.status === 'active')?.count || 0,
+                            statsData.offer_status.find(s => s.status === 'upcoming')?.count || 0,
+                            statsData.offer_status.find(s => s.status === 'expired')?.count || 0
+                        ],
+                        backgroundColor: ['#2ecc71', '#f1c40f', '#e74c3c']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {position: 'right'},
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return ` ${context.label}: ${context.raw} offres`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            // Dans la fonction initializeCharts()
+            if (document.getElementById('reservationHeatmap')) {
+                const heatmapData = statsData.heatmapData || [];
+                const destinations = [...new Set(heatmapData.map(item => item.destination))];
+                const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+
+                // Données formatées pour Chart.js
+                const datasets = destinations.map(destination => {
+                    return {
+                        label: destination,
+                        data: months.map((_, monthIndex) => {
+                            const month = monthIndex + 1;
+                            const entry = heatmapData.find(d =>
+                                d.destination === destination && parseInt(d.month) === month
+                            );
+                            return entry ? entry.reservationCount : 0;
+                        }),
+                        backgroundColor: `hsla(${Math.random() * 360}, 70%, 50%, 0.7)`,
+                        borderColor: `hsl(${Math.random() * 360}, 70%, 50%)`,
+                        borderWidth: 1
+                    };
+                });
+
+                new Chart(document.getElementById('reservationHeatmap'), {
+                    type: 'bar',
+                    data: {
+                        labels: months,
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                stacked: true,
+                                title: { display: true, text: 'Mois' }
+                            },
+                            y: {
+                                stacked: true,
+                                title: { display: true, text: 'Réservations' },
+                                beginAtZero: true
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: { boxWidth: 12 }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    </script>
+    <script>
+        // Dans la fonction initializeCharts()
+        if (document.getElementById('durationHistogram')) {
+            const durationData = statsData.durationData || [];
+            const labels = durationData.map(item => `${Math.round(item.duration / 86400)} jours`);
+            const counts = durationData.map(item => item.count);
+            const avgPrices = durationData.map(item => item.averagePrice);
+
+            new Chart(document.getElementById('durationHistogram'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Nombre de voyages',
+                        data: counts,
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Prix moyen (TND)',
+                        data: avgPrices,
+                        backgroundColor: 'rgba(255, 159, 64, 0.5)',
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        borderWidth: 1,
+                        type: 'line',
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Durée des voyages vs. prix moyen'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Nombre de voyages'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Prix moyen (TND)'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+
+
 {% endblock %}

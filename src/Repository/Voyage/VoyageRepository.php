@@ -205,4 +205,66 @@ class VoyageRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function getDestinationStats(): array
+    {
+        return $this->createQueryBuilder('v')
+            ->select('v.destination as name', 'COUNT(v.id) as count')
+            ->groupBy('v.destination')
+            ->orderBy('count', 'DESC')
+            ->setMaxResults(10)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getMonthlyVoyageCounts(): array
+    {
+        return $this->createQueryBuilder('v')
+            ->select('SUBSTRING(v.dateDepart, 1, 7) as month', 'COUNT(v.id) as count')
+            ->groupBy('month')
+            ->orderBy('month', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getTripDurationStats(): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = "
+        SELECT 
+            DATEDIFF(v.dateRetour, v.dateDepart) as duration,
+            COUNT(v.id) as count,
+            AVG(v.prix) as averagePrice
+        FROM voyage v
+        GROUP BY duration
+        ORDER BY duration ASC
+    ";
+
+        $stmt = $conn->prepare($sql);
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
+    }
+
+    public function getReservationHeatmapData(): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = "
+        SELECT 
+            v.destination,
+            MONTH(v.dateDepart) as month,
+            COUNT(v.id) as reservationCount,
+            AVG(v.prix) as averagePrice
+        FROM voyage v
+        GROUP BY v.destination, month
+        ORDER BY month, reservationCount DESC
+    ";
+
+        $stmt = $conn->prepare($sql);
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
+    }
 }
