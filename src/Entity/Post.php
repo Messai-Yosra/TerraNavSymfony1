@@ -27,7 +27,6 @@ class Post
     private ?\DateTimeInterface $date;
 
     #[ORM\Column(type: "text", nullable: true)]
-    #[Assert\NotBlank(message: "L'image doit être remplie.")]
     private ?string $image;
 
     #[ORM\Column(name: "nbCommentaires", type: "integer", nullable: true)]

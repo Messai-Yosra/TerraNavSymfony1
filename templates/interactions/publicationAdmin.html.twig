@@ -3,125 +3,677 @@
 {% block title %}Gestion des Publications{% endblock %}
 
 {% block content %}
+<div class="admin-container">
+    <!-- Section Filtres et Statistiques -->
+    <div class="filter-stats-container">
+        <!-- Cartes de Statistiques -->
+        <div class="stats-row">
+            <div class="stat-card total">
+                <div class="stat-icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ posts|length }}</div>
+                    <div class="stat-label">Total Publications</div>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i> 12%
+                </div>
+            </div>
 
-<link href="{{ asset('css/interactions/interactionsAdmin.css') }}" rel="stylesheet">
-<div class="container mt-5">
-    <h1 class="text-center mb-4 text-primary">
-        <i class="fas fa-newspaper me-2"></i>Gestion des Publications
-    </h1>
+            <div class="stat-card pending">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ posts|filter(p => p.statut != 'traitée')|length }}</div>
+                    <div class="stat-label">En Attente</div>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-down"></i> 5%
+                </div>
+            </div>
 
-    <div class="card shadow-sm">
-        <!-- Header avec recherche et filtre -->
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="fas fa-table me-2"></i>Liste des publications</h5>
-            <div class="d-flex gap-2">
-                <input type="text" class="form-control form-control-sm" placeholder="Rechercher..." id="searchInput">
-                <button class="btn btn-light btn-sm" type="button" data-bs-toggle="tooltip" title="Filtrer">
-                    <i class="fas fa-filter"></i>
-                </button>
+            <div class="stat-card completed">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ posts|filter(p => p.statut == 'traitée')|length }}</div>
+                    <div class="stat-label">Traités</div>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i> 8%
+                </div>
             </div>
         </div>
 
-        <!-- Tableau des publications -->
-        <div class="table-responsive">
-            <table class="table table-hover table-bordered align-middle">
-                <thead class="table-primary text-center">
-                    <tr>
-                        <th>ID</th>
-                        <th>Auteur</th>
-                        <th>Description</th>
-                        <th>Statut</th>
-                        <th>Date</th>
-                        <th>Média</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for post in posts %}
-                        <tr class="{{ post.statut == 'traitée' ? 'table-success' : '' }}">
-                            <td class="text-center fw-bold">{{ post.id }}</td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <i class="fas fa-user-circle me-2 text-secondary"></i>
-                                    {{ post.id_user.username }}
-                                </div>
-                            </td>
-                            <td>
-                                <span class="d-inline-block text-truncate" 
-                                      style="max-width: 300px;" 
-                                      data-bs-toggle="tooltip" 
-                                      title="{{ post.description }}">
-                                    {{ post.description }}
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                {% if post.statut == 'traitée' %}
-                                    <span class="badge bg-success rounded-pill">
-                                        <i class="fas fa-check-circle me-1"></i> Traitée
-                                    </span>
-                                {% else %}
-                                    <span class="badge bg-warning rounded-pill text-dark">
-                                        <i class="fas fa-exclamation-circle me-1"></i> En attente
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td class="text-center px-3">
-                                {% if post.image %}
-                                    <img src="{{ asset('img/' ~ post.image) }}" alt="Image du post" class="img-thumbnail" style="max-width: 100px;">
-                                {% else %}
-                                    <span class="text-muted fst-italic">Aucun média</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-center">
-                                <i class="fas fa-calendar-day me-2 text-secondary"></i>
-                                {{ post.date ? post.date|date('d/m/Y H:i') : 'N/A' }}
-                            </td>
-                            <td class="text-center">
-                                <div class="d-flex gap-2 justify-content-center">
-                                    {% if post.statut != 'traitée' %}
-                                        <a href="{{ path('admin_post_traiter', { id: post.id }) }}" 
-                                           class="btn btn-sm btn-success rounded-circle"
-                                           data-bs-toggle="tooltip"
-                                           title="Marquer comme traitée">
-                                            <i class="fas fa-check"></i>
-                                        </a>
-                                    {% endif %}
-                                    <button type="button" 
-                                            class="btn btn-sm btn-danger rounded-circle" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#deleteModal"
-                                            data-post-id="{{ post.id }}"
-                                            data-post-author="{{ post.id_user.username }}">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    {% else %}
-                        <tr>
-                            <td colspan="7" class="text-center text-muted py-4">
-                                <i class="fas fa-inbox fa-2x mb-3"></i><br>
-                                Aucune publication à afficher
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <!-- Section Filtres -->
+        <div class="filters-section">
+            <div class="filter-group">
+                <h4><i class="fas fa-filter"></i> Filtres</h4>
+                <div class="filter-options">
+                    <div class="filter-option">
+                        <input type="radio" id="filter-all" name="status-filter" value="all" checked>
+                        <label for="filter-all">
+                            <span class="custom-radio"></span>
+                            <span class="option-text">Toutes les publications</span>
+                            <span class="option-count">{{ posts|length }}</span>
+                        </label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="radio" id="filter-pending" name="status-filter" value="non-traite">
+                        <label for="filter-pending">
+                            <span class="custom-radio"></span>
+                            <span class="option-text">En attente</span>
+                            <span class="option-count warning">{{ posts|filter(p => p.statut != 'traitée')|length }}</span>
+                        </label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="radio" id="filter-completed" name="status-filter" value="traite">
+                        <label for="filter-completed">
+                            <span class="custom-radio"></span>
+                            <span class="option-text">Traités</span>
+                            <span class="option-count success">{{ posts|filter(p => p.statut == 'traitée')|length }}</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <h4><i class="fas fa-sort"></i> Trier par</h4>
+                <div class="filter-options">
+                    <div class="filter-option">
+                        <input type="radio" id="sort-newest" name="sort-filter" value="newest" checked>
+                        <label for="sort-newest">
+                            <span class="custom-radio"></span>
+                            <span class="option-text">Plus récentes</span>
+                        </label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="radio" id="sort-oldest" name="sort-filter" value="oldest">
+                        <label for="sort-oldest">
+                            <span class="custom-radio"></span>
+                            <span class="option-text">Plus anciennes</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button class="btn btn-refresh" onclick="location.reload()">
+                    <i class="fas fa-sync-alt"></i> Actualiser
+                </button>
+                <button class="btn btn-reset" onclick="resetFilters()">
+                    <i class="fas fa-undo"></i> Réinitialiser
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenu Principal -->
+    <div class="main-content">
+        <div class="content-header">
+            <h1><i class="fas fa-newspaper"></i> Gestion des Publications</h1>
+            
+            {% for message in app.flashes('success') %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> {{ message }}
+                </div>
+            {% endfor %}
+            
+            <a href="{{ path('admin_post_export_csv') }}" class="export-btn">
+                <i class="fas fa-file-csv"></i> Exporter en CSV
+            </a>
         </div>
 
+        {% if posts is empty %}
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p>Aucune publication trouvée</p>
+            </div>
+        {% else %}
+            <div class="publications-grid">
+                {% for post in posts %}
+                    <div class="publication-card {% if post.statut == 'traitée' %}completed{% else %}pending{% endif %}">
+                        <div class="card-header">
+                            <h3>Publication #{{ post.id }}</h3>
+                            <span class="status-badge">
+                                {% if post.statut == 'traitée' %}
+                                    <i class="fas fa-check"></i> Traité
+                                {% else %}
+                                    <i class="fas fa-clock"></i> En attente
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="info-item">
+                                <span class="info-label"><i class="fas fa-user"></i> Auteur :</span>
+                                <span class="info-value">{{ post.id_user.username }}</span>
+                            </div>
+                            
+                            <div class="info-item">
+                                <span class="info-label"><i class="far fa-calendar-alt"></i> Date :</span>
+                                <span class="info-value">{{ post.date|date('d/m/Y H:i') }}</span>
+                            </div>
+                            
+                            {% if post.image %}
+                            <div class="media-preview">
+                                <img src="{{ asset('img/' ~ post.image) }}" alt="Média" class="media-thumbnail">
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="card-footer">
+                            {% if post.statut != 'traitée' %}
+                                <a href="{{ path('admin_post_traiter', { id: post.id }) }}" class="btn btn-complete">
+                                    <i class="fas fa-check"></i> Marquer traité
+                                </a>
+                            {% endif %}
+                            
+                            <form action="{{ path('admin_post_delete', { id: post.id }) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette publication ?')">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ post.id) }}">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-trash-alt"></i> Supprimer
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+/* Styles Généraux */
+.admin-container {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8fafc;
+}
+
+/* Section Filtres et Statistiques */
+.filter-stats-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.stats-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.stat-card {
+    flex: 1;
+    padding: 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-card.total {
+    background: linear-gradient(135deg, #4361ee, #3a0ca3);
+}
+
+.stat-card.pending {
+    background: linear-gradient(135deg, #f8961e, #f3722c);
+}
+
+.stat-card.completed {
+    background: linear-gradient(135deg, #43aa8b, #4d908e);
+}
+
+.stat-icon {
+    font-size: 1.8rem;
+    opacity: 0.8;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-top: 5px;
+}
+
+.stat-trend {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+/* Section Filtres */
+.filters-section {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 250px;
+}
+
+.filter-group h4 {
+    font-size: 1.1rem;
+    color: #2d3748;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filter-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.filter-option {
+    position: relative;
+}
+
+.filter-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+}
+
+.filter-option label {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    background: #f8fafc;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-option label:hover {
+    background: #edf2f7;
+}
+
+.custom-radio {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #cbd5e0;
+    border-radius: 50%;
+    margin-right: 12px;
+    position: relative;
+    transition: all 0.2s;
+}
+
+input[type="radio"]:checked + label .custom-radio {
+    border-color: #4361ee;
+    background-color: #4361ee;
+}
+
+input[type="radio"]:checked + label .custom-radio::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+}
+
+.option-text {
+    flex: 1;
+    font-size: 0.95rem;
+    color: #4a5568;
+}
+
+.option-count {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.option-count.warning {
+    background: #fff3cd;
+    color: #9c4221;
+}
+
+.option-count.success {
+    background: #c6f6d5;
+    color: #22543d;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.btn-refresh {
+    background: #ebf8ff;
+    color: #3182ce;
+}
+
+.btn-refresh:hover {
+    background: #bee3f8;
+}
+
+.btn-reset {
+    background: #fff5f5;
+    color: #e53e3e;
+}
+
+.btn-reset:hover {
+    background: #fed7d7;
+}
+
+/* Contenu Principal */
+.main-content {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    padding: 25px;
+}
+
+.content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.content-header h1 {
+    font-size: 1.5rem;
+    color: #2d3748;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+}
+
+.alert-success {
+    background: #f0fff4;
+    color: #2f855a;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #48bb78;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.export-btn {
+    background: #f0fff4;
+    color: #2f855a;
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    border: 1px solid #c6f6d5;
+}
+
+.export-btn:hover {
+    background: #c6f6d5;
+    color: #22543d;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: #718096;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+/* Grille des Publications */
+.publications-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.publication-card {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border-left: 4px solid #e2e8f0;
+}
+
+.publication-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.publication-card.completed {
+    border-left-color: #48bb78;
+}
+
+.publication-card.pending {
+    border-left-color: #ed8936;
+}
+
+.card-header {
+    padding: 20px;
+    background: #f8fafc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #2d3748;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.publication-card.completed .status-badge {
+    background: #c6f6d5;
+    color: #22543d;
+}
+
+.publication-card.pending .status-badge {
+    background: #feebc8;
+    color: #9c4221;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+.info-item {
+    display: flex;
+    margin-bottom: 15px;
+}
+
+.info-label {
+    font-weight: 500;
+    color: #4a5568;
+    min-width: 80px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-value {
+    color: #2d3748;
+}
+
+.media-preview {
+    margin-top: 15px;
+}
+
+.media-thumbnail {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    max-height: 200px;
+    object-fit: cover;
+}
+
+.card-footer {
+    padding: 15px 20px;
+    background: #f8fafc;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    border-top: 1px solid #edf2f7;
+}
+
+.btn-complete {
+    background: #f0fff4;
+    color: #38a169;
+}
+
+.btn-complete:hover {
+    background: #c6f6d5;
+}
+
+.btn-danger {
+    background: #fff5f5;
+    color: #e53e3e;
+}
+
+.btn-danger:hover {
+    background: #fed7d7;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .stats-row {
+        flex-direction: column;
+    }
+    
+    .filter-group {
+        min-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .publications-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .content-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+}
+</style>
 
 <script>
-    // Script pour gérer le modal de suppression
-    const deleteModal = document.getElementById('deleteModal');
-    deleteModal.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
-        const postId = button.getAttribute('data-post-id');
-        const postAuthor = button.getAttribute('data-post-author');
-        const confirmDeleteButton = document.getElementById('confirmDeleteButton');
-
-        document.getElementById('modalPostAuthor').textContent = postAuthor;
-        confirmDeleteButton.href = "{{ path('admin_post_delete', { id: 'POST_ID' }) }}".replace('POST_ID', postId);
+function resetFilters() {
+    // Réinitialiser les filtres
+    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+        if (radio.name === 'status-filter' && radio.value === 'all') {
+            radio.checked = true;
+        } else if (radio.name === 'sort-filter' && radio.value === 'newest') {
+            radio.checked = true;
+        }
     });
-</script>
+    
+    // Réappliquer les filtres
+    filterPublications();
+}
 
+function filterPublications() {
+    const statusFilter = document.querySelector('input[name="status-filter"]:checked').value;
+    const sortFilter = document.querySelector('input[name="sort-filter"]:checked').value;
+    
+    // Filtrer par statut
+    document.querySelectorAll('.publication-card').forEach(card => {
+        const isCompleted = card.classList.contains('completed');
+        const shouldShow = 
+            statusFilter === 'all' || 
+            (statusFilter === 'non-traite' && !isCompleted) || 
+            (statusFilter === 'traite' && isCompleted);
+        
+        card.style.display = shouldShow ? 'block' : 'none';
+    });
+    
+    // Trier les publications
+    const container = document.querySelector('.publications-grid');
+    const cards = Array.from(container.querySelectorAll('.publication-card[style*="block"]'));
+    
+    cards.sort((a, b) => {
+        const dateA = new Date(a.querySelector('.info-value').textContent.trim().split('/').reverse().join('-'));
+        const dateB = new Date(b.querySelector('.info-value').textContent.trim().split('/').reverse().join('-'));
+        return sortFilter === 'newest' ? dateB - dateA : dateA - dateB;
+    });
+    
+    // Réorganiser le DOM
+    cards.forEach(card => container.appendChild(card));
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Appliquer les filtres lors du changement
+    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', filterPublications);
+    });
+    
+    // Appliquer les filtres initiaux
+    filterPublications();
+});
+</script>
 {% endblock %}

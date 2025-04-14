@@ -275,7 +275,7 @@ class Utilisateur
     {
         if (!$this->hebergements->contains($hebergement)) {
             $this->hebergements[] = $hebergement;
-            $hebergement->setIdUser($this);
+            $hebergement->setId_User($this);
         }
         return $this;
     }
@@ -283,8 +283,8 @@ class Utilisateur
     public function removeHebergement(Hebergement $hebergement): self
     {
         if ($this->hebergements->removeElement($hebergement)) {
-            if ($hebergement->getIdUser() === $this) {
-                $hebergement->setIdUser(null);
+            if ($hebergement->getId_User() === $this) {
+                $hebergement->setId_User(null);
             }
         }
         return $this;
@@ -299,7 +299,7 @@ class Utilisateur
     {
         if (!$this->offres->contains($offre)) {
             $this->offres[] = $offre;
-            $offre->setIdUser($this);
+            $offre->setId_User($this);
         }
         return $this;
     }
@@ -307,8 +307,8 @@ class Utilisateur
     public function removeOffre(Offre $offre): self
     {
         if ($this->offres->removeElement($offre)) {
-            if ($offre->getIdUser() === $this) {
-                $offre->setIdUser(null);
+            if ($offre->getId_User() === $this) {
+                $offre->setId_User(null);
             }
         }
         return $this;
@@ -323,7 +323,7 @@ class Utilisateur
     {
         if (!$this->paniers->contains($panier)) {
             $this->paniers[] = $panier;
-            $panier->setIdUser($this);
+            $panier->setId_User($this);
         }
         return $this;
     }
@@ -331,8 +331,8 @@ class Utilisateur
     public function removePanier(Panier $panier): self
     {
         if ($this->paniers->removeElement($panier)) {
-            if ($panier->getIdUser() === $this) {
-                $panier->setIdUser(null);
+            if ($panier->getId_User() === $this) {
+                $panier->setId_User(null);
             }
         }
         return $this;
@@ -347,7 +347,7 @@ class Utilisateur
     {
         if (!$this->posts->contains($post)) {
             $this->posts[] = $post;
-            $post->setIdUser($this);
+            $post->setId_User($this);
         }
         return $this;
     }
@@ -355,8 +355,8 @@ class Utilisateur
     public function removePost(Post $post): self
     {
         if ($this->posts->removeElement($post)) {
-            if ($post->getIdUser() === $this) {
-                $post->setIdUser(null);
+            if ($post->getId_User() === $this) {
+                $post->setId_User(null);
             }
         }
         return $this;
@@ -371,7 +371,7 @@ class Utilisateur
     {
         if (!$this->reclamations->contains($reclamation)) {
             $this->reclamations[] = $reclamation;
-            $reclamation->setIdUser($this);
+            $reclamation->setId_User($this);
         }
         return $this;
     }
@@ -379,8 +379,8 @@ class Utilisateur
     public function removeReclamation(Reclamation $reclamation): self
     {
         if ($this->reclamations->removeElement($reclamation)) {
-            if ($reclamation->getIdUser() === $this) {
-                $reclamation->setIdUser(null);
+            if ($reclamation->getId_User() === $this) {
+                $reclamation->setId_User(null);
             }
         }
         return $this;
@@ -419,7 +419,7 @@ class Utilisateur
     {
         if (!$this->commentaires->contains($commentaire)) {
             $this->commentaires[] = $commentaire;
-            $commentaire->setIdUser($this);
+            $commentaire->setId_User($this);
         }
         return $this;
     }
@@ -427,8 +427,8 @@ class Utilisateur
     public function removeCommentaire(Commentaire $commentaire): self
     {
         if ($this->commentaires->removeElement($commentaire)) {
-            if ($commentaire->getIdUser() === $this) {
-                $commentaire->setIdUser(null);
+            if ($commentaire->getId_User() === $this) {
+                $commentaire->setId_User(null);
             }
         }
         return $this;
@@ -443,7 +443,7 @@ class Utilisateur
     {
         if (!$this->reactions->contains($reaction)) {
             $this->reactions[] = $reaction;
-            $reaction->setIdUser($this);
+            $reaction->setId_User($this);
         }
         return $this;
     }
@@ -451,8 +451,8 @@ class Utilisateur
     public function removeReaction(Reaction $reaction): self
     {
         if ($this->reactions->removeElement($reaction)) {
-            if ($reaction->getIdUser() === $this) {
-                $reaction->setIdUser(null);
+            if ($reaction->getId_User() === $this) {
+                $reaction->setId_User(null);
             }
         }
         return $this;
@@ -467,7 +467,7 @@ class Utilisateur
     {
         if (!$this->transports->contains($transport)) {
             $this->transports[] = $transport;
-            $transport->setIdUser($this);
+            $transport->setId_User($this);
         }
         return $this;
     }
@@ -475,8 +475,8 @@ class Utilisateur
     public function removeTransport(Transport $transport): self
     {
         if ($this->transports->removeElement($transport)) {
-            if ($transport->getIdUser() === $this) {
-                $transport->setIdUser(null);
+            if ($transport->getId_User() === $this) {
+                $transport->setId_User(null);
             }
         }
         return $this;
@@ -491,7 +491,7 @@ class Utilisateur
     {
         if (!$this->voyages->contains($voyage)) {
             $this->voyages[] = $voyage;
-            $voyage->setIdUser($this);
+            $voyage->setId_User($this);
         }
         return $this;
     }
@@ -499,8 +499,8 @@ class Utilisateur
     public function removeVoyage(Voyage $voyage): self
     {
         if ($this->voyages->removeElement($voyage)) {
-            if ($voyage->getIdUser() === $this) {
-                $voyage->setIdUser(null);
+            if ($voyage->getId_User() === $this) {
+                $voyage->setId_User(null);
             }
         }
         return $this;
