@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use App\Entity\Post;
 use App\Entity\Utilisateur;
 use App\Form\AddPostFormType;
+use App\Repository\PostRepository;
 final class ChatController extends AbstractController
 {
     private $entityManager;
@@ -69,7 +70,7 @@ public function index(): Response
 }
 
 
-    #[Route('/{id}/edit', name: 'app_post_edit')]
+#[Route('/{id}/edit', name: 'app_post_edit')]
 public function editPost(int $id, Request $request): Response
 {
     $post = $this->entityManager->getRepository(Post::class)->find($id);
@@ -82,9 +83,6 @@ public function editPost(int $id, Request $request): Response
     $form->handleRequest($request);
 
     if ($form->isSubmitted() && $form->isValid()) {
-        // Mise à jour de la description
-        $post->setDescription($form->get('description')->getData());
-
         // Gestion de l'image
         $image = $form->get('image')->getData();
         if ($image) {
@@ -93,20 +91,21 @@ public function editPost(int $id, Request $request): Response
                 $this->getParameter('uploads_directory'),
                 $filename
             );
-            $post->setImage($filename);
+            $post->setImage($filename); // Met à jour l'image si un fichier est téléchargé
         }
 
         $this->entityManager->flush();
+
+        $this->addFlash('success', 'Le post a été modifié avec succès.');
 
         return $this->redirectToRoute('app_chat');
     }
 
     return $this->render('interactions/editPost.html.twig', [
         'form' => $form->createView(),
+        'post' => $post, // Transmet la variable 'post' au template
     ]);
 }
-
-
     #[Route('/post/{id}/delete', name: 'app_post_delete')]
     public function deletePost(int $id): Response
     {

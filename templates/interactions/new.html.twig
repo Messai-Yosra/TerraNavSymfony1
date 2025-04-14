@@ -1,12 +1,44 @@
-{# For Add Post - new.html.twig #}
 {% extends "baseClient.html.twig" %}
 {% block titre %}Ajouter un nouveau post{% endblock %}
-{% block content %}
-    <h1>Ajouter un nouveau post</h1>
-    {{ form_start(form) }}
-        {{ form_row(form.description) }}
-        {{ form_row(form.image) }}
-        <button class="btn">Ajoutter</button>
 
-    {{ form_end(form) }}
+{% block content %}
+    <link rel="stylesheet" href="{{ asset('css/styleClient.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/interactions/interactions.css') }}">
+
+    <style>
+       
+    </style>
+
+    <div class="form-container">
+        <h1>📝 Ajouter un nouveau post</h1>
+
+        <div class="card">
+            {{ form_start(form, {'attr': {'id': 'postForm', 'novalidate': 'novalidate'}}) }}
+            
+            <div class="form-group mb-3">
+                {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}
+                {% if form.description.vars.errors is not empty %}
+                    <div class="alert alert-danger">
+                        {{ form_errors(form.description) }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group mb-3">
+                {{ form_label(form.image, 'Image', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.image, {'attr': {'class': 'form-control'}}) }}
+                {% if form.image.vars.errors is not empty %}
+                    <div class="alert alert-danger">
+                        {{ form_errors(form.image) }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <button class="btn btn-primary">
+                <i class="fas fa-plus-circle"></i> Ajouter
+            </button>
+            {{ form_end(form) }}
+        </div>
+    </div>
 {% endblock %}

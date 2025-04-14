@@ -3,41 +3,57 @@
 {% block titre %}Détails du Post{% endblock %}
 
 {% block content %}
-
 <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
 <link href="{{ asset('css/styleClient.css') }}" rel="stylesheet">
-    <div class="container mt-4">
-        <p>{{ post.description }}</p>
 
-        {% if post.image %}
-            <img src="{{ asset('img/' ~ post.image) }}" alt="Image du post" class="img-fluid">
-        {% endif %}
-
-        <h3 class="mt-4">Commentaires</h3>
-
-        {% if post.commentaires is not empty %}
-            <ul class="list-group">
-                {% for commentaire in post.commentaires %}
-                    <li class="list-group-item">
-                        <strong>{{ commentaire.id_User.nom }}</strong> 
-                        contenue : {{ commentaire.contenu }} 
-                        <br>
-                        <small>date : {{ commentaire.date ? commentaire.date|date('d/m/Y H:i') : 'Non défini' }}</small>
-                        <div class="mt-2">
-                            <form action="{{ path('app_commentaire_delete', {'id': commentaire.id}) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce commentaire ?')">
-                                <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
-                            </form>
-                            <a href="{{ path('app_commentaire_edit', {'id': commentaire.id}) }}"method="POST" class="btn btn-warning btn-sm">Modifier</a>
-                        </div>
-                        
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>Aucun commentaire pour ce post.</p>
-        {% endif %}
-
-        <a href="{{ path('app_commentaire_new', {'postId': post.id}) }}" class="btn btn-success mt-2">Ajouter un commentaire</a>
-        <a href="{{ path('app_chat') }}" class="btn btn-secondary mt-2">Retour</a>
+<div class="container mt-4">
+    <!-- Section Post -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h3 class="card-title">Détails du Post</h3>
+            <p class="card-text">{{ post.description }}</p>
+            {% if post.image %}
+                <img src="{{ asset('img/' ~ post.image) }}" alt="Image du post" class="img-fluid rounded">
+            {% endif %}
+        </div>
     </div>
+
+    <!-- Section Commentaires -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title">Commentaires</h4>
+            {% if post.commentaires is not empty %}
+                <ul class="list-group list-group-flush">
+                    {% for commentaire in post.commentaires %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ commentaire.id_User.nom }}</strong>
+                                    <p class="mb-1">Contenu : {{ commentaire.contenu }}</p>
+                                    <small class="text-muted">Date : {{ commentaire.date ? commentaire.date|date('d/m/Y H:i') : 'Non défini' }}</small>
+                                </div>
+                                <div>
+                                    <form action="{{ path('app_commentaire_delete', {'id': commentaire.id}) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce commentaire ?')" class="d-inline">
+                                        <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+                                    </form>
+                                    <a href="{{ path('app_commentaire_edit', {'id': commentaire.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
+                                </div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">Aucun commentaire pour ce post.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Boutons d'action -->
+    <div class="mt-4">
+        <a href="{{ path('app_commentaire_new', {'postId': post.id}) }}" class="btn btn-success">
+            <i class="fas fa-plus-circle"></i> Ajouter un commentaire
+        </a>
+
+    </div>
+</div>
 {% endblock %}

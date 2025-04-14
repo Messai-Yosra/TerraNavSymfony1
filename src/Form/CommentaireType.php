@@ -15,7 +15,7 @@ class CommentaireType extends AbstractType
         $builder
             ->add('contenu', TextareaType::class, [
                 'label' => 'Votre commentaire',
-                'attr' => ['class' => 'form-control']
+                'attr' => ['class' => 'form-control', 'placeholder' => 'Écrivez votre commentaire ici...']
             ]);
     }
 
