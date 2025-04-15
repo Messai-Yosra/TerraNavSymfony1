@@ -7,6 +7,7 @@ use App\Entity\Chambre;
 use App\Entity\Panier;
 use App\Entity\Voyage;
 use App\Entity\Transport;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 class Reservation
@@ -35,12 +36,15 @@ class Reservation
     private ?string $prix = null;
 
     #[ORM\Column(name: "date_reservation", type: "datetime", nullable: true, options: ["default" => "CURRENT_TIMESTAMP"])]
+    #[Assert\GreaterThan("today", message: "La date de réservation doit être dans le futur")]
     private ?\DateTimeInterface $date_reservation = null;
 
     #[ORM\Column(name: "Etat", type: "string", length: 10)]
+    #[Assert\Choice(choices: ["CONFIRMED", "PENDING"], message: "L'état doit être soit CONFIRMED soit PENDING")]
     private string $Etat;
 
     #[ORM\Column(name: "nb_places", type: "integer", nullable: true)]
+    #[Assert\Positive(message: "Le nombre de places doit être un nombre positif")]
     private ?int $nb_places = null;
 
     #[ORM\ManyToOne(targetEntity: Chambre::class, inversedBy: "reservations")]
@@ -48,6 +52,7 @@ class Reservation
     private ?Chambre $id_Chambre = null;
 
     #[ORM\Column(name: "nbJoursHebergement", type: "integer", nullable: true)]
+    #[Assert\Positive(message: "Le nombre de jours d'hébergement doit être un nombre positif")]
     private ?int $nbJoursHebergement = null;
 
     #[ORM\Column(name: "dateAffectation", type: "datetime", nullable: true, options: ["default" => "CURRENT_TIMESTAMP"])]
