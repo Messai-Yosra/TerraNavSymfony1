@@ -1,0 +1,60 @@
+{% extends 'baseClient.html.twig' %}
+
+{% block title %}Détails de l'hébergement{% endblock %}
+
+{% block content %}
+    <h1>Chambre</h1>
+
+    <table class="table">
+        <tbody>
+        <tr>
+            <th>Id</th>
+            <td>{{ chambre.id }}</td>
+        </tr>
+        <tr>
+            <th>Numero</th>
+            <td>{{ chambre.numero }}</td>
+        </tr>
+        <tr>
+            <th>Disponibilite</th>
+            <td>{{ chambre.disponibilite ? 'Yes' : 'No' }}</td>
+        </tr>
+        <tr>
+            <th>Prix</th>
+            <td>{{ chambre.prix }}</td>
+        </tr>
+        <tr>
+            <th>Description</th>
+            <td>{{ chambre.description }}</td>
+        </tr>
+        <tr>
+            <th>Capacite</th>
+            <td>{{ chambre.capacite }}</td>
+        </tr>
+        <tr>
+            <th>Equipements</th>
+            <td>{{ chambre.equipements }}</td>
+        </tr>
+        <tr>
+            <th>Vue</th>
+            <td>{{ chambre.vue }}</td>
+        </tr>
+        <tr>
+            <th>Taille</th>
+            <td>{{ chambre.taille }}</td>
+        </tr>
+        <tr>
+            <th>Url3d</th>
+            <td>{{ chambre.url3d }}</td>
+        </tr>
+        <tr>
+            <th>Hebergement</th>
+            <td>{{ chambre.hebergement.id }}</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_chambre_index') }}">back to list</a>
+    <a href="{{ path('app_chambre_edit', {'id': chambre.id}) }}">edit</a>
+    {{ include('hebergements/chambre/_delete_form.html.twig') }}
+{% endblock %}

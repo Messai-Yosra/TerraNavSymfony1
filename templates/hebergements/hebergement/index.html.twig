@@ -1,0 +1,123 @@
+{% extends 'baseClient.html.twig' %}
+
+{% block title %}Liste des Hébergements{% endblock %}
+
+{% block content %}
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+                <h6 class="section-title text-center text-primary text-uppercase">Nos Hébergements</h6>
+                <h1 class="mb-5">Découvrez nos <span class="text-primary text-uppercase">Hébergements</span></h1>
+            </div>
+            
+            {# Affichage des messages flash #}
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label == 'error' ? 'danger' : label }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endfor %}
+            
+            <div class="row g-4">
+                {% if hebergements|length > 0 %}
+                    {% for hebergement in hebergements %}
+                        <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.{{ loop.index }}s">
+                            <div class="room-item shadow rounded overflow-hidden">
+                                <div class="position-relative">
+                                    <img class="img-fluid" src="{{ asset('img/hebergement-default.jpg') }}" alt="{{ hebergement.nom }}">
+                                </div>
+                                <div class="p-4 mt-2">
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <h5 class="mb-0">{{ hebergement.nom }}</h5>
+                                    </div>
+                                    <div class="d-flex mb-3">
+                                        <small class="border-end me-3 pe-3"><i class="fa fa-map-marker-alt text-primary me-2"></i>{{ hebergement.ville }}, {{ hebergement.pays }}</small>
+                                    </div>
+                                    <p class="text-body mb-3">{{ hebergement.description|striptags|length > 100 ? hebergement.description|striptags|slice(0, 100) ~ '...' : hebergement.description|striptags }}</p>
+                                    <div class="d-flex justify-content-between">
+                                        <a class="btn btn-sm btn-primary rounded py-2 px-4" href="{{ path('app_hebergement_show', {'id': hebergement.id}) }}">Voir détails</a>
+                                        <div>
+                                            <a class="btn btn-sm btn-warning rounded py-2 px-4" href="{{ path('app_hebergement_edit', {'id': hebergement.id}) }}">Modifier</a>
+                                            
+                                            {# Bouton de suppression compact #}
+                                            <form method="post" action="{{ path('app_hebergement_delete', {'id': hebergement.id}) }}" style="display: inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet hébergement?');">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ hebergement.id) }}">
+                                                <button type="button" class="btn btn-sm btn-danger rounded py-2 px-4 delete-btn">Supprimer</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12 text-center py-5">
+                        <h4>Aucun hébergement disponible pour le moment.</h4>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="row mt-5">
+                <div class="col-12 text-center">
+                    <a href="{{ path('app_hebergement_index') }}" class="btn btn-secondary py-3 px-5 me-3">Actualiser la liste</a>
+                    
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('app_hebergement_add') }}" class="btn btn-primary py-3 px-5">Ajouter un hébergement</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row mt-5">
+                <div class="col-12 text-center">
+                    <a href="{{ path('app_hebergement_add') }}" class="btn btn-primary py-3 px-5">Ajouter un hébergement</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmation de suppression -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirmer la suppression</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Êtes-vous sûr de vouloir supprimer cet hébergement? Cette action est irréversible.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-danger" id="confirmDelete">Supprimer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Script pour gérer la confirmation de suppression avec modal
+        document.addEventListener('DOMContentLoaded', function() {
+            let deleteForm;
+            
+            // Intercepter les clics sur les boutons de suppression
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    deleteForm = this.closest('form');
+                    
+                    // Afficher la modal
+                    var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+                    deleteModal.show();
+                });
+            });
+            
+            // Action quand l'utilisateur confirme la suppression
+            document.getElementById('confirmDelete').addEventListener('click', function() {
+                if (deleteForm) {
+                    deleteForm.submit();
+                }
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+
+<title>New Image</title>
+
+{% block body %}
+    <h1>Create new Image</h1>
+
+    {{ include('image/_form.html.twig') }}
+
+    <a href="{{ path('app_image_index') }}">back to list</a>
+{% endblock %}

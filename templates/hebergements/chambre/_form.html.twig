@@ -1,0 +1,39 @@
+{{ form_start(form, {'attr': {'class': 'row g-3'}}) }}
+<div class="col-md-6">
+    {{ form_row(form.numero, {'attr': {'class': 'form-control'}}) }}
+</div>
+<div class="col-md-6">
+    {{ form_row(form.prix, {'attr': {'class': 'form-control'}}) }}
+</div>
+<div class="col-md-6">
+    {{ form_row(form.capacite, {'attr': {'class': 'form-control'}}) }}
+</div>
+<div class="col-md-6">
+    {{ form_row(form.hebergement, {'attr': {'class': 'form-control'}}) }}
+</div>
+<div class="col-md-6">
+    {{ form_row(form.url3d, {'attr': {'class': 'form-control'}, 'label': 'URL 3D'}) }}
+</div>
+<div class="col-md-6">
+    <div class="form-check form-switch pt-4">
+        {{ form_row(form.disponibilite, {'attr': {'class': 'form-check-input'}}) }}
+    </div>
+</div>
+<div class="col-12">
+    {{ form_row(form.description, {'attr': {'class': 'form-control', 'rows': 3}}) }}
+</div>
+<div class="col-md-6">
+    {{ form_row(form.equipements, {'attr': {'class': 'form-control'}}) }}
+</div>
+<div class="col-md-6">
+    {{ form_row(form.vue, {'attr': {'class': 'form-control'}}) }}
+</div>
+<div class="col-md-6">
+    {{ form_row(form.taille, {'attr': {'class': 'form-control'}}) }}
+</div>
+<div class="col-12 text-center">
+    <button type="submit" class="btn btn-primary py-3 px-5">
+        <i class="fas fa-save me-2"></i> {{ button_label|default('Save') }}
+    </button>
+</div>
+{{ form_end(form) }}
