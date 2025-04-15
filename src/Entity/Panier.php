@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Utilisateur;
 use Doctrine\Common\Collections\Collection;
 use App\Entity\Reservation;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 class Panier
@@ -20,6 +21,7 @@ class Panier
     private Utilisateur $id_user;
 
     #[ORM\Column(name: "prix_total", type: "float", nullable: true)]
+    #[Assert\PositiveOrZero(message: "Le prix doit être positif ou égal à 0")]
     private ?float $prix_total = null;
 
     #[ORM\Column(name: "date_validation", type: "datetime", nullable: true)]
