@@ -23,6 +23,7 @@
         <div class="container">
             <div class="bg-white shadow rounded-3" style="padding: 25px;">
                 <form id="filterForm" method="get" action="{{ path('app_voyages') }}" class="auto-submit-form">
+                    <input type="hidden" name="search" value="{{ filterParams.search ?? '' }}">
                     <div class="row g-3 align-items-end">
                         <!-- Prix Minimum et Maximum - Regroupés -->
                         <div class="col-md-4">
@@ -85,6 +86,13 @@
                                        {% if filterParams.onSale %}checked{% endif %}>
                                 <label class="form-check-label" for="onSale">Promotions</label>
                             </div>
+                        </div>
+
+                        <!-- Ajoutez cette colonne dans le formulaire de filtres -->
+                        <div class="col-12 text-center mt-3">
+                            <button type="button" class="btn btn-secondary w-auto px-4 py-2" onclick="resetFilters()">
+                                <i class="fas fa-undo me-2"></i>Réinitialiser
+                            </button>
                         </div>
                     </div>
                 </form>
@@ -417,6 +425,41 @@
             background-color: #f8f9fa;
             padding-left: 1.5rem;
         }
+        /* Ajoutez ceci à la section style */
+        .loading-filters {
+            position: relative;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .loading-filters::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.7);
+            z-index: 999;
+        }
+
+        .mt-auto {
+            margin-top: auto;
+        }
+
+        .text-center {
+            text-align: center !important;
+        }
+
+        .btn-secondary {
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
     </style>
     <script>
         // Fonction debounce pour limiter les appels fréquents
@@ -435,20 +478,38 @@
             const loadingOverlay = document.createElement('div');
             loadingOverlay.className = 'loading-overlay';
             loadingOverlay.innerHTML = `
-                <div class="d-flex flex-column align-items-center">
-                    <div class="custom-spinner mb-3"></div>
-                    <p class="text-primary fw-bold">Chargement des voyages...</p>
-                </div>
-            `;
+            <div class="d-flex flex-column align-items-center">
+                <div class="custom-spinner mb-3"></div>
+                <p class="text-primary fw-bold">Chargement des voyages...</p>
+            </div>
+        `;
             document.body.appendChild(loadingOverlay);
 
-            // Fonction pour soumettre le formulaire avec debounce
-            const submitFormDebounced = debounce((form) => {
+            // Gestion unifiée des changements de filtres
+            const handleFilterChange = debounce(() => {
                 loadingOverlay.style.display = 'flex';
+                const form = document.getElementById('filterForm');
                 form.classList.add('loading-filters');
-                document.querySelector('.loading-content')?.classList.add('loading-content');
                 setTimeout(() => form.submit(), 100);
             }, 500);
+
+            // Configuration des écouteurs d'événements pour les filtres
+            const filterElements = [
+                document.getElementById('minPlaces'),
+                document.getElementById('type'),
+                document.getElementById('sort'),
+                document.getElementById('onSale')
+            ];
+
+            filterElements.forEach(element => {
+                if (element) element.addEventListener('change', handleFilterChange);
+            });
+
+            // Gestion spécifique pour l'input number
+            const minPlacesInput = document.getElementById('minPlaces');
+            if (minPlacesInput) {
+                minPlacesInput.addEventListener('input', handleFilterChange);
+            }
 
             // Gestion des sliders de prix
             const minPriceSlider = document.getElementById('minPriceSlider');
@@ -458,10 +519,7 @@
             const minPriceInput = document.getElementById('minPrice');
             const maxPriceInput = document.getElementById('maxPrice');
 
-            const updatePriceSliders = () => {
-                const form = document.getElementById('filterForm');
-                submitFormDebounced(form);
-            };
+            const updatePriceSliders = () => handleFilterChange();
 
             if (minPriceSlider && maxPriceSlider) {
                 minPriceSlider.addEventListener('input', function() {
@@ -491,9 +549,8 @@
                 });
             }
 
-            // Recherche avec suggestions
+            // Gestion de la recherche avec suggestions
             const searchInput = document.getElementById('searchInput');
-            const searchForm = document.querySelector('.input-group.shadow-lg form');
             const suggestionsContainer = document.getElementById('searchSuggestions');
 
             if (searchInput) {
@@ -514,8 +571,8 @@
                         if (suggestions.length > 0) {
                             suggestionsContainer.innerHTML = suggestions.map(suggestion =>
                                 `<a href="#" class="list-group-item list-group-item-action" data-suggestion="${suggestion.titre}">
-                                    ${suggestion.titre}
-                                 </a>`
+                                ${suggestion.titre}
+                            </a>`
                             ).join('');
                             suggestionsContainer.classList.remove('d-none');
                         } else {
@@ -527,7 +584,6 @@
                     }
                 }, 300));
 
-                // Gestion du clic sur une suggestion
                 suggestionsContainer.addEventListener('click', function(e) {
                     if (e.target.classList.contains('list-group-item')) {
                         e.preventDefault();
@@ -536,7 +592,6 @@
                     }
                 });
 
-                // Masquer les suggestions quand on clique ailleurs
                 document.addEventListener('click', function(e) {
                     if (!searchInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
                         suggestionsContainer.classList.add('d-none');
@@ -544,32 +599,42 @@
                 });
             }
 
-            // Pour le switch de promotion
-            const onSaleSwitch = document.getElementById('onSale');
-            if (onSaleSwitch) {
-                onSaleSwitch.addEventListener('change', () => {
-                    submitFormDebounced(document.getElementById('filterForm'));
-                });
-            }
-
-            // Style pour l'overlay de chargement
+            // Ajout des styles pour l'overlay
             const style = document.createElement('style');
             style.textContent = `
-                .loading-overlay {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background-color: rgba(255,255,255,0.85);
-                    z-index: 9999;
-                    display: none;
-                    justify-content: center;
-                    align-items: center;
-                    flex-direction: column;
-                }
-            `;
+            .loading-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(255,255,255,0.85);
+                z-index: 9999;
+                display: none;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+            }
+        `;
             document.head.appendChild(style);
         });
+        function resetFilters() {
+            // Réinitialiser les sliders de prix
+            document.getElementById('minPriceSlider').value = 0;
+            document.getElementById('maxPriceSlider').value = 10000;
+            document.getElementById('minPrice').value = 0;
+            document.getElementById('maxPrice').value = 10000;
+            document.getElementById('minPriceValue').textContent = '0 DT';
+            document.getElementById('maxPriceValue').textContent = '10000 DT';
+
+            // Réinitialiser les autres champs
+            document.getElementById('minPlaces').value = '';
+            document.getElementById('type').value = 'all';
+            document.getElementById('sort').selectedIndex = 0;
+            document.getElementById('onSale').checked = false;
+
+            // Soumettre le formulaire
+            window.location.href = "{{ path('app_voyages') }}";
+        }
     </script>
 {% endblock %}
