@@ -75,6 +75,83 @@ final class VoyageClientController extends AbstractController
         return $this->json($suggestions);
     }
 
+    /*#[Route('/Reservervoyage/{id}', name: 'app_voyage_reserver', methods: ['GET', 'POST'])]
+    public function Reserver(
+        Voyage $voyage,
+        Request $request,
+        PanierRepository $panierRepo,
+        ReservationRepository $reservationRepo,
+        EntityManagerInterface $em,
+        ValidatorInterface $validator
+    ): Response {
+        if ($request->isMethod('POST')) {
+            $isAjax = $request->isXmlHttpRequest();
+            $nbPlaces = $request->request->getInt('nbPlaces', 1);
+
+            // Get or create panier for user ID 1
+            $userId = 1;
+            $panier = $panierRepo->findByUser($userId) ?? $panierRepo->createPanierForUser($userId);
+
+            $price = $voyage->getId_offre() ?
+                ($voyage->getPrix() * (1 - $voyage->getId_offre()->getReduction()/100)) * $nbPlaces :
+                $voyage->getPrix() * $nbPlaces;
+
+            $reservation = new Reservation();
+            $reservation->setId_voyage($voyage);
+            $reservation->setId_panier($panier);
+            $reservation->setType_service('Voyage');
+            $reservation->setPrix($price);
+            $reservation->setDate_reservation($voyage->getDateDepart());
+            $reservation->setDateAffectation(new \DateTime());
+            $reservation->setEtat('PENDING');
+            $reservation->setNb_places($nbPlaces);
+
+            // Validate against entity asserts
+            $errors = $validator->validate($reservation);
+
+            if (count($errors) > 0) {
+                $errorMessages = [];
+                foreach ($errors as $error) {
+                    $errorMessages[] = $error->getMessage();
+                }
+                return $this->json([
+                    'success' => false,
+                    'message' => implode(', ', $errorMessages)
+                ], 400);
+            }
+
+            // Check available places after validation
+            if ($nbPlaces > $voyage->getNbPlacesD()) {
+                return $this->json([
+                    'success' => false,
+                    'message' => sprintf('Seulement %d places disponibles.', $voyage->getNbPlacesD())
+                ], 400);
+            }
+
+            try {
+                $voyage->setNbPlacesD($voyage->getNbPlacesD() - $nbPlaces);
+                $reservationRepo->create($reservation);
+                $panierRepo->updateTotalPrice($panier->getId());
+
+                return $this->json([
+                    'success' => true,
+                    'message' => 'Réservation confirmée et ajoutée à votre panier!',
+                    'remainingPlaces' => $voyage->getNbPlacesD()
+                ]);
+            } catch (\Exception $e) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Une erreur est survenue lors de la réservation'
+                ], 500);
+            }
+        }
+
+        return $this->render('voyages/ReserverVoyage.html.twig', [
+            'voyage' => $voyage
+        ]);
+    }*/
+
+
 
 
 }
