@@ -2,28 +2,112 @@ security:
     # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        users_in_memory: { memory: null }
+        utilisateur_provider:
+            entity:
+                class: App\Entity\Utilisateur
+                property: email # Use the username field for authentication
+
+    # Configuration correcte du firewall
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
             lazy: true
-            provider: users_in_memory
+            provider: utilisateur_provider
+            entry_point: form_login  # Ajoutez cette ligne
 
-            # activate different ways to authenticate
-            # https://symfony.com/doc/current/security.html#the-firewall
+            # Enable form login
+            form_login:
+                login_path: app_login
+                check_path: app_login_check
+                default_target_path: app_home
+                # Utilisez le success handler personnalisé au lieu de default_target_path
+                success_handler: App\Security\LoginSuccessHandler
+                # Désactivez ces options pour permettre au handler de fonctionner
+                # always_use_default_target_path: false
+                use_referer: false
+                use_forward: false
+                
+            custom_authenticators:
+                - App\Security\GoogleAuthenticator  # Assurez-vous que ceci correspond au namespace
 
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
+            logout:
+                path: app_logout
+                target: app_login
 
-    # Easy way to control access for large sections of your site
-    # Note: Only the *first* access control that matches will be used
+            # Ajouter cette section pour autoriser les routes de réinitialisation de mot de passe
+            # access_control:
+            #     - { path: ^/reset-password, roles: PUBLIC_ACCESS }
+
+    # L'option access_control doit être ICI, au même niveau que firewalls
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        # Routes publiques en premier
+        - { path: ^/reset-password, roles: PUBLIC_ACCESS }
+        - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/register, roles: PUBLIC_ACCESS }
+        - { path: ^/signup$, roles: PUBLIC_ACCESS }
+        - { path: ^/login_check$, roles: PUBLIC_ACCESS }
+        - { path: ^/logout$, roles: PUBLIC_ACCESS }
+        
+        # Routes OAuth Google (ajoutez ces lignes)
+        - { path: ^/connect/google, roles: PUBLIC_ACCESS }
+        - { path: ^/connect/google/check, roles: PUBLIC_ACCESS }
+        
+        # Routes qui nécessitent authentification
+        - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/reclamer, roles: ROLE_USER }
+        
+        # Routes temporairement ouvertes pour débogage
+        - { path: ^/DashboardClient, roles: PUBLIC_ACCESS }
+        - { path: ^/admin/user, roles: PUBLIC_ACCESS }
+
+
+        # Routes Gestion voyages
+        - { path: ^/AjouterOffre, roles: PUBLIC_ACCESS }
+        - { path: ^/AjouterVoyage, roles: PUBLIC_ACCESS }
+        - { path: ^/Bienvenue, roles: PUBLIC_ACCESS }
+        - { path: ^/statsAgence, roles: PUBLIC_ACCESS }
+        - { path: "^/offres/Details/[0-9]+$", roles: PUBLIC_ACCESS }
+        - { path: ^/agence/[0-9]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/ModifierVoyage/[0-9]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/Supprimer/Voyage/[0-9]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/modifierOffre/[0-9]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/modifierOffreBd/[0-9]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/supprimerOffre/[0-9]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/ModifierVoyagebd/[0-9]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/offresAgence, roles: PUBLIC_ACCESS }
+        - { path: ^/offreAgence/[0-9]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/offres, roles: PUBLIC_ACCESS }
+        - { path: ^/offres/suggestions, roles: PUBLIC_ACCESS }
+        - { path: ^/offres/Details/[0-9]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/AjoutOffre, roles: PUBLIC_ACCESS }
+        - { path: ^/confirmationAjoutOffre, roles: PUBLIC_ACCESS }
+        - { path: ^/publierOffre, roles: PUBLIC_ACCESS }
+        - { path: ^/agence/statistiques, roles: PUBLIC_ACCESS }
+        - { path: ^/agence/statistiques/voyages/csv, roles: PUBLIC_ACCESS }
+        - { path: ^/agence/statistiques/offres/pdf, roles: PUBLIC_ACCESS }
+        - { path: ^/agence/statistiques/voyages/excel, roles: PUBLIC_ACCESS }
+        - { path: ^/agence/voyage/[0-9]+$/export-ics, roles: PUBLIC_ACCESS }
+        - { path: ^/VoyagesAdmin, roles: PUBLIC_ACCESS }
+        - { path: ^/VoyagesAgence, roles: PUBLIC_ACCESS }
+        - { path: ^/voyageAgence/[0-9]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/VoyagesClient, roles: PUBLIC_ACCESS }
+        - { path: "^/voyage/[0-9]+$", roles: PUBLIC_ACCESS }
+        - { path: ^/Reservervoyage/[0-9]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/voyages/suggestions, roles: PUBLIC_ACCESS }
+        - { path: ^/AjoutVoyage, roles: PUBLIC_ACCESS }
+        - { path: ^/confirmationAjout, roles: PUBLIC_ACCESS }
+        - { path: ^/publierVoyage, roles: PUBLIC_ACCESS }
+
+        
+        # Règle générale - utilisez IS_AUTHENTICATED_ANONYMOUSLY au lieu de PUBLIC_ACCESS
+        # pour les routes qui devraient être accessibles sans authentification
+        - { path: ^/, roles: IS_AUTHENTICATED_ANONYMOUSLY }
 
 when@test:
     security:

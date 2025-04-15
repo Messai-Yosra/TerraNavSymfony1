@@ -1,0 +1,113 @@
+{% extends "baseClient.html.twig" %}
+
+{% block titre %} Sélection des clients à notifier {% endblock %}
+
+{% block content %}
+    <div class="container-fluid page-header mb-5 p-0" style="background-image: url({{ asset('img/voyages/acceuil4.avif') }});">
+        <div class="container-fluid page-header-inner py-5">
+            <div class="container text-center pb-5">
+                <h1 class="display-3 text-white mb-3 animated slideInDown">Sélection des clients</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center text-uppercase">
+                        <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+                        <li class="breadcrumb-item text-white active" aria-current="page">Notification</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+    {% block flash_messages %}
+        {% for type, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ type }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    {% endblock %}
+
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="mb-0">Sélectionnez les clients à notifier</h4>
+                        </div>
+                        <div class="card-body">
+                            <form action="{{ path('app_notifier_clients') }}" method="post">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                        <tr>
+                                            <th>Sélection</th>
+                                            <th>Nom</th>
+                                            <th>Email</th>
+                                            <th>Téléphone</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for client in clients %}
+                                            <tr>
+                                                <td>
+                                                    <input type="checkbox" name="users[]" value="{{ client.id }}" class="form-check-input">
+                                                </td>
+                                                <td>{{ client.nom }} {{ client.prenom }}</td>
+                                                <td>{{ client.email }}</td>
+                                                <td>{{ client.numTel ?? 'N/A' }}</td>
+                                            </tr>
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="4" class="text-center">Aucun client trouvé</td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="d-flex justify-content-between mt-4">
+                                    <a href="{{ path('app_confirmation_ajout') }}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i> Retour
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane me-2"></i> Notifier les clients sélectionnés
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .table-hover tbody tr:hover {
+            background-color: rgba(0, 123, 255, 0.1);
+        }
+        .card {
+            border-radius: 10px;
+        }
+        .form-check-input {
+            transform: scale(1.2);
+        }
+    </style>
+    <script>
+        document.getElementById('notificationForm').addEventListener('submit', function(e) {
+            // Afficher un indicateur de chargement
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Envoi en cours...';
+            submitBtn.disabled = true;
+
+            // Vous pouvez aussi valider ici qu'au moins une case est cochée
+            const checkedBoxes = this.querySelectorAll('input[type="checkbox"]:checked');
+            if (checkedBoxes.length === 0) {
+                e.preventDefault();
+                alert('Veuillez sélectionner au moins un client');
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Notifier les clients sélectionnés';
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+{% endblock %}

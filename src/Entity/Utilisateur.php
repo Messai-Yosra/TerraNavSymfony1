@@ -6,9 +6,15 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
 use App\Entity\Voyage;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity]
-class Utilisateur
+#[UniqueEntity(fields: ['email'], message: 'Cet email est déjà utilisé')]
+#[UniqueEntity(fields: ['username'], message: 'Ce nom d\'utilisateur est déjà utilisé')]
+class Utilisateur implements PasswordAuthenticatedUserInterface, UserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: "AUTO")]
@@ -16,39 +22,94 @@ class Utilisateur
     private int $id;
 
     #[ORM\Column(name: "username", type: "string", length: 255)]
+    #[Assert\NotBlank(message: "Le nom d'utilisateur ne peut pas être vide")]
+    #[Assert\Length(
+        min: 3, 
+        max: 255, 
+        minMessage: "Le nom d'utilisateur doit contenir au moins {{ limit }} caractères",
+        maxMessage: "Le nom d'utilisateur ne peut pas dépasser {{ limit }} caractères"
+    )]
     private string $username;
 
     #[ORM\Column(name: "password", type: "string", length: 255)]
+    #[Assert\NotBlank(message: "Le mot de passe ne peut pas être vide")]
+    #[Assert\Length(
+        min: 8,
+        minMessage: "Le mot de passe doit contenir au moins {{ limit }} caractères"
+    )]
+    #[Assert\Regex(
+        pattern: "/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/",
+        message: "Le mot de passe doit contenir au moins une lettre minuscule, une lettre majuscule et un chiffre"
+    )]
     private string $password;
 
     #[ORM\Column(name: "email", type: "string", length: 255)]
+    #[Assert\NotBlank(message: "L'email ne peut pas être vide")]
+    #[Assert\Email(message: "L'email '{{ value }}' n'est pas valide")]
     private string $email;
 
     #[ORM\Column(name: "numTel", type: "string", length: 20, nullable: true)]
+    #[Assert\Regex(
+        pattern: "/^[0-9]{8}$/",
+        message: "Le numéro de téléphone doit contenir 8 chiffres",
+        match: true
+    )]
     private ?string $numTel;
 
     #[ORM\Column(name: "address", type: "text", nullable: true)]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: "L'adresse ne peut pas dépasser {{ limit }} caractères"
+    )]
     private ?string $address;
 
     #[ORM\Column(name: "role", type: "string", length: 20)]
+    #[Assert\NotBlank(message: "Le rôle ne peut pas être vide")]
+    #[Assert\Choice(
+        choices: ["admin", "CLIENT", "Agence"],
+        message: "Le rôle doit être 'admin', 'CLIENT' ou 'Agence'"
+    )]
     private string $role;
 
-    #[ORM\Column(name: "nom", type: "string", length: 40, nullable: true)]
-    private ?string $nom;
+    #[ORM\Column(name: "nom", type: "string", length: 255, nullable: true)]
+    #[Assert\NotBlank(message: "Le nom ne peut pas être vide")]
+    private ?string $nom = null;
 
-    #[ORM\Column(name: "prenom", type: "string", length: 50, nullable: true)]
-    private ?string $prenom;
+    #[ORM\Column(name: "prenom", type: "string", length: 255, nullable: true)]
+    #[Assert\NotBlank(message: "Le prénom ne peut pas être vide")]
+    private ?string $prenom = null;
 
     #[ORM\Column(name: "nomagence", type: "string", length: 40, nullable: true)]
+    #[Assert\Length(
+        min: 2,
+        max: 40,
+        minMessage: "Le nom de l'agence doit contenir au moins {{ limit }} caractères",
+        maxMessage: "Le nom de l'agence ne peut pas dépasser {{ limit }} caractères"
+    )]
     private ?string $nomagence;
 
     #[ORM\Column(name: "cin", type: "string", length: 40, nullable: true)]
+    #[Assert\Regex(
+        pattern: "/^[0-9]{8}$/",
+        message: "Le CIN doit contenir 8 chiffres",
+        match: true
+    )]
     private ?string $cin;
 
     #[ORM\Column(name: "typeAgence", type: "string", length: 50, nullable: true)]
+    #[Assert\Choice(
+        choices: ["Transport", "Hebergement", "Restaurant", "Mixte"],
+        message: "Le type d'agence doit être 'Transport', 'Hebergement', 'Restaurant' ou 'Mixte'",
+        multiple: false
+    )]
     private ?string $typeAgence;
 
     #[ORM\Column(name: "photo", type: "string", length: 255, nullable: true)]
+    #[Assert\Image(
+        maxSize: "1024k",
+        mimeTypes: ["image/jpeg", "image/png", "image/gif"],
+        mimeTypesMessage: "Veuillez télécharger une image valide (JPG, PNG ou GIF)"
+    )]
     private ?string $photo;
 
     #[ORM\Column(name: "reset_token", type: "string", length: 255, nullable: true)]
@@ -167,7 +228,7 @@ class Utilisateur
         return $this;
     }
 
-    public function getRole(): string
+    public function getRole(): ?string
     {
         return $this->role;
     }
@@ -275,7 +336,7 @@ class Utilisateur
     {
         if (!$this->hebergements->contains($hebergement)) {
             $this->hebergements[] = $hebergement;
-            $hebergement->setIdUser($this);
+            $hebergement->setId_User($this);
         }
         return $this;
     }
@@ -283,8 +344,8 @@ class Utilisateur
     public function removeHebergement(Hebergement $hebergement): self
     {
         if ($this->hebergements->removeElement($hebergement)) {
-            if ($hebergement->getIdUser() === $this) {
-                $hebergement->setIdUser(null);
+            if ($hebergement->getId_User() === $this) {
+                $hebergement->setId_User(null);
             }
         }
         return $this;
@@ -299,7 +360,7 @@ class Utilisateur
     {
         if (!$this->offres->contains($offre)) {
             $this->offres[] = $offre;
-            $offre->setIdUser($this);
+            $offre->setId_User($this);
         }
         return $this;
     }
@@ -307,8 +368,8 @@ class Utilisateur
     public function removeOffre(Offre $offre): self
     {
         if ($this->offres->removeElement($offre)) {
-            if ($offre->getIdUser() === $this) {
-                $offre->setIdUser(null);
+            if ($offre->getId_User() === $this) {
+                $offre->setId_User(null);
             }
         }
         return $this;
@@ -347,7 +408,7 @@ class Utilisateur
     {
         if (!$this->posts->contains($post)) {
             $this->posts[] = $post;
-            $post->setIdUser($this);
+            $post->setId_User($this);
         }
         return $this;
     }
@@ -355,8 +416,8 @@ class Utilisateur
     public function removePost(Post $post): self
     {
         if ($this->posts->removeElement($post)) {
-            if ($post->getIdUser() === $this) {
-                $post->setIdUser(null);
+            if ($post->getId_User() === $this) {
+                $post->setId_User(null);
             }
         }
         return $this;
@@ -371,7 +432,7 @@ class Utilisateur
     {
         if (!$this->reclamations->contains($reclamation)) {
             $this->reclamations[] = $reclamation;
-            $reclamation->setIdUser($this);
+            $reclamation->setId_User($this);
         }
         return $this;
     }
@@ -379,8 +440,8 @@ class Utilisateur
     public function removeReclamation(Reclamation $reclamation): self
     {
         if ($this->reclamations->removeElement($reclamation)) {
-            if ($reclamation->getIdUser() === $this) {
-                $reclamation->setIdUser(null);
+            if ($reclamation->getId_User() === $this) {
+                $reclamation->setId_User(null);
             }
         }
         return $this;
@@ -419,7 +480,7 @@ class Utilisateur
     {
         if (!$this->commentaires->contains($commentaire)) {
             $this->commentaires[] = $commentaire;
-            $commentaire->setIdUser($this);
+            $commentaire->setId_User($this);
         }
         return $this;
     }
@@ -427,8 +488,8 @@ class Utilisateur
     public function removeCommentaire(Commentaire $commentaire): self
     {
         if ($this->commentaires->removeElement($commentaire)) {
-            if ($commentaire->getIdUser() === $this) {
-                $commentaire->setIdUser(null);
+            if ($commentaire->getId_User() === $this) {
+                $commentaire->setId_User(null);
             }
         }
         return $this;
@@ -443,7 +504,7 @@ class Utilisateur
     {
         if (!$this->reactions->contains($reaction)) {
             $this->reactions[] = $reaction;
-            $reaction->setIdUser($this);
+            $reaction->setId_User($this);
         }
         return $this;
     }
@@ -451,8 +512,8 @@ class Utilisateur
     public function removeReaction(Reaction $reaction): self
     {
         if ($this->reactions->removeElement($reaction)) {
-            if ($reaction->getIdUser() === $this) {
-                $reaction->setIdUser(null);
+            if ($reaction->getId_User() === $this) {
+                $reaction->setId_User(null);
             }
         }
         return $this;
@@ -467,7 +528,7 @@ class Utilisateur
     {
         if (!$this->transports->contains($transport)) {
             $this->transports[] = $transport;
-            $transport->setIdUser($this);
+            $transport->setId_User($this);
         }
         return $this;
     }
@@ -475,8 +536,8 @@ class Utilisateur
     public function removeTransport(Transport $transport): self
     {
         if ($this->transports->removeElement($transport)) {
-            if ($transport->getIdUser() === $this) {
-                $transport->setIdUser(null);
+            if ($transport->getId_User() === $this) {
+                $transport->setId_User(null);
             }
         }
         return $this;
@@ -491,7 +552,7 @@ class Utilisateur
     {
         if (!$this->voyages->contains($voyage)) {
             $this->voyages[] = $voyage;
-            $voyage->setIdUser($this);
+            $voyage->setId_User($this);
         }
         return $this;
     }
@@ -499,10 +560,63 @@ class Utilisateur
     public function removeVoyage(Voyage $voyage): self
     {
         if ($this->voyages->removeElement($voyage)) {
-            if ($voyage->getIdUser() === $this) {
-                $voyage->setIdUser(null);
+            if ($voyage->getId_User() === $this) {
+                $voyage->setId_User(null);
             }
         }
         return $this;
+    }
+
+    /**
+     * Returns the roles granted to the user.
+     *
+     * @return string[] An array of roles
+     */
+    public function getRoles(): array
+    {
+        // Forcer un format cohérent
+        $roles = ['ROLE_USER'];
+        
+        // Utiliser le rôle directement de la base de données
+        $dbRole = $this->getRole();
+        
+        // Ajouter du débogage
+        dump("Rôle dans DB: " . $dbRole);
+        
+        // Conversion selon votre convention
+        if ($dbRole === 'admin') {
+            $roles[] = 'ROLE_ADMIN';
+        } elseif ($dbRole === 'Agence') {
+            $roles[] = 'ROLE_AGENCE';
+        } elseif ($dbRole === 'CLIENT') {
+            $roles[] = 'ROLE_CLIENT';
+        }
+        
+        return array_unique($roles);
+    }
+    
+    /**
+     * Set the roles granted to the user.
+     *
+     * @param array $roles The user roles
+     * @return self
+     */
+    public function setRoles(array $roles): self
+    {
+        // This method is not implemented in this example
+        return $this;
+    }
+
+    /**
+     * Removes sensitive data from the user.
+     */
+    public function eraseCredentials(): void
+    {
+        // If you store any temporary, sensitive data on the user, clear it here
+        // For example, $this->plainPassword = null;
+    }
+    public function getUserIdentifier(): string
+    {
+        return $this->email;
     }
 }

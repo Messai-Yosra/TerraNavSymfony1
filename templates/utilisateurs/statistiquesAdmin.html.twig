@@ -1,0 +1,246 @@
+{% extends 'baseAdmin.html.twig' %}
+
+{% block titre %}Statistiques - Administration{% endblock %}
+
+{% block content %}
+<div class="statistiques-dashboard">
+    <div class="dashboard-header">
+        <h1>Statistiques</h1>
+        <p>Vue d'ensemble des utilisateurs et réclamations</p>
+    </div>
+
+    <!-- Cartes des statistiques principales -->
+    <div class="stats-cards">
+        <div class="stat-card">
+            <div class="stat-icon bg-blue">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ totalUtilisateurs }}</h3>
+                <p>Utilisateurs</p>
+            </div>
+            <div class="stat-detail">
+                <span>{{ totalClients }} Clients</span>
+                <span>{{ totalAgences }} Agences</span>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon bg-red">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ totalReclamations }}</h3>
+                <p>Réclamations</p>
+            </div>
+            <div class="stat-detail">
+                <span>{{ reclamationsTraitees }} Traitées</span>
+                <span>{{ reclamationsNonTraitees }} En attente</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphiques -->
+    <div class="charts-container">
+        <div class="chart-card">
+            <h3>Réclamations mensuelles</h3>
+            <canvas id="reclamationsChart"></canvas>
+        </div>
+        
+        <div class="chart-card">
+            <h3>Inscriptions mensuelles</h3>
+            <canvas id="inscriptionsChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<style>
+    .statistiques-dashboard {
+        padding: 20px;
+    }
+    
+    .dashboard-header {
+        margin-bottom: 30px;
+    }
+    
+    .dashboard-header h1 {
+        margin-bottom: 5px;
+        color: #2c3e50;
+    }
+    
+    .dashboard-header p {
+        color: #7f8c8d;
+    }
+    
+    .stats-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background-color: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        margin-bottom: 15px;
+    }
+    
+    .bg-blue { background: linear-gradient(135deg, #3498db, #2980b9); }
+    .bg-green { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+    .bg-orange { background: linear-gradient(135deg, #f39c12, #e67e22); }
+    .bg-red { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+    
+    .stat-info h3 {
+        font-size: 1.8rem;
+        margin: 0;
+        color: #2c3e50;
+    }
+    
+    .stat-info p {
+        margin: 5px 0 15px;
+        color: #7f8c8d;
+    }
+    
+    .stat-detail {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        color: #7f8c8d;
+    }
+    
+    .charts-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        gap: 20px;
+    }
+    
+    .chart-card {
+        background-color: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .chart-card h3 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: #2c3e50;
+        font-size: 1.2rem;
+    }
+    
+    @media (max-width: 768px) {
+        .charts-container {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<!-- Ajouter Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Données pour les graphiques
+        const reclamationsData = {{ reclamationsParMois|raw }};
+        const inscriptionsData = {{ inscriptionsParMois|raw }};
+        
+        // Préparer les données pour Chart.js
+        const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+        
+        // Convertir les données de réclamations
+        const reclamationsLabels = [];
+        const reclamationsValues = [];
+        reclamationsData.forEach(item => {
+            reclamationsLabels.push(months[item.mois - 1]);
+            reclamationsValues.push(item.total);
+        });
+        
+        // Convertir les données d'inscriptions
+        const inscriptionsLabels = [];
+        const inscriptionsValues = [];
+        inscriptionsData.forEach(item => {
+            inscriptionsLabels.push(months[item.mois - 1]);
+            inscriptionsValues.push(item.total);
+        });
+        
+        // Graphique des réclamations
+        const reclamationsCtx = document.getElementById('reclamationsChart').getContext('2d');
+        new Chart(reclamationsCtx, {
+            type: 'line',
+            data: {
+                labels: reclamationsLabels,
+                datasets: [{
+                    label: 'Réclamations',
+                    data: reclamationsValues,
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Graphique des inscriptions
+        const inscriptionsCtx = document.getElementById('inscriptionsChart').getContext('2d');
+        new Chart(inscriptionsCtx, {
+            type: 'bar',
+            data: {
+                labels: inscriptionsLabels,
+                datasets: [{
+                    label: 'Inscriptions',
+                    data: inscriptionsValues,
+                    backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

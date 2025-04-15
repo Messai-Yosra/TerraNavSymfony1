@@ -1,5 +1,1006 @@
-{% extends "baseAdmin.html.twig" %}
+{% extends 'baseAdmin.html.twig' %}
 
-{% block titre %} Dashboard {% endblock %}
+{% block titre %}Dashboard Admin{% endblock %}
 
-{% block content %} dashboard d'admin {% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .user-card {
+            transition: all 0.3s;
+            border-radius: 15px;
+            overflow: hidden;
+            border: none;
+        }
+        
+        .user-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .avatar-circle {
+            width: 100px !important;
+            height: 100px !important;
+            border-radius: 50%;
+            margin: -50px auto 10px;
+            border: 5px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden !important;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background-position: center;
+            background-size: cover;
+        }
+        
+        .avatar-circle img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            position: absolute;
+            top: 0;
+            left: 0;
+            max-width: 100% !important;
+            max-height: 100% !important;
+        }
+        
+        .card-top-banner {
+            height: 80px;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .user-info {
+            padding: 15px 20px;
+        }
+        
+        .user-info-item {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-info-item i {
+            width: 25px;
+            margin-right: 10px;
+            color: #666;
+        }
+        
+        .action-buttons {
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .action-buttons .btn {
+            border-radius: 20px;
+            padding: 5px 15px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .stats-card {
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        
+        .stats-card:hover {
+            transform: scale(1.03);
+        }
+        
+        .stats-card .card-body {
+            padding: 20px;
+        }
+        
+        .stats-icon {
+            font-size: 2.5rem;
+            opacity: 0.8;
+        }
+        
+        .section-title {
+            font-weight: 600;
+            font-size: 1.5rem;
+            position: relative;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+        }
+        
+        .section-title:after {
+            content: '';
+            position: absolute;
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(to right, #4e73df, #36b9cc);
+            bottom: 0;
+            left: 0;
+        }
+        
+        /* Styles du modal */
+        .edit-modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+        
+        .edit-modal-card {
+            background: white;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 800px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s;
+            position: relative;
+        }
+        
+        .edit-modal-header {
+            background: linear-gradient(45deg, #5e72e4, #825ee4);
+            color: white;
+            padding: 20px 30px;
+            position: relative;
+        }
+        
+        .edit-modal-header h3 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.5rem;
+        }
+        
+        .edit-modal-header p {
+            margin: 5px 0 0;
+            opacity: 0.8;
+        }
+        
+        .edit-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .edit-modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        .edit-modal-body {
+            padding: 30px;
+        }
+        
+        .edit-form-group {
+            margin-bottom: 20px;
+        }
+        
+        .edit-form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .edit-form-input-wrapper {
+            position: relative;
+        }
+        
+        .edit-form-input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6B7280;
+        }
+        
+        .edit-form-input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+        
+        .edit-form-input:focus {
+            border-color: #5e72e4;
+            box-shadow: 0 0 0 3px rgba(94, 114, 228, 0.2);
+            outline: none;
+        }
+        
+        .edit-form-select {
+            padding-right: 40px;
+            background-position: right 15px center;
+        }
+        
+        .edit-form-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 30px;
+            gap: 15px;
+        }
+        
+        .edit-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .edit-btn i {
+            margin-right: 8px;
+        }
+        
+        .edit-btn-primary {
+            background: linear-gradient(45deg, #5e72e4, #825ee4);
+            color: white;
+            box-shadow: 0 4px 10px rgba(94, 114, 228, 0.3);
+        }
+        
+        .edit-btn-primary:hover {
+            box-shadow: 0 6px 15px rgba(94, 114, 228, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .edit-btn-secondary {
+            background: #f8fafc;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .edit-btn-secondary:hover {
+            background: #f1f5f9;
+            color: #334155;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Styles des cartes utilisateurs */
+        .user-card {
+            transition: all 0.3s;
+            border-radius: 15px;
+            overflow: hidden;
+            border: none;
+            margin-bottom: 1.5rem;
+        }
+        
+        .user-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        /* Formulaire d'édition */
+        .edit-form-container {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            animation: slideDown 0.3s forwards;
+        }
+        
+        .edit-form-header {
+            background: linear-gradient(45deg, #5e72e4, #825ee4);
+            margin: -20px -20px 20px;
+            padding: 15px 20px;
+            color: white;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .edit-form-header h4 {
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .form-input-wrapper {
+            position: relative;
+        }
+        
+        .form-input-icon {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6B7280;
+            z-index: 5;
+        }
+        
+        .form-control {
+            display: block;
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: #5e72e4;
+            box-shadow: 0 0 0 3px rgba(94, 114, 228, 0.2);
+            outline: none;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #5e72e4, #825ee4);
+            color: white;
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            box-shadow: 0 4px 10px rgba(94, 114, 228, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #f8fafc;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .btn-secondary:hover {
+            background: #f1f5f9;
+        }
+        
+        @keyframes slideDown {
+            from { 
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Styles pour l'affichage horizontal des statistiques */
+        .stats-horizontal-container {
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stats-card-wrapper {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-horizontal-container {
+                overflow-x: auto;
+                padding-bottom: 15px;
+            }
+        }
+
+        /* Styles renforcés pour affichage horizontal des statistiques */
+        .stats-card {
+            min-width: 250px; 
+            flex: 1;
+            border-radius: 15px;
+            margin-right: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .stats-card:last-child {
+            margin-right: 0;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+        }
+
+        .text-end {
+            text-align: right !important;
+        }
+
+        @media (max-width: 768px) {
+            .stats-card {
+                min-width: 220px;
+            }
+        }
+
+        .admin-card {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        
+        .admin-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+        
+        .card-icon {
+            font-size: 2.5rem;
+            opacity: 0.8;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+    
+    <div class="container-fluid py-4">
+        <h1 class="mb-4">Dashboard Administration</h1>
+        
+        <!-- Statistics Row - Version renforcée pour l'affichage horizontal -->
+        <div class="container-fluid mb-5">
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex flex-row flex-nowrap overflow-auto" style="gap: 15px;">
+                        <!-- Total Utilisateurs -->
+                        <div class="card stats-card border-0 shadow-sm" style="min-width: 250px; flex: 1;">
+                            <div class="card-body bg-gradient-primary text-white">
+                                <div class="row">
+                                    <div class="col-8">
+                                        <h5 class="card-title font-weight-bold text-black">Total Utilisateurs</h5>
+                                        <p class="card-text display-4 mb-0 text-black">{{ utilisateurs|length }}</p>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        <div class="stats-icon">
+                                            <i class="fas fa-users fa-2x text-black"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Agences -->
+                        <div class="card stats-card border-0 shadow-sm" style="min-width: 250px; flex: 1;">
+                            <div class="card-body bg-gradient-success text-white">
+                                <div class="row">
+                                    <div class="col-8">
+                                        <h5 class="card-title font-weight-bold text-black">Agences</h5>
+                                        <p class="card-text display-4 mb-0 text-black">{{ utilisateurs|filter(u => u.role == 'AGENCE')|length }}</p>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        <div class="stats-icon">
+                                            <i class="fas fa-building fa-2x text-black"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Clients -->
+                        <div class="card stats-card border-0 shadow-sm" style="min-width: 250px; flex: 1;">
+                            <div class="card-body bg-gradient-info text-white">
+                                <div class="row">
+                                    <div class="col-8">
+                                        <h5 class="card-title font-weight-bold text-black">Clients</h5>
+                                        <p class="card-text display-4 mb-0 text-black">{{ utilisateurs|filter(u => u.role == 'CLIENT')|length }}</p>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        <div class="stats-icon">
+                                            <i class="fas fa-user-friends fa-2x text-black"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Admins -->
+                        <div class="card stats-card border-0 shadow-sm" style="min-width: 250px; flex: 1;">
+                            <div class="card-body bg-gradient-danger text-white">
+                                <div class="row">
+                                    <div class="col-8">
+                                        <h5 class="card-title font-weight-bold text-black">Admins</h5>
+                                        <p class="card-text display-4 mb-0 text-black">{{ utilisateurs|filter(u => u.role == 'ADMIN')|length }}</p>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        <div class="stats-icon">
+                                            <i class="fas fa-user-shield fa-2x text-black"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6 mx-auto">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="input-group">
+                            <span class="input-group-text bg-primary text-white">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input 
+                                type="text" 
+                                class="form-control py-2" 
+                                id="userSearchInput" 
+                                placeholder="Rechercher un utilisateur par nom, email, rôle..."
+                                autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Users List Section -->
+        <h2 class="section-title">Liste des utilisateurs enregistrés</h2>
+        
+        {% if utilisateurs|length > 0 %}
+            <div class="row" id="usersList">
+                {% for utilisateur in utilisateurs %}
+                    <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+                        <div class="card user-card shadow-sm">
+                            <!-- Banner colored top based on role -->
+                            <div class="card-top-banner" 
+                                style="background: 
+                                {% if utilisateur.role == 'ADMIN' %}linear-gradient(135deg, #e74a3b, #be2617)
+                                {% elseif utilisateur.role == 'AGENCE' %}linear-gradient(135deg, #1cc88a, #169d68)
+                                {% else %}linear-gradient(135deg, #36b9cc, #258391){% endif %}">
+                            </div>
+                            
+                            <!-- Avatar and User Information -->
+                            <div class="d-flex align-items-center p-3">
+                                <!-- Avatar plus petit à côté du texte -->
+                                <div class="me-3" style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; border: 3px solid white; box-shadow: 0 3px 10px rgba(0,0,0,0.1); flex-shrink: 0; display: flex; justify-content: center; align-items: center;
+                                    {% if not utilisateur.photo %}
+                                        background: 
+                                        {% if utilisateur.role == 'ADMIN' %}linear-gradient(45deg, #e74a3b, #be2617)
+                                        {% elseif utilisateur.role == 'AGENCE' %}linear-gradient(45deg, #1cc88a, #169d68)
+                                        {% else %}linear-gradient(45deg, #36b9cc, #258391){% endif %};
+                                    {% endif %}
+                                ">
+                                    {% if utilisateur.photo %}
+                                        <img src="{{ asset('uploads/profile/' ~ utilisateur.photo) }}" 
+                                             alt="Photo de {{ utilisateur.prenom|default('Utilisateur') }}"
+                                             style="width: 100%; height: 100%; object-fit: cover;">
+                                    {% else %}
+                                        <span class="text-white" style="font-size: 1.25rem;">
+                                            {{ utilisateur.prenom|default('')|first|upper }}{{ utilisateur.nom|default('')|first|upper }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Information utilisateur -->
+                                <div>
+                                    <h5 class="mb-0">{{ utilisateur.prenom|default('') }} {{ utilisateur.nom|default('') }}</h5>
+                                    <p class="text-muted mb-1">@{{ utilisateur.username }}</p>
+                                    <span class="badge 
+                                        {% if utilisateur.role == 'ADMIN' %}bg-danger
+                                        {% elseif utilisateur.role == 'AGENCE' %}bg-success
+                                        {% else %}bg-info{% endif %}">
+                                        {{ utilisateur.role }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <!-- User Information -->
+                            <div class="user-info">
+                                <div class="user-info-item">
+                                    <i class="fas fa-envelope"></i>
+                                    <span>{{ utilisateur.email }}</span>
+                                </div>
+                                
+                                {% if utilisateur.role == 'AGENCE' %}
+                                <div class="user-info-item">
+                                    <i class="fas fa-building"></i>
+                                    <span>{{ utilisateur.nomagence ?? 'Non spécifié' }}</span>
+                                </div>
+                                <div class="user-info-item">
+                                    <i class="fas fa-tag"></i>
+                                    <span>{{ utilisateur.typeAgence ?? 'Non spécifié' }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Action Buttons - Corrigé -->
+                            <div class="action-buttons d-flex justify-content-around">
+                                <button 
+                                    class="btn btn-primary btn-sm"
+                                    onclick="openEditModal({{ utilisateur.id }}, '{{ utilisateur.prenom|default('') }}', '{{ utilisateur.nom|default('') }}', '{{ utilisateur.email }}', '{{ utilisateur.role }}')"
+                                >
+                                    <i class="fas fa-edit"></i> Modifier
+                                </button>
+                                <a href="{{ path('admin_user_delete', {'id': utilisateur.id}) }}" 
+                                   class="btn btn-danger"
+                                   onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur?');">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Formulaire d'édition (caché par défaut) -->
+                    <div id="edit-form-{{ utilisateur.id }}" class="edit-form-container">
+                        <div class="edit-form-header">
+                            <h4>Modifier {{ utilisateur.prenom|default('') }} {{ utilisateur.nom|default('') }}</h4>
+                        </div>
+                        
+                        <form method="post" action="{{ path('admin_user_update', {'id': utilisateur.id}) }}" class="user-edit-form">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Prénom</label>
+                                        <div class="form-input-wrapper">
+                                            <i class="fas fa-user form-input-icon"></i>
+                                            <input type="text" name="prenom" class="form-control" value="{{ utilisateur.prenom|default('') }}" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Nom</label>
+                                        <div class="form-input-wrapper">
+                                            <i class="fas fa-user form-input-icon"></i>
+                                            <input type="text" name="nom" class="form-control" value="{{ utilisateur.nom|default('') }}" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Email</label>
+                                        <div class="form-input-wrapper">
+                                            <i class="fas fa-envelope form-input-icon"></i>
+                                            <input type="email" name="email" class="form-control" value="{{ utilisateur.email }}" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Rôle</label>
+                                        <div class="form-input-wrapper">
+                                            <i class="fas fa-shield-alt form-input-icon"></i>
+                                            <select name="role" class="form-control">
+                                                {% if app.user and app.user.role == 'ADMIN' %}
+                                                    <option value="ADMIN" {% if utilisateur.role == 'ADMIN' %}selected{% endif %}>Admin</option>
+                                                {% endif %}
+                                                <option value="AGENCE" {% if utilisateur.role == 'AGENCE' %}selected{% endif %}>Agence</option>
+                                                <option value="CLIENT" {% if utilisateur.role == 'CLIENT' %}selected{% endif %}>Client</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" onclick="toggleEditForm({{ utilisateur.id }})">
+                                    <i class="fas fa-times"></i> Annuler
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Enregistrer
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info shadow-sm">
+                <i class="fas fa-info-circle me-2"></i> Aucun utilisateur trouvé dans la base de données
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="container-fluid py-4">
+        <!-- En-tête du dashboard -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Tableau de bord administrateur</h1>
+        </div>
+
+        <!-- Cartes de navigation rapide -->
+        <div class="row mb-4">
+            <!-- Carte Utilisateurs -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card admin-card border-left-primary shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Utilisateurs</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ utilisateurs|length }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-users fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Carte Historique des connexions -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <a href="{{ path('admin_login_history') }}" class="text-decoration-none">
+                    <div class="card admin-card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Historique des connexions</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">Consulter</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-history fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            <!-- Autres cartes... -->
+        </div>
+
+        {% if utilisateurs|length > 0 %}
+            <!-- Liste des utilisateurs existante... -->
+        {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i> Aucun utilisateur trouvé.
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // Fix the missing function error
+        function openEditModal(id, prenom, nom, email, role) {
+            // For now, just toggle the edit form
+            toggleEditForm(id);
+        }
+        
+        // Fonction pour afficher/masquer le formulaire d'édition
+        function toggleEditForm(userId) {
+            const formId = 'edit-form-' + userId;
+            const form = document.getElementById(formId);
+            
+            if (form && form.style.display === 'block') {
+                form.style.display = 'none';
+            } else if (form) {
+                // Fermer tous les autres formulaires ouverts
+                document.querySelectorAll('.edit-form-container').forEach(function(el) {
+                    el.style.display = 'none';
+                });
+                
+                // Afficher le formulaire actuel
+                form.style.display = 'block';
+            }
+        }
+        
+        // Function to attach event listeners to user edit forms
+        function attachEditFormListeners() {
+            document.querySelectorAll('.user-edit-form').forEach(function(form) {
+                form.addEventListener('submit', function(e) {
+                    //e.preventDefault();
+                    
+                    const formData = new FormData(this);
+                    const url = this.getAttribute('action');
+                    
+                    fetch(url, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Utilisateur modifié avec succès');
+                            window.location.reload();
+                        } else {
+                            alert('Erreur: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        alert('Erreur lors de la modification');
+                        console.error(error);
+                    });
+                });
+            });
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM fully loaded");
+            
+            // Attach form listeners
+            attachEditFormListeners();
+            
+            // SIMPLE AJAX TEST - This direct fetch will help diagnose if the route works at all
+            console.log("Testing simple fetch to the search endpoint");
+            fetch('/admin/users/search?q=test')
+                .then(response => {
+                    console.log("TEST FETCH SUCCESS - Status:", response.status);
+                    return response.text();
+                })
+                .then(html => {
+                    console.log("TEST FETCH RESPONSE received, length:", html.length);
+                })
+                .catch(error => {
+                    console.error("TEST FETCH FAILED:", error);
+                });
+            
+            // Initialize search functionality
+            initializeSearch();
+        });
+        
+        // Separate search functionality
+        function initializeSearch() {
+            const searchInput = document.getElementById('userSearchInput');
+            const usersList = document.getElementById('usersList');
+            
+            if (!searchInput || !usersList) {
+                console.error("Search elements not found!");
+                return;
+            }
+            
+            console.log("Search functionality initialized");
+            let debounceTimeout;
+            
+            searchInput.addEventListener('input', function() {
+                console.log("Search input detected:", this.value);
+                
+                // Clear previous timeout
+                if (debounceTimeout) {
+                    clearTimeout(debounceTimeout);
+                }
+                
+                // Set a debounce timeout to avoid too many requests
+                debounceTimeout = setTimeout(function() {
+                    const searchValue = searchInput.value.trim();
+                    
+                    // Show loading indicator
+                    usersList.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Chargement...</span></div></div>';
+                    
+                    console.log("Executing search for:", searchValue);
+                    
+                    // Simplified AJAX request - removing unnecessary headers
+                    fetch('/admin/users/search?q=' + encodeURIComponent(searchValue))
+                        .then(response => {
+                            console.log("Search response status:", response.status);
+                            return response.text();
+                        })
+                        .then(html => {
+                            console.log("Search results received, length:", html.length);
+                            usersList.innerHTML = html;
+                            attachEditFormListeners();
+                        })
+                        .catch(error => {
+                            console.error("Search request failed:", error);
+                            usersList.innerHTML = `<div class="col-12"><div class="alert alert-danger">Erreur lors de la recherche: ${error.message}</div></div>`;
+                        });
+                }, 500);
+            });
+            
+            // Add clear button
+            addClearButton(searchInput);
+        }
+        
+        function addClearButton(searchInput) {
+            const searchWrapper = searchInput.parentElement;
+            searchWrapper.style.position = 'relative';
+            
+            const clearButton = document.createElement('button');
+            clearButton.type = 'button';
+            clearButton.className = 'btn btn-sm position-absolute end-0 top-50 translate-middle-y me-2 text-secondary';
+            clearButton.innerHTML = '<i class="fas fa-times"></i>';
+            clearButton.style.display = 'none';
+            
+            clearButton.addEventListener('click', function() {
+                searchInput.value = '';
+                this.style.display = 'none';
+                searchInput.dispatchEvent(new Event('input'));
+            });
+            
+            searchWrapper.appendChild(clearButton);
+            
+            searchInput.addEventListener('input', function() {
+                clearButton.style.display = this.value.length ? 'block' : 'none';
+            });
+        }
+
+        // Add a test button to verify AJAX works
+        document.addEventListener('DOMContentLoaded', function() {
+            const testAjaxBtn = document.getElementById('testAjaxBtn');
+            const ajaxTestResult = document.getElementById('ajaxTestResult');
+            
+            if (testAjaxBtn && ajaxTestResult) {
+                testAjaxBtn.addEventListener('click', function() {
+                    ajaxTestResult.innerHTML = 'Testing connection...';
+                    
+                    // Make a simple GET request to the search endpoint
+                    const testUrl = '/admin/users/search?q=test&_=' + new Date().getTime();
+                    console.log('Testing AJAX with URL:', testUrl);
+                    
+                    fetch(testUrl, { 
+                        method: 'GET',
+                        cache: 'no-store',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'text/html'
+                        }
+                    })
+                    .then(response => {
+                        ajaxTestResult.innerHTML = 'Response status: ' + response.status;
+                        console.log('Test response status:', response.status);
+                        return response.text();
+                    })
+                    .then(html => {
+                        ajaxTestResult.innerHTML += '<br>Response length: ' + html.length + ' characters';
+                        console.log('Test response received with length:', html.length);
+                    })
+                    .catch(error => {
+                        ajaxTestResult.innerHTML = 'Error: ' + error.message;
+                        console.error('Test request failed:', error);
+                    });
+                });
+            }
+        });
+    </script>
+{% endblock %}

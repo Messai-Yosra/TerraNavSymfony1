@@ -1,0 +1,554 @@
+{% extends "baseClient.html.twig" %}
+{% block titre %} Détails du Voyage - {{ voyage.titre }} {% endblock %}
+{% block content %}
+    <!-- Page Header -->
+    <div class="container-fluid page-header mb-5 p-0"
+         style="background-image: url({{ asset('img/voyages/acceuil4.avif') }});">
+        <div class="container-fluid page-header-inner py-5">
+            <div class="container text-center pb-5">
+                <h1 class="display-3 text-white mb-3 animated slideInDown">{{ voyage.titre }}</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center text-uppercase">
+                        <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+                        <li class="breadcrumb-item text-white active" aria-current="page">Détails</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="row g-5 align-items-center">
+                <div class="col-lg-6">
+                    <h6 class="section-title text-start text-primary text-uppercase">Voyage offert par</h6>
+                    <h1 class="mb-4">{{ voyage.id_user.nomagence }}</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Agence -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="row g-5 align-items-center bg-light rounded p-4 hover-effect">
+                <div class="col-md-3 text-center">
+                    <img src="{{ asset(voyage.id_user.photo ? 'img/users/' ~ voyage.id_user.photo : 'img/voyages/user.avif') }}"
+                         class="rounded-circle img-fluid"
+                         style="width: 150px; height: 150px; object-fit: cover;"
+                         alt="Photo de l'agence {{ voyage.id_user.nomagence }}"
+                         onerror="this.src='{{ asset('img/voyages/user.avif') }}'">
+                </div>
+                <div class="col-md-9">
+                    <h3 class="text-primary mb-3">{{ voyage.id_user.nomagence }}</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><i class="fas fa-envelope me-2 text-primary"></i> {{ voyage.id_user.email }}</p>
+                            <p><i class="fas fa-phone me-2 text-primary"></i> {{ voyage.id_user.numTel ?? 'Non renseigné' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><i class="fas fa-map-marker-alt me-2 text-primary"></i> {{ voyage.id_user.address ?? 'Adresse non renseignée' }}</p>
+                            <p><i class="fas fa-building me-2 text-primary"></i> {{ voyage.id_user.typeAgence ?? 'Type non spécifié' }}</p>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a  class="btn btn-outline-primary btn-sm btn-hover" href="{{ path('app_agence_profile', {'id': voyage.id_user.id}) }}">
+                            <i class="fas fa-eye me-1" ></i> Voir Profile d'Agence
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Start - Informations du voyage -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="row g-5 align-items-center">
+                <div class="col-lg-6">
+                    <h6 class="section-title text-start text-primary text-uppercase">Détails du Voyage</h6>
+                    <h1 class="mb-4">{{ voyage.titre }}</h1>
+                    <div class="mb-4">
+                        <p>{{ voyage.description }}</p>
+                    </div>
+
+                    <!-- Section Principale d'Informations -->
+                    <div class="row g-3 pb-4">
+                        <!-- Destination -->
+                        <div class="col-sm-4 wow fadeIn" data-wow-delay="0.1s">
+                            <div class="border rounded p-1 h-100 hover-effect">
+                                <div class="border rounded text-center p-4 h-100">
+                                    <i class="fas fa-map-marked-alt fa-2x text-primary mb-2"></i>
+                                    <h3 class="h5 mb-1">{{ voyage.destination }}</h3>
+                                    <p class="mb-0 text-muted">Destination</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Point de Départ -->
+                        <div class="col-sm-4 wow fadeIn" data-wow-delay="0.2s">
+                            <div class="border rounded p-1 h-100 hover-effect">
+                                <div class="border rounded text-center p-4 h-100">
+                                    <i class="fas fa-map-marker-alt fa-2x text-primary mb-2"></i>
+                                    <h3 class="h5 mb-1">{{ voyage.pointDepart }}</h3>
+                                    <p class="mb-0 text-muted">Départ de</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Type de Transport -->
+                        <div class="col-sm-4 wow fadeIn" data-wow-delay="0.3s">
+                            <div class="border rounded p-1 h-100 hover-effect">
+                                <div class="border rounded text-center p-4 h-100">
+                                    {% if voyage.type == 'Avion' %}
+                                        <i class="fas fa-plane fa-2x text-primary mb-2"></i>
+                                    {% elseif voyage.type == 'Train' %}
+                                        <i class="fas fa-train fa-2x text-primary mb-2"></i>
+                                    {% elseif voyage.type == 'Bateau' %}
+                                        <i class="fas fa-ship fa-2x text-primary mb-2"></i>
+                                    {% else %}
+                                        <i class="fas fa-bus fa-2x text-primary mb-2"></i>
+                                    {% endif %}
+                                    <h3 class="h5 mb-1">{{ voyage.type }}</h3>
+                                    <p class="mb-0 text-muted">Moyen de transport</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Date de Départ -->
+                        <div class="col-sm-6 wow fadeIn" data-wow-delay="0.4s">
+                            <div class="border rounded p-1 h-100 hover-effect">
+                                <div class="border rounded text-center p-4 h-100">
+                                    <i class="fas fa-plane-departure fa-2x text-primary mb-2"></i>
+                                    <h3 class="h5 mb-1">{{ voyage.dateDepart|date('d M Y à H:i') }}</h3>
+                                    <p class="mb-0 text-muted">Date et heure de départ</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Date de Retour -->
+                        <div class="col-sm-6 wow fadeIn" data-wow-delay="0.5s">
+                            <div class="border rounded p-1 h-100 hover-effect">
+                                <div class="border rounded text-center p-4 h-100">
+                                    <i class="fas fa-plane-arrival fa-2x text-primary mb-2"></i>
+                                    <h3 class="h5 mb-1">{{ voyage.dateRetour|date('d M Y à H:i') }}</h3>
+                                    <p class="mb-0 text-muted">Date et heure de retour</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Prix -->
+                        <div class="col-sm-4 wow fadeIn" data-wow-delay="0.6s">
+                            <div class="border rounded p-1 h-100 hover-effect">
+                                <div class="border rounded text-center p-4 h-100">
+                                    <i class="fas fa-money-bill-wave fa-2x text-primary mb-2"></i>
+                                    <h3 class="h5 mb-1">{{ voyage.prix }} DT</h3>
+                                    <p class="mb-0 text-muted">Prix par personne</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Places Disponibles -->
+                        <div class="col-sm-4 wow fadeIn" data-wow-delay="0.7s">
+                            <div class="border rounded p-1 h-100 hover-effect">
+                                <div class="border rounded text-center p-4 h-100">
+                                    <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                                    <h3 class="h5 mb-1">{{ voyage.nbPlacesD }}</h3>
+                                    <p class="mb-0 text-muted">Places disponibles</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Durée du Voyage -->
+                        <div class="col-sm-4 wow fadeIn" data-wow-delay="0.8s">
+                            <div class="border rounded p-1 h-100 hover-effect">
+                                <div class="border rounded text-center p-4 h-100">
+                                    <i class="fas fa-clock fa-2x text-primary mb-2"></i>
+                                    <h3 class="h5 mb-1">
+                                        {% set difference = date(voyage.dateRetour).diff(date(voyage.dateDepart)) %}
+                                        {{ difference.d }} jours, {{ difference.h }}h
+                                    </h3>
+                                    <p class="mb-0 text-muted">Durée du voyage</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Boutons d'Action -->
+                    <div class="d-flex flex-wrap gap-3 mt-4">
+                        <a class="btn btn-primary py-3 px-5 btn-hover" href="{{ path('app_voyage_reserver', {'id': voyage.id}) }}">
+                            <i class="fas fa-ticket-alt me-2"></i>Réserver maintenant
+                        </a>
+                        <a class="btn btn-outline-primary py-3 px-5 btn-hover" href="{{ path('app_voyages') }}">
+                            <i class="fas fa-arrow-left me-2"></i>Retour aux voyages
+                        </a>
+                        {% if voyage.id_offre %}
+                            <a class="btn btn-danger py-3 px-4 align-self-center btn-hover"
+                               href="{{ path('app_offre_details', {'id': voyage.id_offre.id}) }}">
+                                <i class="fas fa-tag me-2"></i>Voir l'offre (-{{ voyage.id_offre.reduction }}%)
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+
+                <!-- Galerie d'Images -->
+                <div class="col-lg-6">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="image-hover-container">
+                                <img class="img-fluid rounded wow zoomIn shadow-sm image-hover"
+                                     src="{{ asset(voyage.transformImagePaths(voyage.pathImages)|split('***')[0]|trim) }}"
+                                     style="width: 100%; height: 300px; object-fit: cover;"
+                                     onerror="this.src='{{ asset('img/about-1.jpg') }}'"
+                                     alt="Image principale du voyage {{ voyage.titre }}">
+                                <div class="image-hover-overlay">
+                                    <div class="image-hover-text">Voir en grand</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% for image in voyage.transformImagePaths(voyage.pathImages)|split('***')|slice(1, 3) %}
+                            {% set trimmedImage = image|trim %}
+                            <div class="col-md-4">
+                                <div class="image-hover-container">
+                                    <img class="img-fluid rounded wow zoomIn shadow-sm image-hover"
+                                         data-wow-delay="{{ 0.1 * loop.index }}s"
+                                         src="{{ asset(trimmedImage) }}"
+                                         style="width: 100%; height: 150px; object-fit: cover;"
+                                         onerror="this.src='{{ asset('img/about-1.jpg') }}'"
+                                         alt="Image du voyage {{ voyage.titre }}">
+                                    <div class="image-hover-overlay">
+                                        <div class="image-hover-text">Voir</div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Informations Complémentaires -->
+                    <div class="mt-5 p-4 bg-light rounded wow fadeIn hover-effect" data-wow-delay="0.5s">
+                        <h4 class="mb-3"><i class="fas fa-info-circle text-primary me-2"></i>Informations complémentaires</h4>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Assurance voyage incluse
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Guide touristique francophone
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Transferts aéroport/hôtel
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Hébergement en hôtel 4 étoiles
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Petit-déjeuner buffet inclus
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- Section Activités (à placer où vous souhaitez l'afficher) -->
+                <div class="mt-4">
+                    <button id="generateActivities" class="btn btn-info py-3 px-5 btn-hover">
+                        <i class="fas fa-lightbulb me-2"></i>Activités populaires
+                    </button>
+
+                    <div id="activitiesContainer" class="mt-3 p-4 bg-light rounded d-none">
+                        <!-- En-tête avec bouton de copie -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="mb-0">
+                                <i class="fas fa-map-marked-alt text-primary me-2"></i>
+                                Activités à {{ voyage.destination }}
+                            </h4>
+                            <button id="copyActivities" class="btn btn-sm btn-outline-secondary" title="Copier les activités">
+                                <i class="fas fa-copy me-1"></i>Copier
+                            </button>
+                        </div>
+
+                        <!-- Contenu des activités (rempli dynamiquement) -->
+                        <div id="activitiesContent" class="activities-content bg-white p-3 rounded">
+                            <!-- État initial - vide ou avec message d'attente -->
+                            <p class="text-center text-muted mb-0">
+                                Cliquez sur le bouton pour générer les activités populaires...
+                            </p>
+                        </div>
+
+                        <!-- Pied de section -->
+                        <div class="text-end small text-muted mt-2">
+                            <i class="fas fa-info-circle"></i> Suggestions générées par intelligence artificielle
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Start - Informations de l'offre (si elle existe) -->
+    {% if voyage.id_offre is not null %}
+        <div class="container-xxl py-5">
+            <div class="container">
+                <div class="row g-5 align-items-center">
+                    <div class="col-lg-6">
+                        <h6 class="section-title text-start text-primary text-uppercase">Offre spéciale</h6>
+                        <h1 class="mb-4">{{ voyage.id_offre.titre }}</h1>
+                        <p class="mb-4">{{ voyage.id_offre.description }}</p>
+                        <div class="row g-3 pb-4">
+                            <div class="col-sm-6 wow fadeIn" data-wow-delay="0.1s">
+                                <div class="border rounded p-1 hover-effect">
+                                    <div class="border rounded text-center p-4">
+                                        <i class="fas fa-percentage fa-2x text-primary mb-2"></i>
+                                        <h2 class="mb-1">{{ voyage.id_offre.reduction }}%</h2>
+                                        <p class="mb-0">Réduction</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 wow fadeIn" data-wow-delay="0.3s">
+                                <div class="border rounded p-1 hover-effect">
+                                    <div class="border rounded text-center p-4">
+                                        <i class="fas fa-clock fa-2x text-primary mb-2"></i>
+                                        <h2 class="mb-1">Jusqu'au {{ voyage.id_offre.dateFin|date('d M Y') }}</h2>
+                                        <p class="mb-0">Date limite</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-success hover-effect">
+                            <h5>Prix après réduction: {{ (voyage.prix * (1 - voyage.id_offre.reduction/100))|number_format(2) }} DT</h5>
+                            <p class="mb-0">Vous économisez {{ (voyage.prix - (voyage.prix * (1 - voyage.id_offre.reduction/100)))|number_format(2) }} DT</p>
+                        </div>
+                        <a href="{{ path('app_offre_details', {'id': voyage.id_offre.id}) }}"
+                           class="btn btn-primary btn-hover py-3 px-5">
+                            <i class="fas fa-search me-2"></i>Voir les détails de l'offre
+                        </a>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="image-hover-container">
+                            <img class="img-fluid rounded w-100 wow zoomIn image-hover" data-wow-delay="0.1s"
+                                 src="{{ asset(voyage.id_offre.imagePath) }}" alt="Image de l'offre"
+                                 onerror="this.src='{{ asset('img/about-2.jpg') }}'">
+                            <div class="image-hover-overlay">
+                                <div class="image-hover-text">Voir l'offre</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Voyages similaires avec background personnalisé -->
+    <div class="container-xxl testimonial mt-5 py-5 wow zoomIn" data-wow-delay="0.1s"
+         style="margin-bottom: 90px; background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('{{ asset('img/voyages/acceuil1.avif') }}'); background-size: cover; background-position: center; background-attachment: fixed;">
+        <div class="container">
+            <h2 class="text-center text-white mb-5">Découvrez d'autres voyages à {{ voyage.destination }}</h2>
+            <div class="owl-carousel testimonial-carousel py-5">
+                {% for similarVoyage in similarVoyages %}
+                    <div class="testimonial-item position-relative bg-white rounded overflow-hidden hover-effect">
+                        <div class="text-center p-4">
+                            <div class="image-hover-container">
+                                <img class="img-fluid rounded w-100 mb-3 image-hover"
+                                     src="{{ asset(similarVoyage.transformImagePaths(voyage.pathImages)|split('***')[0]|trim) }}"
+                                     alt="{{ similarVoyage.titre }}"
+                                     style="height: 200px; object-fit: cover;"
+                                     onerror="this.src='{{ asset('img/about-1.jpg') }}'">
+                                <div class="image-hover-overlay">
+                                    <div class="image-hover-text">Voir détails</div>
+                                </div>
+                            </div>
+                            <h5>{{ similarVoyage.titre }}</h5>
+                            <div class="d-flex justify-content-center gap-3 mb-2">
+                                <span class="text-primary">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    {{ similarVoyage.dateDepart|date('d M Y') }}
+                                </span>
+                                <span class="text-primary">
+                                    <i class="fas fa-money-bill-wave me-1"></i>
+                                    {{ similarVoyage.prix }} DT
+                                </span>
+                            </div>
+                            {% if similarVoyage.id_offre %}
+                                <div class="mb-3">
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-tag me-1"></i> -{{ similarVoyage.id_offre.reduction }}%
+                                    </span>
+                                </div>
+                            {% endif %}
+                            <a href="{{ path('app_voyage_show', {'id': similarVoyage.id}) }}"
+                               class="btn btn-sm btn-primary rounded-pill py-1 px-3 btn-hover">
+                                <i class="fas fa-info-circle me-1"></i> Détails
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="testimonial-item position-relative bg-white rounded overflow-hidden hover-effect">
+                        <div class="text-center p-4">
+                            <i class="fas fa-compass fa-3x text-muted mb-3"></i>
+                            <p class="mb-0">Aucun autre voyage disponible pour cette destination</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Conteneur principal */
+        #activitiesContainer {
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        /* Contenu des activités */
+        .activities-content {
+            min-height: 150px;
+            border-left: 4px solid #0d6efd;
+            background-color: #f8f9fa;
+        }
+
+        /* Style de la liste des activités */
+        .activity-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .activity-item {
+            padding: 8px 0;
+            border-bottom: 1px dashed #dee2e6;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            color: #0d6efd;
+            margin-right: 10px;
+        }
+
+        /* Animation de chargement */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .activity-loading {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        /* Effets de hover */
+        .hover-effect {
+            transition: all 0.3s ease;
+        }
+
+        .hover-effect:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .btn-hover {
+            transition: all 0.3s ease;
+        }
+
+        .btn-hover:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Effet hover sur les images */
+        .image-hover-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .image-hover {
+            transition: all 0.3s ease;
+            display: block;
+            width: 100%;
+        }
+
+        .image-hover-overlay {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            width: 100%;
+            opacity: 0;
+            transition: .3s ease;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-hover-container:hover .image-hover {
+            transform: scale(1.05);
+        }
+
+        .image-hover-container:hover .image-hover-overlay {
+            opacity: 1;
+        }
+
+        .image-hover-text {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* Style spécifique pour la section agence */
+        .agence-section {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 4px solid #0d6efd;
+        }
+
+        .agence-photo {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Amélioration de la galerie */
+        .gallery-main-img {
+            margin-bottom: 15px;
+            height: 300px;
+        }
+
+        .gallery-thumbnail {
+            height: 150px;
+            transition: all 0.3s ease;
+        }
+
+        .gallery-thumbnail:hover {
+            transform: scale(1.05);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .agence-photo {
+                width: 100px;
+                height: 100px;
+            }
+
+            .gallery-main-img {
+                height: 200px;
+            }
+
+            .gallery-thumbnail {
+                height: 100px;
+            }
+        }
+    </style>
+
+{% endblock %}

@@ -1,0 +1,189 @@
+{% extends "baseClient.html.twig" %}
+
+{% block title %}Statistique - Agence{% endblock %}
+
+{% block content %}
+    <!-- Page Header Start -->
+    <div class="container-fluid page-header mb-5 p-0" style="background-image: url(img/voyages/1.avif);">
+        <div class="container-fluid page-header-inner py-5">
+            <div class="container text-center pb-5">
+                <h1 class="display-3 text-white mb-3 animated slideInDown">Tableau de Bord Agence</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center text-uppercase">
+                        <li class="breadcrumb-item"><a href="#">Accueil</a></li>
+                        <li class="breadcrumb-item text-white active" aria-current="page">Espace Agence</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <!-- Page Header End -->
+
+    <!-- Services Dashboard Start -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+                <h6 class="section-title text-center text-primary text-uppercase">Espace Professionnel</h6>
+                <h1 class="mb-5">Gestion de <span class="text-primary text-uppercase">Votre Agence</span></h1>
+                <p class="mb-4">Sélectionnez la section que vous souhaitez gérer</p>
+
+                <!-- Export Buttons Section -->
+                <div class="d-flex justify-content-center gap-3 mb-5">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-primary dropdown-toggle hover-scale" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-file-export me-2"></i>Exporter les données
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{{ path('app_export_offres_pdf') }}">
+                                    <i class="fas fa-file-pdf text-danger me-2"></i>Statistiques Offres (PDF)
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ path('app_export_voyages_csv') }}">
+                                    <i class="fas fa-file-csv text-success me-2"></i>Liste Voyages (CSV)
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{{ path('app_export_voyages_excel') }}">
+                                    <i class="fas fa-file-excel text-success me-2"></i>Toutes les données (Excel)
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <a href="#" class="btn btn-success hover-scale">
+                        <i class="fas fa-chart-line me-2"></i>Voir Statistiques
+                    </a>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Gestion Offres -->
+                <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.2s">
+                    <div class="service-item rounded h-100">
+                        <div class="service-icon bg-transparent border rounded p-1">
+                            <div class="w-100 h-100 border rounded d-flex align-items-center justify-content-center">
+                                <i class="fas fa-percent fa-2x text-primary"></i>
+                            </div>
+                        </div>
+                        <h5 class="mb-3">Gestion Offres</h5>
+                        <p class="text-body mb-0">Créez et gérez vos offres promotionnelles.</p>
+                        <div class="service-hover-content">
+                            <p class="text-white">Configurez des réductions attractives et suivez leur performance.</p>
+                            <div class="d-flex gap-2">
+                                <a href="{{ path('app_offres_agence') }}" class="btn btn-light rounded-pill hover-scale">
+                                    <i class="fas fa-list me-1"></i> Voir Offres
+                                </a>
+                                <a href="{{ path('app_export_offres_pdf') }}" class="btn btn-light rounded-pill hover-scale">
+                                    <i class="fas fa-file-pdf me-1"></i> Exporter
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gestion Voyages -->
+                <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.3s">
+                    <div class="service-item rounded h-100">
+                        <div class="service-icon bg-transparent border rounded p-1">
+                            <div class="w-100 h-100 border rounded d-flex align-items-center justify-content-center">
+                                <i class="fas fa-plane fa-2x text-primary"></i>
+                            </div>
+                        </div>
+                        <h5 class="mb-3">Gestion Voyages</h5>
+                        <p class="text-body mb-0">Organisez et suivez vos voyages.</p>
+                        <div class="service-hover-content">
+                            <p class="text-white">Ajoutez de nouvelles destinations et suivez les réservations.</p>
+                            <div class="d-flex gap-2">
+                                <a href="{{ path('app_voyages_agence') }}" class="btn btn-light rounded-pill hover-scale">
+                                    <i class="fas fa-list me-1"></i> Voir Voyages
+                                </a>
+                                <a href="{{ path('app_export_voyages_csv') }}" class="btn btn-light rounded-pill hover-scale">
+                                    <i class="fas fa-file-csv me-1"></i> Exporter
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Services Dashboard End -->
+{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        .service-item {
+            position: relative;
+            padding: 30px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .service-item .service-hover-content {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            background: var(--primary);
+            color: white;
+            opacity: 0;
+            transition: all 0.3s;
+            transform: translateY(20px);
+        }
+
+        .service-item:hover .service-hover-content {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .service-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .service-item h5 {
+            color: var(--dark);
+            transition: all 0.3s;
+        }
+
+        .service-item:hover h5 {
+            color: white;
+        }
+
+        .service-item .text-body {
+            transition: all 0.3s;
+        }
+
+        .service-item:hover .text-body {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+
+        /* Hover effects for buttons */
+        .hover-scale {
+            transition: transform 0.3s ease;
+        }
+
+        .hover-scale:hover {
+            transform: scale(1.05);
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+    </style>
+{% endblock %}

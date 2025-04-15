@@ -1,0 +1,424 @@
+{% extends "baseClient.html.twig" %}
+
+{% block title %}Modifier le Voyage - {{ voyage.titre }}{% endblock %}
+
+{% block content %}
+    <!-- Page Header Start -->
+    <div class="container-fluid page-header mb-5 p-0" style="background-image: url({{ asset('img/voyages/1.avif') }});">
+        <div class="container-fluid page-header-inner py-5">
+            <div class="container text-center pb-5">
+                <h1 class="display-3 text-white mb-3 animated slideInDown">Modifier le voyage</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center text-uppercase">
+                        <li class="breadcrumb-item"><a href="{{ path('app_voyages_agence') }}">Vos voyages</a></li>
+                        <li class="breadcrumb-item text-white active" aria-current="page">Modification</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <!-- Page Header End -->
+
+    <!-- Voyage Form Start -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+                <h6 class="section-title text-center text-primary text-uppercase">Formulaire de modification</h6>
+                <h1 class="mb-5">Modifier <span class="text-primary text-uppercase">{{ voyage.titre }}</span></h1>
+            </div>
+            <form id="voyageForm" action="{{ path('app_modifier_voyage_bd', {'id': voyage.id}) }}" method="POST" enctype="multipart/form-data">
+                <div class="row g-5">
+                    <div class="col-lg-6">
+                        <!-- Affichage des images existantes -->
+                        <div class="row g-3 mb-4">
+                            {% set images = voyage.transformImagePaths(voyage.pathImages)|split('***') %}
+                            {% for image in images %}
+                                {% if loop.index0 < 4 %}
+                                    <div class="col-6 {% if loop.index0 % 2 == 0 %}text-end{% else %}text-start{% endif %}">
+                                        <img class="img-fluid rounded wow zoomIn hover-zoom"
+                                             src="{{ asset(image|trim) }}"
+                                             style="max-width: {% if loop.index0 % 2 == 0 %}75%{% else %}100%{% endif %};
+                                                     margin-top: {% if loop.index0 == 0 %}25%{% else %}0{% endif %};"
+                                             onerror="this.src='{{ asset('img/about-1.jpg') }}'">
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <!-- Deuxième ligne d'images si elles existent -->
+                        {% if images|length > 4 %}
+                            <div class="row g-3 mb-4">
+                                {% for image in images|slice(4, 4) %}
+                                    <div class="col-6 {% if loop.index0 % 2 == 0 %}text-end{% else %}text-start{% endif %}">
+                                        <img class="img-fluid rounded wow zoomIn hover-zoom"
+                                             src="{{ asset(image|trim) }}"
+                                             style="max-width: {% if loop.index0 % 2 == 0 %}75%{% else %}100%{% endif %};
+                                                     margin-top: {% if loop.index0 == 0 %}25%{% else %}0{% endif %};"
+                                             onerror="this.src='{{ asset('img/about-1.jpg') }}'">
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="wow fadeInUp" data-wow-delay="0.2s">
+                            <!-- Section Informations de base -->
+                            <div class="card mb-4 border-primary hover-effect">
+                                <div class="card-header bg-primary text-white">
+                                    <i class="fas fa-info-circle me-2"></i>Informations de base
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <!-- Destination -->
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="destination"
+                                                       name="destination" placeholder="Destination"
+                                                       value="{{ voyage.destination }}" required>
+                                                <label for="destination"><i
+                                                            class="fas fa-map-marked-alt me-2 text-primary"></i>Destination</label>
+                                            </div>
+                                        </div>
+
+                                        <!-- Point de départ -->
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="pointDepart"
+                                                       name="pointDepart" placeholder="Point de départ"
+                                                       value="{{ voyage.pointDepart }}" required>
+                                                <label for="pointDepart"><i
+                                                            class="fas fa-map-marker-alt me-2 text-primary"></i>Point de départ</label>
+                                            </div>
+                                        </div>
+
+                                        <!-- Titre du voyage -->
+                                        <div class="col-12">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="titre" name="titre"
+                                                       placeholder="Titre du voyage"
+                                                       value="{{ voyage.titre }}" required>
+                                                <label for="titre"><i class="fas fa-heading me-2 text-primary"></i>Titre du voyage</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section Dates -->
+                            <div class="card mb-4 border-primary hover-effect">
+                                <div class="card-header bg-primary text-white">
+                                    <i class="far fa-calendar-alt me-2"></i>Dates du voyage
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <!-- Date de départ -->
+                                        <div class="col-md-6">
+                                            <div class="form-floating date" id="date3" data-target-input="nearest">
+                                                <input type="datetime-local" class="form-control" id="dateDepart"
+                                                       name="dateDepart"
+                                                       value="{{ voyage.dateDepart|date('Y-m-d\\TH:i') }}" required>
+                                                <label for="dateDepart"><i
+                                                            class="fas fa-plane-departure me-2 text-primary"></i>Date de départ</label>
+                                            </div>
+                                        </div>
+
+                                        <!-- Date de retour -->
+                                        <div class="col-md-6">
+                                            <div class="form-floating date" id="date4" data-target-input="nearest">
+                                                <input type="datetime-local" class="form-control" id="dateRetour"
+                                                       name="dateRetour"
+                                                       value="{{ voyage.dateRetour|date('Y-m-d\\TH:i') }}" required>
+                                                <label for="dateRetour"><i
+                                                            class="fas fa-plane-arrival me-2 text-primary"></i>Date de retour</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section Détails -->
+                            <div class="card mb-4 border-primary hover-effect">
+                                <div class="card-header bg-primary text-white">
+                                    <i class="fas fa-list-ul me-2"></i>Détails du voyage
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <!-- Type de voyage -->
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="type" name="type" required>
+                                                    <option value="">Sélectionner un type</option>
+                                                    <option value="Avion" {% if voyage.type == 'Avion' %}selected{% endif %}>Avion</option>
+                                                    <option value="Train" {% if voyage.type == 'Train' %}selected{% endif %}>Train</option>
+                                                    <option value="Bateau" {% if voyage.type == 'Bateau' %}selected{% endif %}>Bateau</option>
+                                                </select>
+                                                <label for="type"><i class="fas fa-tags me-2 text-primary"></i>Type de voyage</label>
+                                            </div>
+                                        </div>
+
+                                        <!-- Nombre de places -->
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" id="nbPlacesD"
+                                                       name="nbPlacesD" min="1" placeholder="Nombre de places"
+                                                       value="{{ voyage.nbPlacesD }}" required>
+                                                <label for="nbPlacesD"><i
+                                                            class="fas fa-users me-2 text-primary"></i>Nombre de places</label>
+                                            </div>
+                                        </div>
+
+                                        <!-- Prix -->
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="number" step="0.5" class="form-control" id="prix"
+                                                       name="prix" min="0" placeholder="Prix"
+                                                       value="{{ voyage.prix }}" required>
+                                                <label for="prix"><i
+                                                            class="fas fa-money-bill-wave me-2 text-primary"></i>Prix (DT)</label>
+                                            </div>
+                                        </div>
+
+                                        <!-- Offre associée -->
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="id_offre" name="id_offre">
+                                                    <option value="">Aucune offre</option>
+                                                    {% for offre in offres %}
+                                                        <option value="{{ offre.id }}"
+                                                                {% if voyage.id_offre and offre.id == voyage.id_offre.id %}selected{% endif %}>
+                                                            {{ offre.titre }}
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                                <label for="id_offre"><i
+                                                            class="fas fa-percent me-2 text-primary"></i>Offre associée</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section Description et Images -->
+                            <div class="card mb-4 border-primary hover-effect">
+                                <div class="card-header bg-primary text-white">
+                                    <i class="fas fa-image me-2"></i>Description et médias
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <!-- Images -->
+                                        <div class="col-12">
+                                            <div class="form-group">
+                                                <label for="images"><i class="fas fa-camera me-2 text-primary"></i>Modifier les images</label>
+                                                <input type="file" class="form-control hover-file-input" id="images"
+                                                       name="images[]" multiple accept="image/*">
+                                                <small class="form-text text-muted">Sélectionnez de nouvelles images pour remplacer les existantes (max 5)</small>
+                                                <div id="imagePreview" class="mt-2">
+                                                    {% for image in images %}
+                                                        <input type="hidden" name="existing_images[]" value="{{ image|trim }}">
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Description -->
+                                        <div class="col-12">
+                                            <div class="form-floating">
+                                                <div class="input-group">
+                                                    <textarea class="form-control"
+                                                              placeholder="Description détaillée" id="description"
+                                                              name="description" style="height: 100px"
+                                                              required>{{ voyage.description }}</textarea>
+                                                    <button class="btn btn-outline-primary" type="button"
+                                                            id="generateDescBtn" style="height: 58px;">
+                                                        <i class="fas fa-magic me-1"></i> Générer
+                                                    </button>
+                                                    <label for="description"><i
+                                                                class="fas fa-align-left me-2 text-primary"></i>Description détaillée</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Boutons -->
+                            <div class="row g-3 mt-2">
+                                <div class="col-6">
+                                    <button class="btn btn-primary w-100 py-3 btn-hover" type="submit"
+                                            id="submitBtn">
+                                        <i class="fas fa-save me-2"></i>Enregistrer
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <a href="{{ path('app_voyages_agence') }}" class="btn btn-secondary w-100 py-3 btn-hover" id="cancelBtn">
+                                        <i class="fas fa-times-circle me-2"></i>Annuler
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Voyage Form End -->
+
+    <style>
+        /* Effets de hover */
+        .hover-effect {
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .hover-effect:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .hover-zoom {
+            transition: transform 0.3s ease;
+        }
+
+        .hover-zoom:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-hover {
+            transition: all 0.3s ease;
+        }
+
+        .btn-hover:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Style pour les cartes */
+        .card-header {
+            font-weight: 600;
+        }
+
+        /* Style pour les inputs file */
+        .hover-file-input:hover {
+            border-color: #0d6efd;
+            background-color: #f8f9fa;
+        }
+
+        /* Style pour le bouton générer */
+        #generateDescBtn {
+            transition: all 0.3s ease;
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        #generateDescBtn:hover {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        /* Style pour les labels avec icônes */
+        .form-floating label i {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Animation pour les champs */
+        .form-control {
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        /* Ajustement des marges */
+        .col-lg-6:first-child {
+            padding-left: 2rem;
+        }
+
+        .col-lg-6:last-child {
+            padding-right: 2rem;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Gestion de la soumission du formulaire
+            document.getElementById('voyageForm').addEventListener('submit', function (e) {
+                // Validation des dates
+                const dateDepart = new Date(document.getElementById('dateDepart').value);
+                const dateRetour = new Date(document.getElementById('dateRetour').value);
+
+                if (dateRetour <= dateDepart) {
+                    alert('La date de retour doit être postérieure à la date de départ');
+                    e.preventDefault();
+                    return;
+                }
+
+                // Validation du nombre de places
+                const nbPlaces = parseInt(document.getElementById('nbPlacesD').value);
+                if (nbPlaces <= 0) {
+                    alert('Le nombre de places doit être supérieur à 0');
+                    e.preventDefault();
+                    return;
+                }
+
+                // Validation du prix
+                const prix = parseFloat(document.getElementById('prix').value);
+                if (prix <= 0) {
+                    alert('Le prix doit être supérieur à 0');
+                    e.preventDefault();
+                    return;
+                }
+            });
+
+            // Gestion du bouton Annuler
+            document.getElementById('cancelBtn').addEventListener('click', function (e) {
+                e.preventDefault();
+                if (confirm('Êtes-vous sûr de vouloir annuler les modifications ?')) {
+                    window.location.href = '{{ path('app_voyages_agence') }}';
+                }
+            });
+
+            // Gestion de l'affichage des nouvelles images sélectionnées
+            document.getElementById('images').addEventListener('change', function(e) {
+                const preview = document.getElementById('imagePreview');
+                preview.innerHTML = '';
+
+                if (this.files.length > 5) {
+                    alert('Vous ne pouvez sélectionner que 5 images maximum');
+                    this.value = '';
+                    return;
+                }
+
+                for (let i = 0; i < this.files.length; i++) {
+                    const file = this.files[i];
+                    if (file.type.match('image.*')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const img = document.createElement('img');
+                            img.src = e.target.result;
+                            img.style.maxWidth = '100px';
+                            img.style.maxHeight = '100px';
+                            img.className = 'img-thumbnail m-1';
+                            preview.appendChild(img);
+                        }
+                        reader.readAsDataURL(file);
+                    }
+                }
+            });
+
+            // Animation au survol des champs
+            const formControls = document.querySelectorAll('.form-control, .form-select');
+            formControls.forEach(control => {
+                control.addEventListener('mouseenter', function () {
+                    this.style.borderColor = '#0d6efd';
+                });
+                control.addEventListener('mouseleave', function () {
+                    this.style.borderColor = '#ced4da';
+                });
+            });
+        });
+    </script>
+{% endblock %}

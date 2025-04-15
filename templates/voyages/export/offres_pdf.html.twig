@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Statistiques des Offres - {{ agence }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        h1 { color: #2c3e50; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background-color: #3498db; color: white; padding: 10px; text-align: left; }
+        td { padding: 8px; border-bottom: 1px solid #ddd; }
+        .header { margin-bottom: 30px; text-align: center; }
+        .footer { margin-top: 30px; text-align: right; font-size: 0.8em; color: #7f8c8d; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>Statistiques des Offres</h1>
+    <p>Agence: {{ agence }}</p>
+    <p>Date: {{ date|date('d/m/Y H:i') }}</p>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>Titre</th>
+        <th>Réduction</th>
+        <th>Date Début</th>
+        <th>Date Fin</th>
+        <th>Voyages associés</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for offre in offres %}
+        <tr>
+            <td>{{ offre.titre }}</td>
+            <td>{{ offre.reduction }}%</td>
+            <td>{{ offre.dateDebut ? offre.dateDebut|date('d/m/Y') : '' }}</td>
+            <td>{{ offre.dateFin ? offre.dateFin|date('d/m/Y') : '' }}</td>
+            <td>{{ offre.voyages|length }}</td>
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="5">Aucune offre trouvée</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<div class="footer">
+    Généré le {{ date|date('d/m/Y H:i') }} - TerraNav
+</div>
+</body>
+</html>
