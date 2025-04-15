@@ -23,74 +23,65 @@ class VoyageController extends AbstractController
         $form = $this->createForm(VoyageType::class, $voyage);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted()) {
-            if ($form->isValid()) {
-                // Récupérer l'utilisateur
-                $user = $userRepository->find(1);
-                if (!$user) {
-                    $this->addFlash('error', 'Utilisateur non trouvé');
-                    return $this->redirectToRoute('app_ajout_voyage');
-                }
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Récupérer l'utilisateur
+            $user = $userRepository->find(1);
+            if (!$user) {
+                $this->addFlash('error', 'Utilisateur non trouvé');
+                return $this->redirectToRoute('app_ajout_voyage');
+            }
 
-                $voyage->setId_user($user);
+            $voyage->setId_user($user);
 
-                // Gestion des images
-                $uploadedFiles = $request->files->get('images');
-                $imagePaths = [];
+            // Gestion des images
+            $uploadedFiles = $request->files->get('images');
+            $imagePaths = [];
 
-                if ($uploadedFiles) {
-                    $projectDir = $this->getParameter('kernel.project_dir');
-                    $uploadDir = $projectDir.'/public/img/voyages/';
+            if ($uploadedFiles) {
+                $projectDir = $this->getParameter('kernel.project_dir');
+                $uploadDir = $projectDir.'/public/img/voyages/';
 
-                    foreach ($uploadedFiles as $uploadedFile) {
-                        if ($uploadedFile) {
-                            $newFilename = uniqid().'.'.$uploadedFile->guessExtension();
-                            $absolutePath = $uploadDir.$newFilename;
+                foreach ($uploadedFiles as $uploadedFile) {
+                    if ($uploadedFile) {
+                        $newFilename = uniqid().'.'.$uploadedFile->guessExtension();
+                        $absolutePath = $uploadDir.$newFilename;
 
-                            try {
-                                $uploadedFile->move($uploadDir, $newFilename);
-                                // Stocker le chemin absolu Windows
-                                $windowsPath = str_replace('/', '\\', $absolutePath);
-                                $imagePaths[] = $windowsPath;
-                            } catch (\Exception $e) {
-                                $this->addFlash('error', 'Erreur lors de l\'upload d\'image: '.$e->getMessage());
-                            }
+                        try {
+                            $uploadedFile->move($uploadDir, $newFilename);
+                            // Stocker le chemin absolu Windows
+                            $windowsPath = str_replace('/', '\\', $absolutePath);
+                            $imagePaths[] = $windowsPath;
+                        } catch (\Exception $e) {
+                            $this->addFlash('error', 'Erreur lors de l\'upload d\'image: '.$e->getMessage());
                         }
                     }
                 }
-
-                if (empty($imagePaths)) {
-                    $defaultPath = str_replace(
-                        '/',
-                        '\\',
-                        $this->getParameter('kernel.project_dir').'/public/img/about-1.jpg'
-                    );
-                    $imagePaths[] = $defaultPath;
-                }
-
-                $voyage->setPathImages(implode('***', $imagePaths));
-
-                // Gestion de l'offre
-                $idOffre = $request->request->get('id_offre');
-                if ($idOffre) {
-                    $offre = $offreRepository->find($idOffre);
-                    $voyage->setId_offre($offre);
-                }
-
-                // Stockage temporaire en session
-                $session = $request->getSession();
-                $session->set('voyage_temporaire', $voyage);
-
-                return $this->redirectToRoute('app_confirmation_ajout');
-            } else {
-                // Ajoutez ceci pour voir les erreurs de validation
-                foreach ($form->getErrors(true) as $error) {
-                    $this->addFlash('error', $error->getMessage());
-                }
             }
+
+            if (empty($imagePaths)) {
+                $defaultPath = str_replace(
+                    '/',
+                    '\\',
+                    $this->getParameter('kernel.project_dir').'/public/img/about-1.jpg'
+                );
+                $imagePaths[] = $defaultPath;
+            }
+
+            $voyage->setPathImages(implode('***', $imagePaths));
+
+            // Gestion de l'offre
+            $idOffre = $request->request->get('id_offre');
+            if ($idOffre) {
+                $offre = $offreRepository->find($idOffre);
+                $voyage->setId_offre($offre);
+            }
+
+            // Stockage temporaire en session
+            $session = $request->getSession();
+            $session->set('voyage_temporaire', $voyage);
+
+            return $this->redirectToRoute('app_confirmation_ajout');
         }
-        dump($voyage);
-        dump($form->getErrors(true));
 
         $offres = $offreRepository->findAll();
         return $this->render('voyages/AjouterVoyage.html.twig', [

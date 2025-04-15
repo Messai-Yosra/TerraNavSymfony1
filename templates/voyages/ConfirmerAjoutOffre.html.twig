@@ -83,20 +83,22 @@
                         </div>
                     </div>
 
-                    <!-- Boutons d'Action -->
+                    <!-- Boutons d'Action - Version modifiée avec espacement -->
                     <div class="d-flex flex-wrap gap-3 mt-4">
-                        <a href="{{ path('app_offres_agence') }}" class="btn btn-primary py-3 px-5 btn-hover">
+                        <a href="{{ path('app_offres_agence') }}" class="btn btn-primary py-3 px-5 btn-hover me-3">
                             <i class="fas fa-list me-2"></i>Voir toutes mes offres
                         </a>
-                        <a href="{{ path('app_ajout_offre') }}" class="btn btn-outline-primary py-3 px-5 btn-hover">
+
+                        <a href="{{ path('app_ajout_offre') }}" class="btn btn-outline-primary py-3 px-5 btn-hover me-3">
                             <i class="fas fa-plus-circle me-2"></i>Ajouter une autre offre
                         </a>
+
+                        <form action="{{ path('app_publier_offre') }}" method="POST" id="publishForm" class="mt-3 mt-md-0">
+                            <button type="submit" class="btn btn-primary py-3 px-5 btn-hover">
+                                <i class="fas fa-ticket-alt me-2"></i>Publier Offre
+                            </button>
+                        </form>
                     </div>
-                    <form action="{{ path('app_publier_offre') }}" method="POST" id="publishForm">
-                        <button type="submit" class="btn btn-primary py-3 px-5 btn-hover">
-                            <i class="fas fa-ticket-alt me-2"></i>Publier Offre
-                        </button>
-                    </form>
                 </div>
 
                 <!-- Image de l'offre -->

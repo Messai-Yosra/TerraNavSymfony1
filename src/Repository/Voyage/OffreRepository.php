@@ -21,18 +21,45 @@ class OffreRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-    public function findFilteredOffres(array $filters = [])
+    public function findFilteredOffres(array $criteria): array
     {
         $qb = $this->createQueryBuilder('o')
-            ->where('o.titre IS NOT NULL')
-            ->andWhere('o.dateFin >= :now OR o.dateFin IS NULL')
-            ->setParameter('now', new \DateTime());
+            ->where('o.reduction > 0');
 
-        // Filtres
-        $this->applyFilters($qb, $filters);
+        if (!empty($criteria['search'])) {
+            $qb->andWhere('o.titre LIKE :search')
+                ->setParameter('search', '%'.$criteria['search'].'%');
+        }
+
+        if (!empty($criteria['minReduction'])) {
+            $qb->andWhere('o.reduction >= :minReduction')
+                ->setParameter('minReduction', $criteria['minReduction']);
+        }
+
+        if (!empty($criteria['dateDebut'])) {
+            $qb->andWhere('o.dateDebut >= :dateDebut')
+                ->setParameter('dateDebut', new \DateTime($criteria['dateDebut']));
+        }
+
+        if (!empty($criteria['dateFin'])) {
+            $qb->andWhere('o.dateFin <= :dateFin')
+                ->setParameter('dateFin', new \DateTime($criteria['dateFin']));
+        }
 
         // Tri
-        $this->applySorting($qb, $filters['sort'] ?? null);
+        switch ($criteria['sort'] ?? '') {
+            case 'alpha':
+                $qb->orderBy('o.titre', 'ASC');
+                break;
+            case 'reduction_asc':
+                $qb->orderBy('o.reduction', 'ASC');
+                break;
+            case 'reduction_desc':
+                $qb->orderBy('o.reduction', 'DESC');
+                break;
+            default:
+                $qb->orderBy('o.dateDebut', 'DESC');
+        }
 
         return $qb->getQuery()->getResult();
     }
@@ -160,13 +187,88 @@ class OffreRepository extends ServiceEntityRepository
     public function findTitlesStartingWith(string $query): array
     {
         return $this->createQueryBuilder('o')
-            ->select('o.titre')
-            ->where('o.titre LIKE :query')
+            ->select('o.titre', 'o.reduction')
+            ->where('LOWER(o.titre) LIKE LOWER(:query)')
             ->setParameter('query', $query.'%')
             ->setMaxResults(10)
             ->getQuery()
             ->getResult();
     }
+
+    public function getReductionDistribution(): array
+    {
+        $results = $this->createQueryBuilder('o')
+            ->select('o.reduction', 'COUNT(o.id) as count')
+            ->groupBy('o.reduction')
+            ->getQuery()
+            ->getResult();
+
+        // Formatage des résultats en plages
+        $ranges = [
+            '0-10%' => 0,
+            '11-20%' => 0,
+            '21-30%' => 0,
+            '30%+' => 0
+        ];
+
+        foreach ($results as $result) {
+            $reduction = $result['reduction'];
+            if ($reduction <= 10) {
+                $ranges['0-10%'] += $result['count'];
+            } elseif ($reduction <= 20) {
+                $ranges['11-20%'] += $result['count'];
+            } elseif ($reduction <= 30) {
+                $ranges['21-30%'] += $result['count'];
+            } else {
+                $ranges['30%+'] += $result['count'];
+            }
+        }
+
+        // Conversion en format attendu par le frontend
+        $formatted = [];
+        foreach ($ranges as $range => $count) {
+            $formatted[] = ['range' => $range, 'count' => $count];
+        }
+
+        return $formatted;
+    }
+
+
+
+    // Ajoutez cette méthode pour obtenir les statistiques de statut
+    public function getOfferStatusStats(): array
+    {
+        $now = new \DateTime();
+
+        $active = $this->createQueryBuilder('o')
+            ->select('COUNT(o.id)')
+            ->where('o.dateDebut <= :now AND o.dateFin >= :now')
+            ->setParameter('now', $now)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $upcoming = $this->createQueryBuilder('o')
+            ->select('COUNT(o.id)')
+            ->where('o.dateDebut > :now')
+            ->setParameter('now', $now)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $expired = $this->createQueryBuilder('o')
+            ->select('COUNT(o.id)')
+            ->where('o.dateFin < :now')
+            ->setParameter('now', $now)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return [
+            ['status' => 'active', 'count' => (int)$active],
+            ['status' => 'upcoming', 'count' => (int)$upcoming],
+            ['status' => 'expired', 'count' => (int)$expired]
+        ];
+    }
+
+
 
 }
 

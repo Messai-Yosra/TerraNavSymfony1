@@ -20,49 +20,43 @@ class VoyageRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-    public function findByFilters(array $filters = [])
+    public function findByFilters(array $criteria): array
     {
-        $qb = $this->createQueryBuilder('v');
+        $qb = $this->createQueryBuilder('v')
+            ->leftJoin('v.id_offre', 'o')
+            ->addSelect('o');
 
-        // Filtre par recherche textuelle
-        if (!empty($filters['search'])) {
-            $qb->andWhere('v.titre LIKE :search')
-                ->setParameter('search', '%'.$filters['search'].'%');
+        if (!empty($criteria['search'])) {
+            $qb->andWhere('v.titre LIKE :search OR v.description LIKE :search')
+                ->setParameter('search', '%'.$criteria['search'].'%');
         }
 
-        // Filtre par prix min
-        if (isset($filters['minPrice'])) {
+        if (!empty($criteria['minPrice'])) {
             $qb->andWhere('v.prix >= :minPrice')
-                ->setParameter('minPrice', $filters['minPrice']);
+                ->setParameter('minPrice', $criteria['minPrice']);
         }
 
-        // Filtre par prix max
-        if (isset($filters['maxPrice'])) {
+        if (!empty($criteria['maxPrice'])) {
             $qb->andWhere('v.prix <= :maxPrice')
-                ->setParameter('maxPrice', $filters['maxPrice']);
+                ->setParameter('maxPrice', $criteria['maxPrice']);
         }
 
-        // Filtre par nombre de places minimum
-        if (isset($filters['minPlaces'])) {
+        if (!empty($criteria['minPlaces'])) {
             $qb->andWhere('v.nbPlacesD >= :minPlaces')
-                ->setParameter('minPlaces', $filters['minPlaces']);
+                ->setParameter('minPlaces', $criteria['minPlaces']);
         }
 
-        // Filtre par type de voyage
-        if (isset($filters['type']) && $filters['type'] !== 'all') {
+        if (!empty($criteria['type']) && $criteria['type'] !== 'all') {
             $qb->andWhere('v.type = :type')
-                ->setParameter('type', $filters['type']);
+                ->setParameter('type', $criteria['type']);
         }
 
-        // Filtre pour les voyages en solde
-        if (isset($filters['onSale'])) {
-            $qb->leftJoin('v.id_offre', 'offer') // Changé 'o' en 'offer'
-            ->andWhere('offer.titre != :noOffer')
-                ->setParameter('noOffer', 'Aucun Offre');
+        if ($criteria['onSale']) {
+            $qb->andWhere('o.reduction IS NOT NULL AND o.reduction > 0');
         }
 
-        // Tri des résultats
-        switch ($filters['sort'] ?? '') {
+        // Tri
+        switch ($criteria['sort']) {
             case 'alpha':
                 $qb->orderBy('v.titre', 'ASC');
                 break;
@@ -72,16 +66,8 @@ class VoyageRepository extends ServiceEntityRepository
             case 'prix_desc':
                 $qb->orderBy('v.prix', 'DESC');
                 break;
-            case 'remise_asc':
-                $qb->leftJoin('v.id_offre', 'offer_asc') // Alias différent
-                ->orderBy('offer_asc.reduction', 'ASC');
-                break;
             case 'remise_desc':
-                $qb->leftJoin('v.id_offre', 'offer_desc') // Alias différent
-                ->orderBy('offer_desc.reduction', 'DESC');
-                break;
-            case 'plus_proche':
-                $qb->orderBy('v.dateDepart', 'ASC');
+                $qb->orderBy('o.reduction', 'DESC');
                 break;
             default:
                 $qb->orderBy('v.dateDepart', 'DESC');
@@ -207,5 +193,78 @@ class VoyageRepository extends ServiceEntityRepository
             ->setMaxResults(10)
             ->getQuery()
             ->getResult();
+    }
+    // Dans VoyageRepository.php
+
+    public function findAllWithOffres(): array
+    {
+        return $this->createQueryBuilder('v')
+            ->leftJoin('v.id_offre', 'o')
+            ->addSelect('o')
+            ->orderBy('v.dateDepart', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getDestinationStats(): array
+    {
+        return $this->createQueryBuilder('v')
+            ->select('v.destination as name', 'COUNT(v.id) as count')
+            ->groupBy('v.destination')
+            ->orderBy('count', 'DESC')
+            ->setMaxResults(10)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getMonthlyVoyageCounts(): array
+    {
+        return $this->createQueryBuilder('v')
+            ->select('SUBSTRING(v.dateDepart, 1, 7) as month', 'COUNT(v.id) as count')
+            ->groupBy('month')
+            ->orderBy('month', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getTripDurationStats(): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = "
+        SELECT 
+            DATEDIFF(v.dateRetour, v.dateDepart) as duration,
+            COUNT(v.id) as count,
+            AVG(v.prix) as averagePrice
+        FROM voyage v
+        GROUP BY duration
+        ORDER BY duration ASC
+    ";
+
+        $stmt = $conn->prepare($sql);
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
+    }
+
+    public function getReservationHeatmapData(): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = "
+        SELECT 
+            v.destination,
+            MONTH(v.dateDepart) as month,
+            COUNT(v.id) as reservationCount,
+            AVG(v.prix) as averagePrice
+        FROM voyage v
+        GROUP BY v.destination, month
+        ORDER BY month, reservationCount DESC
+    ";
+
+        $stmt = $conn->prepare($sql);
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 }

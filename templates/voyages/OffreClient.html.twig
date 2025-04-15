@@ -51,8 +51,10 @@
                                 <option value="reduction_desc" {% if filterParams.sort == 'reduction_desc' %}selected{% endif %}>Réduction décroissante</option>
                             </select>
                         </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary w-100 py-2">Filtrer</button>
+                        <div class="col-md-2 d-flex align-items-end reset-button-container">
+                            <button type="button" class="btn btn-secondary w-100 py-2" onclick="resetFilters()">
+                                <i class="fas fa-undo me-2"></i>Réinitialiser
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -65,7 +67,7 @@
     <div class="container mb-4">
         <div class="row justify-content-center">
             <div class="col-md-8 position-relative">
-                <form method="get" action="{{ path('app_offres') }}" class="input-group shadow-lg">
+                <form method="get" action="{{ path('app_offres') }}" class="input-group shadow-lg" id="searchForm">
                     <input type="text" class="form-control border-0 search-input" id="searchInput" name="search"
                            placeholder="Rechercher une offre..." value="{{ searchTerm ?? '' }}" autocomplete="off">
                     <button class="btn btn-primary" type="submit">
@@ -79,12 +81,18 @@
     </div>
 
 
+
     <!-- Offres Section -->
     <div class="container-xxl py-5">
         <div class="container">
-            <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
-                <h6 class="section-title text-center text-primary text-uppercase">Nos Promotions</h6>
-                <h1 class="mb-5">Découvrez nos <span class="text-primary text-uppercase">Offres Exceptionnelles</span></h1>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="text-center">
+                    <h6 class="section-title text-center text-primary text-uppercase">Nos Promotions</h6>
+                    <h1 class="mb-0">Découvrez nos <span class="text-primary text-uppercase">Offres Exceptionnelles</span></h1>
+                </div>
+                <a href="{{ path('app_voyages') }}" class="btn btn-outline-primary align-self-start">
+                    <i class="fas fa-arrow-left me-2"></i>Retour
+                </a>
             </div>
             <div class="row g-4 justify-content-center">
                 {% for offre in offres %}
@@ -215,19 +223,18 @@
 
         /* Ajouts pour les suggestions */
         #searchSuggestions {
-            max-height: 300px;
-            overflow-y: auto;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.175);
-            border-radius: 0 0 4px 4px;
-            margin-top: -1px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            z-index: 1000;
+            display: none; /* Caché par défaut */
         }
 
-        #searchSuggestions .list-group-item {
-            border-left: none;
-            border-right: none;
-            cursor: pointer;
-            transition: all 0.2s;
-            padding: 0.75rem 1.25rem;
+        #searchSuggestions.list-group {
+            position: absolute;
+            width: calc(100% - 2px);
+            max-height: 300px;
+            overflow-y: auto;
         }
 
         #searchSuggestions .list-group-item:first-child {
@@ -237,6 +244,60 @@
         #searchSuggestions .list-group-item:hover {
             background-color: #f8f9fa;
             padding-left: 1.5rem;
+        }
+        /* Dans la balise style */
+        .reset-button-container {
+            margin-top: 32px; /* Ajustez selon besoin */
+        }
+
+        /* Dans la balise style */
+        .search-input-container {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        #searchSuggestions {
+            top: 100%;
+            left: 0;
+            right: 0;
+        }
+
+        #searchSuggestions {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            z-index: 1000;
+        }
+
+        #searchSuggestions {
+            display: block !important; /* Force l'affichage pour debug */
+            opacity: 1 !important;
+            background: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        #searchSuggestions.list-group {
+            position: absolute;
+            width: calc(100% - 2px); /* Ajustement précis */
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1050; /* Plus élevé que les autres éléments */
+        }
+        #searchSuggestions .list-group-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #searchSuggestions .badge {
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        #searchSuggestions .badge {
+            margin-left: auto; /* Pousse le badge à droite */
+            padding: 0.35em 0.65em;
         }
     </style>
 
@@ -264,15 +325,21 @@
                 });
             }
 
-            // Recherche avec suggestions
+            // Gestion de la recherche avec suggestions
             const searchInput = document.getElementById('searchInput');
-            const searchForm = document.querySelector('.input-group.shadow-lg form');
+            const searchForm = document.getElementById('searchForm');
             const suggestionsContainer = document.getElementById('searchSuggestions');
 
-            if (searchInput) {
+            if (searchInput && searchForm) {
+                let currentRequest = null;
+
                 searchInput.addEventListener('input', debounce(async function() {
                     const query = this.value.trim();
-                    console.log("Recherche en cours pour:", query); // Debug
+
+                    // Annule la requête précédente si elle existe
+                    if (currentRequest) {
+                        currentRequest.abort();
+                    }
 
                     if (query.length < 2) {
                         suggestionsContainer.classList.add('d-none');
@@ -280,49 +347,57 @@
                     }
 
                     try {
-                        console.log("Envoi de la requête pour:", query);
-                        const response = await fetch(`{{ path('app_offres_suggestions') }}?q=${encodeURIComponent(query)}`);
-                        console.log("Réponse reçue:", response);
+                        currentRequest = new AbortController();
+                        const signal = currentRequest.signal;
 
-                        if (!response.ok) throw new Error('Network response was not ok');
+                        const response = await fetch(`{{ path('app_offres_suggestions') }}?q=${encodeURIComponent(query)}`, {
+                            signal
+                        });
+
+                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
                         const suggestions = await response.json();
-                        console.log("Suggestions reçues:", suggestions);
 
-                        if (suggestions.length > 0) {
-                            suggestionsContainer.innerHTML = suggestions.map(suggestion =>
-                                `<a href="#" class="list-group-item list-group-item-action" data-suggestion="${suggestion}">
-                                ${suggestion}
-                             </a>`
-                            ).join('');
-                            suggestionsContainer.classList.remove('d-none');
-                        } else {
+                        suggestionsContainer.innerHTML = suggestions.map(suggestion => `
+                            <a href="#" class="list-group-item list-group-item-action">
+                                ${suggestion.titre}
+                                ${suggestion.reduction ? `<span class="badge bg-danger ms-2">-${suggestion.reduction}%</span>` : ''}
+                            </a>
+                        `).join('');
+
+                        suggestionsContainer.classList.remove('d-none');
+                    } catch (error) {
+                        if (error.name !== 'AbortError') {
                             suggestionsContainer.classList.add('d-none');
                         }
-                    } catch (error) {
-                        console.error('Erreur de recherche:', error);
-                        suggestionsContainer.classList.add('d-none');
+                    } finally {
+                        currentRequest = null;
                     }
                 }, 300));
 
                 // Gestion du clic sur une suggestion
-                suggestionsContainer.addEventListener('click', function(e) {
-                    if (e.target.classList.contains('list-group-item')) {
-                        e.preventDefault();
-                        searchInput.value = e.target.dataset.suggestion;
+                suggestionsContainer.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const target = e.target.closest('.list-group-item');
+                    if (target) {
+                        searchInput.value = target.textContent.split('-')[0].trim();
                         suggestionsContainer.classList.add('d-none');
                         searchForm.submit();
                     }
                 });
 
-                // Masquer les suggestions quand on clique ailleurs
-                document.addEventListener('click', function(e) {
+                // Masquer les suggestions au clic externe
+                document.addEventListener('click', (e) => {
                     if (!searchInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
                         suggestionsContainer.classList.add('d-none');
                     }
                 });
             }
         });
+
+        function resetFilters() {
+            window.location.href = "{{ path('app_offres') }}";
+        }
     </script>
     <!-- Offres Section End -->
 {% endblock %}

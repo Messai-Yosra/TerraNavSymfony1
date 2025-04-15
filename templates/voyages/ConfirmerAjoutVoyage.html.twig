@@ -16,16 +16,6 @@
             </div>
         </div>
     </div>
-    {% block flash_messages %}
-        {% for type, messages in app.flashes %}
-            {% for message in messages %}
-                <div class="alert alert-{{ type }} alert-dismissible fade show">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            {% endfor %}
-        {% endfor %}
-    {% endblock %}
 
     <!-- About Start - Informations du voyage -->
     <div class="container-xxl py-5">
@@ -392,4 +382,103 @@
             // Vous pouvez aussi ajouter une vérification ici pour empêcher les doubles soumissions
         });
     </script>
+    <!-- Modal de Confirmation -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-check-circle me-2"></i>Publication réussie
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle fa-5x text-success"></i>
+                    </div>
+                    <h4 class="mb-3">Votre voyage a été publié avec succès !</h4>
+                    <p class="mb-0">Les voyageurs peuvent maintenant voir et réserver ce voyage.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('publishForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Empêche la soumission normale
+
+            // Afficher l'indicateur de chargement
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Publication en cours...';
+            submitBtn.disabled = true;
+
+            // Simulation d'un délai pour la démo (remplacer par votre appel AJAX réel)
+            setTimeout(() => {
+                // Après "succès" de la publication
+                const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+                confirmationModal.show();
+
+                // Réinitialiser le bouton (au cas où le modal serait fermé sans redirection)
+                submitBtn.innerHTML = '<i class="fas fa-ticket-alt me-2"></i>Publier Voyage';
+                submitBtn.disabled = false;
+
+                // Soumettre réellement le formulaire après l'affichage du modal
+                this.submit();
+            }, 1500); // 1.5 secondes de simulation
+        });
+
+        // Gérer la fermeture du modal pour rediriger si nécessaire
+        document.getElementById('confirmationModal').addEventListener('hidden.bs.modal', function () {
+            // Vous pouvez ajouter une redirection ici si nécessaire
+        });
+    </script>
+    <style>
+        /* Styles pour le modal de confirmation */
+        #confirmationModal .modal-content {
+            border-radius: 10px;
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        #confirmationModal .modal-header {
+            border-bottom: none;
+            padding: 1.5rem;
+        }
+
+        #confirmationModal .modal-body {
+            padding: 2rem;
+        }
+
+        #confirmationModal .modal-footer {
+            border-top: none;
+            padding: 1rem 2rem 2rem;
+        }
+
+        #confirmationModal .fa-check-circle {
+            animation: bounceIn 0.8s;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
+        /* Animation pour le bouton hover */
+        .hover-scale {
+            transition: transform 0.3s ease;
+        }
+
+        .hover-scale:hover {
+            transform: scale(1.05);
+        }
+    </style>
+    {% for message in app.flashes('success') %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+                confirmationModal.show();
+            });
+        </script>
+    {% endfor %}
 {% endblock %}

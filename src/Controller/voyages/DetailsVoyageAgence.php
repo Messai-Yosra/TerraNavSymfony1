@@ -14,16 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class DetailsVoyageAgence extends AbstractController
 {
-    #[Route('/ModifierVoyage/{id}', name: 'app_modifier_voyage')]
-    public function ModifierVoyage(Voyage $voyage,OffreRepository $offreRepository): Response
-    {
-        $offres = $offreRepository-> findOffresByAgence(1);
 
-        return $this->render('voyages/ModifierVoyage.html.twig', [
-            'voyage' => $voyage,
-            'offres' => $offres,
-        ]);
-    }
 
     #[Route('/Supprimer/Voyage/{id}', name: 'app_supprimer_voyage', methods: ['POST'])]
     public function SupprimerVoyage(Voyage $voyage, EntityManagerInterface $entityManager, Request $request): Response {
