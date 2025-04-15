@@ -1,60 +1,144 @@
 {% extends 'baseClient.html.twig' %}
 
-{% block title %}Détails de l'hébergement{% endblock %}
+{% block title %}Détails de la chambre {{ chambre.numero }}{% endblock %}
 
 {% block content %}
-    <h1>Chambre</h1>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Chambre {{ chambre.numero }}</h1>
+            <div class="btn-group">
+                <a href="{{ path('app_chambre_edit', {'id': chambre.id}) }}" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Modifier
+                </a>
+                <a href="{{ path('app_chambre_index') }}" class="btn btn-secondary">
+                    <i class="fas fa-list"></i> Liste
+                </a>
+            </div>
+        </div>
 
-    <table class="table">
-        <tbody>
-        <tr>
-            <th>Id</th>
-            <td>{{ chambre.id }}</td>
-        </tr>
-        <tr>
-            <th>Numero</th>
-            <td>{{ chambre.numero }}</td>
-        </tr>
-        <tr>
-            <th>Disponibilite</th>
-            <td>{{ chambre.disponibilite ? 'Yes' : 'No' }}</td>
-        </tr>
-        <tr>
-            <th>Prix</th>
-            <td>{{ chambre.prix }}</td>
-        </tr>
-        <tr>
-            <th>Description</th>
-            <td>{{ chambre.description }}</td>
-        </tr>
-        <tr>
-            <th>Capacite</th>
-            <td>{{ chambre.capacite }}</td>
-        </tr>
-        <tr>
-            <th>Equipements</th>
-            <td>{{ chambre.equipements }}</td>
-        </tr>
-        <tr>
-            <th>Vue</th>
-            <td>{{ chambre.vue }}</td>
-        </tr>
-        <tr>
-            <th>Taille</th>
-            <td>{{ chambre.taille }}</td>
-        </tr>
-        <tr>
-            <th>Url3d</th>
-            <td>{{ chambre.url3d }}</td>
-        </tr>
-        <tr>
-            <th>Hebergement</th>
-            <td>{{ chambre.hebergement.id }}</td>
-        </tr>
-        </tbody>
-    </table>
+        {# 3D Tour Section #}
+        <div class="card shadow-lg mb-4">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0"><i class="fas fa-vr-cardboard me-2"></i>Visite Virtuelle</h3>
+            </div>
+            <div class="card-body p-0">
+                {% if chambre.url_3d %}
+                    <div class="ratio ratio-16x9">
+                        <iframe 
+                            src="{{ chambre.url_3d }}" 
+                            allowfullscreen
+                            class="border-0"
+                            aria-label="Visite virtuelle 3D de la chambre">
+                        </iframe>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 bg-light">
+                        <i class="fas fa-image fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">Aucune visite 3D disponible</h4>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
 
-    <a href="{{ path('app_chambre_index') }}">back to list</a>
-    <a href="{{ path('app_chambre_edit', {'id': chambre.id}) }}">edit</a>
-    {{ include('hebergements/chambre/_delete_form.html.twig') }}
+        {# Room Details Section #}
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h3 class="mb-0"><i class="fas fa-info-circle me-2"></i>Détails</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-5">Statut:</dt>
+                                    <dd class="col-sm-7">
+                                        <span class="badge bg-{{ chambre.disponibilite ? 'success' : 'danger' }}">
+                                            {{ chambre.disponibilite ? 'Disponible' : 'Indisponible' }}
+                                        </span>
+                                    </dd>
+
+                                    <dt class="col-sm-5">Prix:</dt>
+                                    <dd class="col-sm-7">{{ chambre.prix }}</dd>
+
+                                    <dt class="col-sm-5">Capacité:</dt>
+                                    <dd class="col-sm-7">{{ chambre.capacite ?? '—' }} personnes</dd>
+                                </dl>
+                            </div>
+                            <div class="col-md-6">
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-5">Taille:</dt>
+                                    <dd class="col-sm-7">{{ chambre.taille ?? '—' }} m²</dd>
+
+                                    <dt class="col-sm-5">Vue:</dt>
+                                    <dd class="col-sm-7">{{ chambre.vue ?? '—' }}</dd>
+
+                                    <dt class="col-sm-5">Hébergement:</dt>
+                                    <dd class="col-sm-7">
+                                        {% if chambre.id_hebergement %}
+                                            {{ chambre.id_hebergement.id }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Description Section #}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h3 class="mb-0"><i class="fas fa-align-left me-2"></i>Description</h3>
+                    </div>
+                    <div class="card-body">
+                        {{ chambre.description ?? 'Aucune description disponible' }}
+                    </div>
+                </div>
+            </div>
+
+            {# Equipments Section #}
+            <div class="col-lg-4">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h3 class="mb-0"><i class="fas fa-cubes me-2"></i>Équipements</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if chambre.equipements %}
+                            <ul class="list-group list-group-flush">
+                                {% for equipement in chambre.equipements|split(',') %}
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        {{ equipement|trim }}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted mb-0">Aucun équipement spécifié</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Delete Button #}
+        <div class="d-flex justify-content-end mt-3">
+            {{ include('hebergements/chambre/_delete_form.html.twig') }}
+        </div>
+    </div>
+
+    <style>
+        .card-header {
+            border-bottom: none;
+        }
+        dl dt {
+            font-weight: 500;
+        }
+        .list-group-item {
+            border-left: none;
+            border-right: none;
+            padding-left: 0;
+        }
+    </style>
 {% endblock %}

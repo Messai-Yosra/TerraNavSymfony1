@@ -1,35 +1,59 @@
-<!DOCTYPE html>
+{% extends 'baseClient.html.twig' %}
 
-<title>Image index</title>
+{% block title %}Gestion des Images{% endblock %}
 
-{% block body %}
-    <h1>Image index</h1>
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Liste des Images</h1>
+        <a href="{{ path('app_image_new') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Ajouter une image
+        </a>
+    </div>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Url_image</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for image in images %}
-            <tr>
-                <td>{{ image.id }}</td>
-                <td>{{ image.urlImage }}</td>
-                <td>
-                    <a href="{{ path('app_image_show', {'id': image.id}) }}">show</a>
-                    <a href="{{ path('app_image_edit', {'id': image.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="3">no records found</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
-    <a href="{{ path('app_image_new') }}">Create new</a>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {% if images is empty %}
+                <div class="alert alert-info">Aucune image trouvée</div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Image</th>
+                                <th>Chambre</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for image in images %}
+                            <tr>
+                                <td>{{ image.id }}</td>
+                                <td>
+                                    <img src="{{ asset(image.url_image) }}" alt="Thumbnail" class="img-thumbnail" style="max-width: 100px;">
+                                </td>
+                                <td>Chambre #{{ image.idChambre.numero }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ path('app_image_show', {'id': image.id}) }}" 
+                                           class="btn btn-info" title="Voir">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ path('app_image_edit', {'id': image.id}) }}" 
+                                           class="btn btn-warning" title="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        {{ include('hebergements/image/_delete_form.html.twig') }}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock %}

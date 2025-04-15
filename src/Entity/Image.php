@@ -19,6 +19,8 @@ class Image
 
     #[ORM\Column(name: "url_image", type: "string", length: 255)]
     private string $url_image;
+    #[ORM\Column(name: "image_name", type: "string", length: 255, nullable: true)]
+    private ?string $imageName = null;
 
     public function getId(): int
     {

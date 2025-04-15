@@ -1,26 +1,59 @@
-<!DOCTYPE html>
+{% extends 'baseClient.html.twig' %}
 
-<title>Image</title>
+{% block title %}Détails de l'Image #{{ image.id }}{% endblock %}
 
-{% block body %}
-    <h1>Image</h1>
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Image #{{ image.id }}</h1>
+        <div class="btn-group">
+            <a href="{{ path('app_image_edit', {'id': image.id}) }}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Modifier
+            </a>
+            <a href="{{ path('app_image_index') }}" class="btn btn-secondary">
+                <i class="fas fa-list"></i> Retour à la liste
+            </a>
+        </div>
+    </div>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ image.id }}</td>
-            </tr>
-            <tr>
-                <th>Url_image</th>
-                <td>{{ image.urlImage }}</td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="card shadow-sm mb-4">
+        <div class="card-body text-center">
+            <img src="{{ asset(image.url_image) }}" alt="Room Image" class="img-fluid rounded">
+        </div>
+    </div>
 
-    <a href="{{ path('app_image_index') }}">back to list</a>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0"><i class="fas fa-info-circle"></i> Informations</h3>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">ID:</dt>
+                        <dd class="col-sm-8">{{ image.id }}</dd>
 
-    <a href="{{ path('app_image_edit', {'id': image.id}) }}">edit</a>
+                        <dt class="col-sm-4">Chambre:</dt>
+                        <dd class="col-sm-8">
+                            <a href="{{ path('app_chambre_show', {'id': image.idChambre.id}) }}">
+                                Chambre #{{ image.idChambre.numero }}
+                            </a>
+                        </dd>
 
-    {{ include('image/_delete_form.html.twig') }}
+                        <dt class="col-sm-4">URL:</dt>
+                        <dd class="col-sm-8">
+                            <a href="{{ image.urlImage }}" target="_blank">
+                                {{ image.urlImage|u.truncate(30, '...') }}
+                            </a>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4 d-flex justify-content-end">
+        {{ include('hebergements/image/_delete_form.html.twig') }}
+    </div>
+</div>
 {% endblock %}

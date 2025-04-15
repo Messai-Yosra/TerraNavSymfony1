@@ -22,7 +22,9 @@ class ChambreType extends AbstractType
             ->add('equipements')
             ->add('vue')
             ->add('taille')
-            ->add('url3d')
+            ->add('url_3d', null, [  
+                'label' => 'URL 3D'
+            ])
             ->add('hebergement', EntityType::class, [
                 'class' => Hebergement::class,
                 'choice_label' => 'id',

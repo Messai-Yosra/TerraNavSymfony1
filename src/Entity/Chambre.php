@@ -228,4 +228,27 @@ class Chambre
         }
         return $this;
     }
+    public function getHebergement(): Hebergement
+    {
+        return $this->id_hebergement;
+    }
+
+    public function setHebergement(Hebergement $id_hebergement): self
+    {
+        $this->id_hebergement = $id_hebergement;
+        return $this;
+    }
+
+
+public function getUrl3d(): ?string
+    {
+        return $this->url_3d;
+    }
+
+    public function setUrl3d(?string $url_3d): self
+    {
+        $this->url_3d = $url_3d;
+        return $this;
+    }
+
 }
