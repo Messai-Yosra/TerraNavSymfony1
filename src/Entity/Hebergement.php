@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Validator\Constraints as Assert;
 use App\Entity\Utilisateur;
 use App\Entity\Chambre;
 
@@ -21,24 +22,57 @@ class Hebergement
     private ?Utilisateur $id_user = null;
 
     #[ORM\Column(name: "nom", type: "string", length: 50)]
+    #[Assert\NotBlank(message: "Le nom de l'hébergement ne peut pas être vide")]
+    #[Assert\Length(
+        min: 3,
+        max: 50,
+        minMessage: "Le nom doit contenir au moins {{ limit }} caractères",
+        maxMessage: "Le nom ne peut pas dépasser {{ limit }} caractères"
+    )]
     private string $nom;
 
     #[ORM\Column(name: "description", type: "text")]
+    #[Assert\NotBlank(message: "La description ne peut pas être vide")]
+    #[Assert\Length(
+        min: 10,
+        minMessage: "La description doit contenir au moins {{ limit }} caractères"
+    )]
     private string $description;
 
     #[ORM\Column(name: "adresse", type: "string", length: 255)]
+    #[Assert\NotBlank(message: "L'adresse ne peut pas être vide")]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: "L'adresse ne peut pas dépasser {{ limit }} caractères"
+    )]
     private string $adresse;
 
     #[ORM\Column(name: "ville", type: "string", length: 100)]
+    #[Assert\NotBlank(message: "La ville ne peut pas être vide")]
+    #[Assert\Length(
+        max: 100,
+        maxMessage: "La ville ne peut pas dépasser {{ limit }} caractères"
+    )]
     private string $ville;
 
     #[ORM\Column(name: "pays", type: "string", length: 100)]
+    #[Assert\NotBlank(message: "Le pays ne peut pas être vide")]
+    #[Assert\Length(
+        max: 100,
+        maxMessage: "Le pays ne peut pas dépasser {{ limit }} caractères"
+    )]
     private string $pays;
 
     #[ORM\Column(name: "note_moyenne", type: "float")]
+    #[Assert\Range(
+        min: 0,
+        max: 5,
+        notInRangeMessage: "La note doit être comprise entre {{ min }} et {{ max }}"
+    )]
     private float $note_moyenne;
 
     #[ORM\Column(name: "services", type: "text")]
+    #[Assert\NotBlank(message: "Les services ne peuvent pas être vides")]
     private string $services;
 
     #[ORM\Column(name: "politique_annulation", type: "text")]
@@ -59,6 +93,7 @@ class Hebergement
     public function __construct()
     {
         $this->chambres = new ArrayCollection();
+        $this->note_moyenne = 0.0; // Valeur par défaut
     }
 
     public function getId(): int
@@ -72,12 +107,12 @@ class Hebergement
         return $this;
     }
 
-    public function getid_user(): ?Utilisateur
+    public function getIdUser(): ?Utilisateur
     {
         return $this->id_user;
     }
 
-    public function setid_user(?Utilisateur $id_user): self
+    public function setIdUser(?Utilisateur $id_user): self
     {
         $this->id_user = $id_user;
         return $this;
@@ -138,12 +173,12 @@ class Hebergement
         return $this;
     }
 
-    public function getnote_moyenne(): float
+    public function getNoteMoyenne(): float
     {
         return $this->note_moyenne;
     }
 
-    public function setnote_moyenne(float $note_moyenne): self
+    public function setNoteMoyenne(float $note_moyenne): self
     {
         $this->note_moyenne = $note_moyenne;
         return $this;
@@ -160,12 +195,12 @@ class Hebergement
         return $this;
     }
 
-    public function getpolitique_annulation(): string
+    public function getPolitiqueAnnulation(): string
     {
         return $this->politique_annulation;
     }
 
-    public function setpolitique_annulation(string $politique_annulation): self
+    public function setPolitiqueAnnulation(string $politique_annulation): self
     {
         $this->politique_annulation = $politique_annulation;
         return $this;
@@ -182,23 +217,23 @@ class Hebergement
         return $this;
     }
 
-    public function gettype_hebergement(): string
+    public function getTypeHebergement(): string
     {
         return $this->type_hebergement;
     }
 
-    public function settype_hebergement(string $type_hebergement): self
+    public function setTypeHebergement(string $type_hebergement): self
     {
         $this->type_hebergement = $type_hebergement;
         return $this;
     }
 
-    public function getnb_chambres(): int
+    public function getNbChambres(): int
     {
         return $this->nb_chambres;
     }
 
-    public function setnb_chambres(int $nb_chambres): self
+    public function setNbChambres(int $nb_chambres): self
     {
         $this->nb_chambres = $nb_chambres;
         return $this;
@@ -213,7 +248,7 @@ class Hebergement
     {
         if (!$this->chambres->contains($chambre)) {
             $this->chambres[] = $chambre;
-            $chambre->setid_hebergement($this);
+            $chambre->setIdHebergement($this);
         }
         return $this;
     }
@@ -221,8 +256,8 @@ class Hebergement
     public function removeChambre(Chambre $chambre): self
     {
         if ($this->chambres->removeElement($chambre)) {
-            if ($chambre->getid_hebergement() === $this) {
-                $chambre->setid_hebergement(null);
+            if ($chambre->getIdHebergement() === $this) {
+                $chambre->setIdHebergement(null);
             }
         }
         return $this;
