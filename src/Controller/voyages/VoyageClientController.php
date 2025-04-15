@@ -3,14 +3,19 @@
 
 namespace App\Controller\voyages;
 
+use App\Entity\Reservation;
 use App\Entity\Voyage;
+use App\Repository\Reservation\PanierRepository;
+use App\Repository\Reservation\ReservationRepository;
 use App\Repository\Voyage\OffreRepository;
 use App\Repository\Voyage\VoyageRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class VoyageClientController extends AbstractController
 {
@@ -59,13 +64,7 @@ final class VoyageClientController extends AbstractController
             'similarVoyages' => $similarVoyages,
         ]);
     }
-    #[Route('/Reservervoyage/{id}', name: 'app_voyage_reserver')]
-    public function Reserver(Voyage $voyage): Response
-    {
-        return $this->render('voyages/ReserverVoyage.html.twig', [
-            'voyage' => $voyage
-        ]);
-    }
+
     #[Route('/voyages/suggestions', name: 'app_voyages_suggestions')]
     public function suggestions(Request $request, VoyageRepository $voyageRepository): JsonResponse
     {
@@ -75,7 +74,7 @@ final class VoyageClientController extends AbstractController
         return $this->json($suggestions);
     }
 
-    /*#[Route('/Reservervoyage/{id}', name: 'app_voyage_reserver', methods: ['GET', 'POST'])]
+    #[Route('/Reservervoyage/{id}', name: 'app_voyage_reserver', methods: ['GET', 'POST'])]
     public function Reserver(
         Voyage $voyage,
         Request $request,
@@ -89,7 +88,7 @@ final class VoyageClientController extends AbstractController
             $nbPlaces = $request->request->getInt('nbPlaces', 1);
 
             // Get or create panier for user ID 1
-            $userId = 1;
+            $userId = 4;
             $panier = $panierRepo->findByUser($userId) ?? $panierRepo->createPanierForUser($userId);
 
             $price = $voyage->getId_offre() ?
@@ -149,7 +148,7 @@ final class VoyageClientController extends AbstractController
         return $this->render('voyages/ReserverVoyage.html.twig', [
             'voyage' => $voyage
         ]);
-    }*/
+    }
 
 
 

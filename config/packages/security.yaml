@@ -104,6 +104,14 @@ security:
         - { path: ^/confirmationAjout, roles: PUBLIC_ACCESS }
         - { path: ^/publierVoyage, roles: PUBLIC_ACCESS }
 
+
+        # Routes Gestion réservations
+        - { path: ^/PanierClient, roles: PUBLIC_ACCESS }
+        - { path: ^/reservation/delete/[ 0-9 ]+, roles: PUBLIC_ACCESS }
+        - { path: ^/reservation/[ 0-9 ]+/update, roles: PUBLIC_ACCESS }
+        - { path: ^/panier/confirm/[ 0-9 ]+, roles: PUBLIC_ACCESS }
+        - { path: ^/HistoriqueClient, roles: PUBLIC_ACCESS }
+        - { path: ^/ReservationAdmin, roles: PUBLIC_ACCESS }
         
         # Règle générale - utilisez IS_AUTHENTICATED_ANONYMOUSLY au lieu de PUBLIC_ACCESS
         # pour les routes qui devraient être accessibles sans authentification
