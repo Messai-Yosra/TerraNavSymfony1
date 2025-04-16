@@ -6,6 +6,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\Post;
 use App\Entity\Utilisateur;
 use App\Form\AddPostFormType;
@@ -66,6 +67,33 @@ public function index(): Response
 
     return $this->render('interactions/chatClient.html.twig', [
         'posts' => $posts, 
+    ]);
+}
+#[Route('/post/{id}/like', name: 'app_post_like', methods: ['POST'])]
+public function likePost(Post $post): JsonResponse
+{
+    // Example logic for liking a post
+    $user = $this->getUser();
+    if (!$user) {
+        return new JsonResponse(['success' => false, 'message' => 'User not authenticated'], 403);
+    }
+
+    // Toggle like logic (e.g., add/remove like)
+    $liked = false; // Replace with actual logic to check if the user already liked the post
+    if ($liked) {
+        // Remove like
+        $post->removeLike($user);
+    } else {
+        // Add like
+        $post->addLike($user);
+    }
+
+    // Save changes
+    $this->getDoctrine()->getManager()->flush();
+
+    return new JsonResponse([
+        'success' => true,
+        'newLikeCount' => $post->getLikes()->count(), // Replace with actual like count logic
     ]);
 }
 

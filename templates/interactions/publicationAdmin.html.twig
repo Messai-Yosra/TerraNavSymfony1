@@ -172,9 +172,9 @@
                                 </a>
                             {% endif %}
                             
-                            <form action="{{ path('admin_post_delete', { id: post.id }) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette publication ?')">
+                            <form action="{{ path('admin_post_delete', { id: post.id }) }}" method="POST" class="delete-form">
                                 <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ post.id) }}">
-                                <button type="submit" class="btn btn-danger">
+                                <button type="button" class="btn btn-danger delete-btn">
                                     <i class="fas fa-trash-alt"></i> Supprimer
                                 </button>
                             </form>
@@ -622,6 +622,7 @@ input[type="radio"]:checked + label .custom-radio::after {
 }
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 function resetFilters() {
     // Réinitialiser les filtres
@@ -674,6 +675,33 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Appliquer les filtres initiaux
     filterPublications();
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Sélectionner tous les boutons de suppression
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function (event) {
+            event.preventDefault(); // Empêche l'action par défaut du bouton
+
+            const form = this.closest('form'); // Récupère le formulaire associé
+
+            // Afficher la boîte de dialogue SweetAlert
+            Swal.fire({
+                title: "Êtes-vous sûr ?",
+                text: "Cette action est irréversible !",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#3085d6",
+                confirmButtonText: "Oui, supprimer",
+                cancelButtonText: "Annuler"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit(); // Soumet le formulaire si l'utilisateur confirme
+                }
+            });
+        });
+    });
 });
 </script>
 {% endblock %}
