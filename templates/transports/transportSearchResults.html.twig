@@ -47,7 +47,7 @@
                                 </p>
                                 <p><i class="fas fa-clock"></i> Départ : {{ transport.date|date('d/m/Y H:i') }}</p>
                                 <p><i class="fas fa-users"></i> Places : {{ transport.capacite }}</p>
-                                <p><i class="fas fa-money-bill"></i> {{ transport.prix }}€ / passager</p>
+                                <p><i class="fas fa-money-bill"></i> {{ transport.prix }}DTN / passager</p>
                                 <a href="{{ path('app_transport_book', {'id': transport.id}) }}" class="btn-primary">Réserver</a>
                             </div>
                         </div>

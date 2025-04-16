@@ -17,7 +17,9 @@
                         <i class="fas fa-list"></i> Voir la liste des transports
                     </a>
                 {% endif %}
-                
+                  <a href="{{ path('admin_transports_list') }}" class="btn btn-primary">
+                        <i class="fas fa-list"></i> Voir la liste des Transports
+                    </a>
                  <a href="{{ path('admin_trajets_index') }}" class="btn btn-primary">
                         <i class="fas fa-list"></i> Voir la liste des Trajets
                     </a>
@@ -41,7 +43,7 @@
                                 <tr>
                                     <td>{{ transport.nom }}</td>
                                     <td>{{ transport.type }}</td>
-                                    <td>{{ transport.prix }}€</td>
+                                    <td>{{ transport.prix }}DTN</td>
                                     <td>{{ transport.capacite }}</td>
                                     <td>
                                         {% if transport.id_trajet is not null %}

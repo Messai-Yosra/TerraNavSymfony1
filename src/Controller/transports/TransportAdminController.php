@@ -25,7 +25,7 @@ final class TransportAdminController extends AbstractController
     #[Route('/TransportsAdmin', name: 'admin_transports')]
     public function index(): Response
     {
-        return $this->render('transports/admin_index.html.twig');
+        return $this->render('transports/transportAdmin.html.twig');
     }
 
     #[Route('/TransportsAdmin/liste', name: 'admin_transports_list')]
@@ -114,7 +114,7 @@ final class TransportAdminController extends AbstractController
             ->add('nom', TextType::class, ['label' => 'Nom du transport'])
             ->add('type', TextType::class, ['label' => 'Type (ex. avion, train)'])
             ->add('capacite', NumberType::class, ['label' => 'Capacité'])
-            ->add('prix', NumberType::class, ['label' => 'Prix (€)'])
+            ->add('prix', NumberType::class, ['label' => 'Prix (DTN)'])
             ->add('description', TextType::class, ['label' => 'Description', 'required' => false])
             ->add('contact', TextType::class, ['label' => 'Contact', 'required' => false])
             ->add('save', SubmitType::class, ['label' => 'Mettre à jour'])
