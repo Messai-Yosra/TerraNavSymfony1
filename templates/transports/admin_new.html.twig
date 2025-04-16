@@ -1,4 +1,4 @@
-{% extends "baseClient.html.twig" %}
+{% extends "baseAdmin.html.twig" %}
 
 {% block titre %}Ajouter un Transport{% endblock %}
 
@@ -70,16 +70,7 @@
         </div>
 
         <!-- CTA Section -->
-        <section class="cta-section">
-            <div class="cta-content">
-                <h2>Participez à l'aventure</h2>
-                <p>Proposez vos transports pour aider les voyageurs à explorer le monde</p>
-                <div class="cta-buttons">
-                    <a href="{{ path('client_transports_list') }}" class="btn-primary">Voir mes transports</a>
-                </div>
-            </div>
-        </section>
-    </div>
+       
 {% endblock %}
 
 {% block javascripts %}
