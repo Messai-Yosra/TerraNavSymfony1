@@ -384,7 +384,7 @@ class Utilisateur implements PasswordAuthenticatedUserInterface, UserInterface
     {
         if (!$this->paniers->contains($panier)) {
             $this->paniers[] = $panier;
-            $panier->setIdUser($this);
+            $panier->setId_User($this);
         }
         return $this;
     }
@@ -392,8 +392,8 @@ class Utilisateur implements PasswordAuthenticatedUserInterface, UserInterface
     public function removePanier(Panier $panier): self
     {
         if ($this->paniers->removeElement($panier)) {
-            if ($panier->getIdUser() === $this) {
-                $panier->setIdUser(null);
+            if ($panier->getId_User() === $this) {
+                $panier->setId_User(null);
             }
         }
         return $this;

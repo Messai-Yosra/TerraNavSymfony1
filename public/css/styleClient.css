@@ -489,3 +489,33 @@
     padding-right: 0;
     border-right: none;
 }
+.form-error-message {
+    color: red;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px; 
+    font-weight: bold;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.form-error {
+    color: red;
+    font-size: 0.85em;
+    margin-top: 5px;
+}

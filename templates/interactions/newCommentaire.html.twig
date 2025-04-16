@@ -1,0 +1,42 @@
+{% extends 'baseClient.html.twig' %}
+
+{% block titre %}Ajouter un commentaire{% endblock %}
+
+{% block content %}
+    <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/styleClient.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/interactions/interactions.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+    <div class="container mt-5 fade-in">
+        <h2><i class="fas fa-comment-dots me-2"></i>Ajouter un commentaire</h2>
+        
+        <div class="card-post mb-4">
+            <h5 class="mb-2"><i class="fas fa-thumbtack text-primary me-2"></i>Post :</h5>
+            <p class="mb-2"><strong>{{ post.description }}</strong></p>
+            {% if post.image %}
+                <div class="text-center">
+                    <img src="{{ asset('img/' ~ post.image) }}" alt="Image du post" class="post-image">
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-card mb-3">
+            {{ form_start(form, {'attr': {'id': 'commentForm', 'novalidate': 'novalidate'}}) }}
+                <div class="mb-3">
+                    {{ form_label(form.contenu, '✍️ Votre commentaire :', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.contenu, {'attr': {'class': 'form-control', 'placeholder': 'Écrivez votre commentaire ici...'}}) }}
+                    {% if form.contenu.vars.errors is not empty %}
+                        <div class="alert alert-danger mt-2">
+                            {{ form_errors(form.contenu) }}
+                        </div>
+                    {% endif %}
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">
+                    <i class="fas fa-paper-plane me-1"></i> Envoyer
+                </button>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}

@@ -1,3 +1,433 @@
-{% extends "baseClient.html.twig" %}
+{% extends 'baseClient.html.twig' %}
 
-{% block titre %} Chat - Client {% endblock %}
+{% block titre %}Chat - Posts{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('css/styleClient.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/interactions/interactions.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <div class="container mt-3 fade-in">
+        <!-- Create Post Card (like Facebook) -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <img src="{{ asset('img/default-avatar.jpg') }}" 
+                         class="rounded-circle me-3" 
+                         width="40" 
+                         height="40" 
+                         alt="Profile picture">
+                    <button class="btn btn-light w-100 text-start post-create-btn" id="createPostButton">
+                        Quoi de neuf ?
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+            <div class="flex-grow-1" style="min-width: 200px;">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+                    <input type="text" id="searchInput" class="form-control" 
+                           placeholder="Rechercher une publication..." 
+                           aria-label="Champ de recherche">
+                </div>
+            </div>
+
+            <div style="min-width: 200px;">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="fas fa-sort"></i></span>
+                    <select id="sortSelect" class="form-select" aria-label="{{ 'sort.aria_label'|trans }}">
+                        <option value="newest">Plus récent</option>
+                        <option value="oldest">Plus ancien</option>
+                        <option value="most-commented">Le plus commenté</option>
+                        <option value="most-liked">Le plus aimé</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="text-center py-4" style="display:none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Chargement...</span>
+            </div>
+        </div>
+
+        {% set currentPage = currentPage is defined ? currentPage : 1 %}
+        {% set totalPages = totalPages is defined ? totalPages : 1 %}
+
+        {% if posts is not empty %}
+            <div id="postsContainer">
+                {% for post in posts %}
+                    <div class="card mb-4 shadow-sm post-item" 
+                         data-description="{{ post.description|lower }}"
+                         data-date="{{ post.date ? post.date|date('Y-m-d H:i:s') : '' }}"
+                         data-comments="{{ post.nbCommentaires }}"
+                         data-likes="{{ post.nbReactions }}"
+                         data-id="{{ post.id }}">
+                        <!-- Post Header -->
+                        <div class="card-header bg-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <img src="{{ post.id_user.getPhoto() ? asset('img/' ~ post.id_user.getPhoto()) : asset('img/team-3.jpg') }}" 
+                                         class="rounded-circle me-3" 
+                                         width="40" 
+                                         height="40" 
+                                         alt="Profile picture">
+                                    <div>
+                                        <h6 class="mb-0 fw-bold"> {{ post.id_user.getUsername }}</h6>
+                                        <small class="text-muted">
+                                            <i class="far fa-clock me-1"></i>
+                                            {{ post.date ? post.date|date('d M Y à H:i') : 'Non défini' }}
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-link text-muted" 
+                                            type="button" 
+                                            id="dropdownMenuButton{{ post.id }}" 
+                                            data-bs-toggle="dropdown" 
+                                            aria-expanded="false">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ post.id }}">
+                                        <li>
+                                            <a class="dropdown-item" href="{{ path('app_post_edit', {'id': post.id}) }}">
+                                                <i class="fas fa-edit me-2"></i> Modifier
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <button class="dropdown-item delete-btn" 
+                                                    data-delete-url="{{ path('app_post_delete', {'id': post.id}) }}"
+                                                    data-post-title="{{ post.description|slice(0, 30) }}...">
+                                                <i class="fas fa-trash me-2"></i> Supprimer
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Post Content -->
+                        <div class="card-body">
+                            <p class="card-text">{{ post.description }}</p>
+                            
+                            {% if post.image %}
+                                <div class="mb-3">
+                                    <img src="{{ asset('img/' ~ post.image) }}" 
+                                         loading="lazy" 
+                                         class="post-image img-fluid rounded w-100"
+                                         alt="Image du post">
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Post Stats -->
+                        <div class="card-footer bg-white">
+                            <div class="d-flex justify-content-between text-muted mb-2">
+                                <div>
+                                    <span class="me-2">
+                                        <i class="fas fa-thumbs-up text-primary"></i> {{ post.nbReactions }}
+                                    </span>
+                                    <span>
+                                        <i class="fas fa-comment-alt text-secondary"></i> {{ post.nbCommentaires }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <a href="{{ path('app_post_details', {'id': post.id}) }}" class="text-muted">
+                                        Voir les commentaires
+                                    </a>
+                                </div>
+                            </div>
+                            <hr class="my-1">
+                            
+                            <!-- Post Actions -->
+                            <div class="d-flex justify-content-around">
+                                <button class="btn btn-sm btn-action rounded-pill flex-grow-1 mx-1 like-btn" 
+                                        data-like-url="{{ path('app_post_like', {'id': post.id}) }}" 
+                                        data-post-id="{{ post.id }}">
+                                    <i class="far fa-thumbs-up me-1"></i> J'aime
+                                </button>
+                                <button class="btn btn-sm btn-action rounded-pill flex-grow-1 mx-1">
+                                    <i class="far fa-comment me-1"></i> Commenter
+                                </button>
+                                <button class="btn btn-sm btn-action rounded-pill flex-grow-1 mx-1">
+                                    <i class="fas fa-share me-1"></i> Partager
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            <div class="d-flex justify-content-center mt-4">
+                <nav>
+                    <ul class="pagination">
+                        {% if currentPage > 1 %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'page': currentPage - 1})) }}">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% for page in 1..totalPages %}
+                            <li class="page-item {{ page == currentPage ? 'active' : '' }}">
+                                <a class="page-link" href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'page': page})) }}">
+                                    {{ page }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                        {% if currentPage < totalPages %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'page': currentPage + 1})) }}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        {% else %}
+            <div class="card shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="far fa-newspaper fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Aucune publication trouvée</h5>
+                    <p class="text-muted">Soyez le premier à partager quelque chose !</p>
+                    <a href="{{ path('app_post_new') }}" class="btn btn-primary">
+                        <i class="fas fa-plus-circle me-1"></i> Créer une publication
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Add event listener for the "Create Post" button
+            const createPostButton = document.getElementById('createPostButton');
+            if (createPostButton) { 
+                createPostButton.addEventListener('click', function () {
+                    window.location.href = '{{ path("app_post_new") }}';
+                });
+            }
+
+            // Gestion de la suppression
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    const deleteUrl = this.getAttribute('data-delete-url');
+                    const postTitle = this.getAttribute('data-post-title');
+                    
+                    Swal.fire({
+                        title: "Confirmer la suppression",
+                        html: `Êtes-vous sûr de vouloir supprimer la publication <b>${postTitle}</b> ?`,
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#d33",
+                        cancelButtonColor: "#3085d6",
+                        confirmButtonText: "Oui, supprimer",
+                        cancelButtonText: "Annuler",
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const form = document.createElement('form');
+                            form.method = 'POST';
+                            form.action = deleteUrl;
+                            
+                            const csrfInput = document.createElement('input');
+                            csrfInput.type = 'hidden';
+                            csrfInput.name = '_token';
+                            csrfInput.value = '{{ csrf_token("delete-post") }}';
+
+                            form.appendChild(csrfInput); // Ensure semicolon is present
+                            document.body.appendChild(form);
+                            form.submit();
+                        }
+                    });
+                });
+            });
+
+            // Fonctionnalités de recherche et tri
+            const postsContainer = document.getElementById('postsContainer');
+            if (postsContainer) {
+                const searchInput = document.getElementById('searchInput');
+                const sortSelect = document.getElementById('sortSelect');
+                const loadingIndicator = document.getElementById('loadingIndicator');
+                const postItems = Array.from(document.querySelectorAll('.post-item'));
+                
+                // Charger les préférences utilisateur
+                const savedSort = localStorage.getItem('postSortPreference');
+                if (savedSort) sortSelect.value = savedSort;
+                
+                // Debounce pour la recherche
+                let searchTimeout;
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    loadingIndicator.style.display = 'block';
+                    
+                    searchTimeout = setTimeout(() => {
+                        const searchTerm = this.value.toLowerCase();
+                        
+                        postItems.forEach(item => {
+                            const description = item.dataset.description;
+                            if (description.includes(searchTerm)) {
+                                item.style.display = 'block';
+                            } else {
+                                item.style.display = 'none';
+                            }
+                        });
+                        
+                        loadingIndicator.style.display = 'none';
+                    }, 300);
+                });
+
+                // Fonction de tri
+                sortSelect.addEventListener('change', function() {
+                    loadingIndicator.style.display = 'block';
+                    
+                    // Sauvegarder la préférence
+                    localStorage.setItem('postSortPreference', this.value);
+                    
+                    setTimeout(() => {
+                        postItems.sort((a, b) => {
+                            switch(this.value) {
+                                case 'newest':
+                                    return new Date(b.dataset.date) - new Date(a.dataset.date);
+                                case 'oldest':
+                                    return new Date(a.dataset.date) - new Date(b.dataset.date);
+                                case 'most-commented':
+                                    return parseInt(b.dataset.comments) - parseInt(a.dataset.comments);
+                                case 'most-liked':
+                                    return parseInt(b.dataset.likes) - parseInt(a.dataset.likes);
+                                default:
+                                    return 0;
+                            }
+                        });
+
+                        // Réorganiser les posts dans le DOM
+                        postItems.forEach(item => postsContainer.appendChild(item));
+                        loadingIndicator.style.display = 'none';
+                    }, 200);
+                });
+                
+                // Déclencher le tri initial
+                const event = new Event('change');
+                sortSelect.dispatchEvent(event);
+            }
+
+            // Gestion des likes
+            document.querySelectorAll('.like-btn').forEach(button => {
+                button.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    const likeUrl = this.getAttribute('data-like-url');
+                    const postId = this.getAttribute('data-post-id');
+
+                    fetch(likeUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': '{{ csrf_token("like-post") }}'
+                        },
+                        body: JSON.stringify({ postId: postId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const likeCount = this.querySelector('i + span');
+                            if (likeCount) {
+                                likeCount.textContent = ` ${data.newLikeCount}`;
+                            }
+                            this.classList.toggle('liked');
+                        } else {
+                            console.error('Error liking the post:', data.message);
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                });
+            });
+        });
+    </script>
+    <style>
+        /* Facebook-like styles */
+        .post-create-btn {
+            background-color: #f0f2f5;
+            border-radius: 20px;
+            padding: 8px 15px;
+            border: none;
+            text-align: left;
+            color: #65676b;
+            font-weight: 500;
+        }
+        
+        .post-create-btn:hover {
+            background-color: #e4e6e9;
+        }
+        
+        .post-item {
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .post-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .post-image {
+            max-height: 500px;
+            object-fit: contain;
+            cursor: pointer;
+        }
+        
+        .btn-action {
+            color: #65676b;
+            border: none;
+            background: none;
+            font-weight: 600;
+        }
+        
+        .btn-action:hover {
+            background-color: #f0f2f5;
+            color: #1877f2;
+        }
+        
+        .dropdown-toggle::after {
+            display: none;
+        }
+        
+        .card-footer {
+            padding: 10px 16px;
+        }
+        
+        .card-header {
+            padding: 12px 16px;
+        }
+        
+        @media (max-width: 768px) {
+            .post-image {
+                max-height: 300px;
+            }
+            
+            .card-body {
+                padding: 12px;
+            }
+        }
+        
+        /* Animation for new posts */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+    </style>
+{% endblock %}

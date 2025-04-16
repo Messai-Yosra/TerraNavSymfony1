@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Post;
 use App\Entity\Utilisateur;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 class Commentaire
@@ -26,6 +27,16 @@ class Commentaire
     private ?\DateTimeInterface $date;
 
     #[ORM\Column(type: "text", nullable: true)]
+    #[Assert\Length(
+        min: 5,
+        minMessage: "Le commentaire doit contenir au moins {{ limit }} caractères."
+    )]
+    #[Assert\Regex(
+        pattern: "/[a-zA-Z]/",
+        message: "Le commentaire doit contenir au moins une lettre."
+    )]
+    #[Assert\NotBlank(message: "Le commentaire ne doit pas être vide.")]
+
     private ?string $contenu;
 
     public function getId(): int

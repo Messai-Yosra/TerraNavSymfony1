@@ -1,14 +1,13 @@
 <?php
 
 namespace App\Entity;
-
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
 use App\Entity\Utilisateur;
 use App\Entity\Commentaire;
 use App\Entity\Reaction;
-
 #[ORM\Entity]
 class Post
 {
@@ -37,6 +36,15 @@ class Post
     private ?int $nbReactions;
 
     #[ORM\Column(type: "text", nullable: true)]
+    #[Assert\NotBlank(message: "La description du post ne doit pas être vide.")]
+    #[Assert\Length(
+        min: 10,
+        minMessage: "La description du post doit contenir au moins {{ limit }} caractères."
+    )]
+    #[Assert\Regex(
+        pattern: "/[a-zA-Z]/",
+        message: "La description du post doit contenir au moins une lettre."
+    )]
     private ?string $description;
 
     #[ORM\OneToMany(mappedBy: "id_post", targetEntity: Commentaire::class)]
@@ -46,10 +54,15 @@ class Post
     private Collection $reactions;
 
     public function __construct()
-    {
-        $this->commentaires = new ArrayCollection();
-        $this->reactions = new ArrayCollection();
-    }
+{
+    $this->date = new \DateTime(); 
+    $this->statut = "non traitée"; 
+    $this->nbCommentaires = 0; 
+    $this->nbReactions = 0; 
+    $this->commentaires = new ArrayCollection();
+    $this->reactions = new ArrayCollection();
+}
+
 
     public function getId(): int
     {
