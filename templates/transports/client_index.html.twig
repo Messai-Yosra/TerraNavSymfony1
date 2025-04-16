@@ -1,0 +1,49 @@
+{% extends "baseClient.html.twig" %}
+
+{% block titre %}Bienvenue | Gestion des Transports{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="{{ asset('css/transports/ClientTransport.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <div class="transport-booking-container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1>Gérez Vos Transports</h1>
+                <p>Proposez et administrez vos transports pour les voyageurs</p>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="cta-section">
+            <div class="cta-content">
+                <h2>Commencez maintenant</h2>
+                <p>Ajoutez un nouveau transport ou consultez vos offres existantes</p>
+                <div class="cta-buttons">
+                    <a href="{{ path('client_transport_new') }}" class="btn-primary">Ajouter un transport</a>
+                    <a href="{{ path('client_transports_list') }}" class="btn-secondary">Voir mes transports</a>
+                </div>
+            </div>
+        </section>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const elements = document.querySelectorAll('.hero-content, .cta-content');
+            elements.forEach(element => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(20px)';
+                element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                setTimeout(() => {
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }, 100);
+            });
+        });
+    </script>
+{% endblock %}

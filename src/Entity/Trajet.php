@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
 use App\Entity\Transport;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 class Trajet
@@ -16,22 +17,59 @@ class Trajet
     private int $id;
 
     #[ORM\Column(name: "pointDepart", type: "string", length: 50, nullable: true)]
+    #[Assert\NotBlank(message: "Le point de départ est requis")]
+    #[Assert\Length(
+        min: 3,
+        max: 50,
+        minMessage: "Le point de départ doit contenir au moins {{ limit }} caractères",
+        maxMessage: "Le point de départ ne peut pas dépasser {{ limit }} caractères"
+    )]
+    #[Assert\Regex(
+        pattern: "/^[a-zA-Z\s\-]+$/",
+        message: "Le point de départ ne peut contenir que des lettres, espaces ou tirets"
+    )]
     private ?string $pointDepart;
 
     #[ORM\Column(name: "destination", type: "string", length: 50, nullable: true)]
+    #[Assert\NotBlank(message: "La destination est requise")]
+    #[Assert\Length(
+        min: 3,
+        max: 50,
+        minMessage: "La destination doit contenir au moins {{ limit }} caractères",
+        maxMessage: "La destination ne peut pas dépasser {{ limit }} caractères"
+    )]
+    #[Assert\Regex(
+        pattern: "/^[a-zA-Z\s\-]+$/",
+        message: "La destination ne peut contenir que des lettres, espaces ou tirets"
+    )]
     private ?string $destination;
-
     #[ORM\Column(name: "dateDepart", type: "datetime", nullable: true)]
+    #[Assert\NotBlank(message: "La date de départ est requise")]
+    #[Assert\GreaterThanOrEqual(
+        "today",
+        message: "La date de départ ne peut pas être dans le passé"
+    )]
     private ?\DateTimeInterface $dateDepart;
 
     #[ORM\Column(name: "duree", type: "integer", nullable: true)]
+    #[Assert\NotBlank(message: "La durée est requise")]
+    #[Assert\Positive(message: "La durée doit être positive")]
+    #[Assert\Range(
+        min: 1,
+        max: 1440,
+        notInRangeMessage: "La durée doit être entre {{ min }} et {{ max }} minutes"
+    )]
     private ?int $duree;
 
     #[ORM\Column(name: "description", type: "text", nullable: true)]
+    #[Assert\Length(
+        max: 1000,
+        maxMessage: "La description ne peut pas dépasser {{ limit }} caractères"
+    )]
     private ?string $description;
 
-    #[ORM\Column(name: "disponibilite", type: "integer", options: ["default" => 1])]
-    private ?int $disponibilite;
+    #[ORM\Column(name: "disponibilite", type: "boolean", options: ["default" => 1])]
+    private ?bool $disponibilite;
 
     #[ORM\OneToMany(mappedBy: "id_trajet", targetEntity: Transport::class)]
     private Collection $transports;
@@ -39,6 +77,7 @@ class Trajet
     public function __construct()
     {
         $this->transports = new ArrayCollection();
+        $this->disponibilite = true;
     }
 
     public function getId(): int

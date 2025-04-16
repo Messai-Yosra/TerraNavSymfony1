@@ -1,0 +1,95 @@
+{% extends "baseClient.html.twig" %}
+
+{% block titre %}Ajouter un Trajet{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="{{ asset('css/transports/CrudAgence.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <div class="trajet-booking-container">
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1>Ajouter un Nouveau Trajet</h1>
+                <p>Créez un nouveau trajet pour vos transports</p>
+            </div>
+        </section>
+
+        <div class="search-container">
+            <h2>Nouveau Trajet</h2>
+            {{ form_start(form, {
+                'attr': {
+                    'class': 'search-form',
+                    'novalidate': 'novalidate',
+                    'id': 'trajet-form'
+                }
+            }) }}
+                <div class="form-section">
+                    <h3>Informations de base</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            {{ form_label(form.pointDepart) }}
+                            {{ form_widget(form.pointDepart, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.pointDepart) }}
+                        </div>
+                        <div class="form-group">
+                            {{ form_label(form.destination) }}
+                            {{ form_widget(form.destination, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.destination) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Détails</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            {{ form_label(form.dateDepart) }}
+                            {{ form_widget(form.dateDepart, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.dateDepart) }}
+                        </div>
+                        <div class="form-group">
+                            {{ form_label(form.duree) }}
+                            {{ form_widget(form.duree, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.duree) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Informations supplémentaires</h3>
+                    <div class="form-group full-width">
+                        {{ form_label(form.description) }}
+                        {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 4}}) }}
+                        {{ form_errors(form.description) }}
+                    </div>
+                    <div class="form-group full-width">
+                        {{ form_label(form.disponibilite) }}
+                        {{ form_widget(form.disponibilite, {'attr': {'class': 'form-check-input'}}) }}
+                        {{ form_errors(form.disponibilite) }}
+                    </div>
+                </div>
+
+                <div class="form-group text-center mt-4">
+                    <button type="submit" class="btn btn-primary search-button">
+                        <span class="submit-text">Enregistrer</span>
+                        <span class="loading-spinner" style="display: none;">
+                            <i class="fas fa-spinner fa-spin"></i> Enregistrement...
+                        </span>
+                    </button>
+                </div>
+            {{ form_end(form) }}
+        </div>
+
+        <section class="cta-section">
+            <div class="cta-content">
+                <h2>Gérez vos trajets</h2>
+                <p>Créez et modifiez vos trajets pour organiser vos transports</p>
+                <div class="cta-buttons">
+                    <a href="{{ path('client_trajets_list') }}" class="btn-primary">Voir tous les trajets</a>
+                </div>
+            </div>
+        </section>
+    </div>
+{% endblock %}

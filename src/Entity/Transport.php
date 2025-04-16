@@ -26,21 +26,70 @@ class Transport
     private Trajet $id_trajet;
 
     #[ORM\Column(name: "nom", type: "string", length: 50, nullable: true)]
+    #[Assert\NotBlank(message: "Le nom ne peut pas être vide")]
+    #[Assert\Length(
+        min: 3,
+        max: 50,
+        minMessage: "Le nom doit contenir au moins {{ limit }} caractères",
+        maxMessage: "Le nom ne peut pas dépasser {{ limit }} caractères"
+    )]
+    #[Assert\Regex(
+        pattern: "/^[a-zA-Z0-9\s\-]+$/",
+        message: "Le nom ne peut contenir que des lettres, chiffres, espaces ou tirets"
+    )]
     private ?string $nom;
 
     #[ORM\Column(name: "type", type: "string", length: 50, nullable: true)]
+    #[Assert\NotBlank(message: "Le type ne peut pas être vide")]
+    #[Assert\Length(
+        max: 50,
+        maxMessage: "Le type ne peut pas dépasser {{ limit }} caractères"
+    )]
+    #[Assert\Choice(
+        choices: ["Voiture privée", "Taxi", "Bus"],
+        message: "Type de transport invalide"
+    )]
     private ?string $type;
 
     #[ORM\Column(name: "capacite", type: "integer", nullable: true)]
+    #[Assert\NotBlank(message: "La capacité est requise")]
+    #[Assert\Positive(message: "La capacité doit être un nombre positif")]
+    #[Assert\Range(
+        min: 1,
+        max: 500,
+        notInRangeMessage: "La capacité doit être entre {{ min }} et {{ max }}"
+    )]
     private ?int $capacite;
 
     #[ORM\Column(name: "description", type: "text", nullable: true)]
+    #[Assert\Length(
+        max: 1000,
+        maxMessage: "La description ne peut pas dépasser {{ limit }} caractères"
+    )]
     private ?string $description;
 
     #[ORM\Column(name: "contact", type: "string", length: 20, nullable: true)]
+    #[Assert\NotBlank(message: "Le contact est requis")]
+    #[Assert\Length(
+        min: 5,
+        max: 20,
+        minMessage: "Le contact doit contenir au moins {{ limit }} caractères",
+        maxMessage: "Le contact ne peut pas dépasser {{ limit }} caractères"
+    )]
+    #[Assert\Regex(
+        pattern: "/^([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}|[\+]?[0-9\s\-()]{5,20})$/",
+        message: "Veuillez entrer un email ou numéro de téléphone valide"
+    )]
     private ?string $contact;
 
     #[ORM\Column(name: "prix", type: "float")]
+    #[Assert\NotNull(message: "Le prix est obligatoire")]
+    #[Assert\Positive(message: "Le prix doit être un nombre positif")]
+    #[Assert\Range(
+        min: 0.01,
+        max: 10000,
+        notInRangeMessage: "Le prix doit être entre {{ min }}DTN et {{ max }}DTN"
+    )]
     private float $prix;
 
     #[ORM\Column(name: "imagePath", type: "string", length: 255, nullable: true)]

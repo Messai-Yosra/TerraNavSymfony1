@@ -12,17 +12,17 @@
         
         <div class="card-body">
             <div class="action-buttons">
-                {% if show_list_link is defined and show_list_link %}
-                    <a href="{{ path('admin_transports_list') }}" class="btn btn-primary">
-                        <i class="fas fa-list"></i> Voir la liste des transports
-                    </a>
-                {% endif %}
-                  <a href="{{ path('admin_transports_list') }}" class="btn btn-primary">
-                        <i class="fas fa-list"></i> Voir la liste des Transports
-                    </a>
-                 <a href="{{ path('admin_trajets_index') }}" class="btn btn-primary">
-                        <i class="fas fa-list"></i> Voir la liste des Trajets
-                    </a>
+                <a href="{{ path('admin_transports') }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left"></i> Retour à l'accueil
+                </a>
+                <a href="{{ path('admin_transport_new') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Ajouter un transport
+                </a>
+                <a href="{{ path('admin_trajets_index') }}" class="btn btn-primary">
+                    <i class="fas fa-list"></i> Voir la liste des Trajets
+                </a>
+                
+              
             </div>
             
             {% if transports is defined and transports is not empty %}
@@ -74,9 +74,6 @@
                 <div class="empty-state">
                     <i class="fas fa-bus-alt empty-icon"></i>
                     <p>Aucun transport disponible pour le moment.</p>
-                    <a href="{{ path('admin_transport_new') }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Ajouter un transport
-                    </a>
                 </div>
             {% endif %}
         </div>

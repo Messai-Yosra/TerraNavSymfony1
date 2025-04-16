@@ -1,0 +1,92 @@
+{% extends "baseAdmin.html.twig" %}
+
+{% block titre %}Ajouter un Transport{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="{{ asset('css/transports/ClientTransport.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <div class="transport-booking-container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1>Proposer un Nouveau Transport</h1>
+                <p>Ajoutez votre transport pour les voyageurs</p>
+            </div>
+        </section>
+
+        <!-- Add Transport Form -->
+        <div class="search-container">
+            <h2 style="text-align: center; color: var(--primary-color); margin-bottom: 20px;">Nouveau Transport</h2>
+            {{ form_start(form, {'attr': {'class': 'search-form'}}) }}
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form_label(form.nom) }}
+                        {{ form_widget(form.nom, {'attr': {'placeholder': 'Entrez le nom du transport'}}) }}
+                        {{ form_errors(form.nom) }}
+                    </div>
+                    <div class="form-group">
+                        {{ form_label(form.type) }}
+                        {{ form_widget(form.type, {'attr': {'placeholder': 'Ex. avion, train'}}) }}
+                        {{ form_errors(form.type) }}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form_label(form.capacite) }}
+                        {{ form_widget(form.capacite, {'attr': {'placeholder': 'Entrez la capacité'}}) }}
+                        {{ form_errors(form.capacite) }}
+                    </div>
+                    <div class="form-group">
+                        {{ form_label(form.prix) }}
+                        {{ form_widget(form.prix, {'attr': {'placeholder': 'Entrez le prix'}}) }}
+                        {{ form_errors(form.prix) }}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form_label(form.description) }}
+                        {{ form_widget(form.description, {'attr': {'placeholder': 'Entrez une description'}}) }}
+                        {{ form_errors(form.description) }}
+                    </div>
+                    <div class="form-group">
+                        {{ form_label(form.contact) }}
+                        {{ form_widget(form.contact, {'attr': {'placeholder': 'Entrez les informations de contact'}}) }}
+                        {{ form_errors(form.contact) }}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form_label(form.imagePath) }}
+                        {{ form_widget(form.imagePath) }}
+                        {{ form_errors(form.imagePath) }}
+                    </div>
+                </div>
+                <div style="text-align: center;">
+                    {{ form_widget(form.save) }}
+                </div>
+            {{ form_end(form) }}
+        </div>
+
+        <!-- CTA Section -->
+       
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const elements = document.querySelectorAll('.form-group');
+            elements.forEach(element => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(20px)';
+                element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                setTimeout(() => {
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }, 100);
+            });
+        });
+    </script>
+{% endblock %}
