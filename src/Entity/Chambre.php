@@ -250,5 +250,6 @@ public function getUrl3d(): ?string
         $this->url_3d = $url_3d;
         return $this;
     }
+    
 
 }

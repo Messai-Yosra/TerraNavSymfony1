@@ -16,27 +16,81 @@
             </div>
         </div>
 
-        {# 3D Tour Section #}
-        <div class="card shadow-lg mb-4">
-            <div class="card-header bg-primary text-white">
-                <h3 class="mb-0"><i class="fas fa-vr-cardboard me-2"></i>Visite Virtuelle</h3>
+        {# Image Gallery and 3D Tour Section #}
+        <div class="row mb-4">
+            {# Image Carousel - Left Side #}
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <div class="card shadow-lg h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0"><i class="fas fa-images me-2"></i>Galerie Photos</h3>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if chambre.images|length > 0 %}
+                            <div id="roomCarousel" class="carousel slide" data-bs-ride="carousel">
+                                <div class="carousel-indicators">
+                                    {% for image in chambre.images %}
+                                        <button type="button" data-bs-target="#roomCarousel" 
+                                                data-bs-slide-to="{{ loop.index0 }}" 
+                                                class="{{ loop.first ? 'active' : '' }}"
+                                                aria-current="{{ loop.first ? 'true' : 'false' }}"></button>
+                                    {% endfor %}
+                                </div>
+                                <div class="carousel-inner rounded">
+                                    {% for image in chambre.images %}
+                                        <div class="carousel-item {{ loop.first ? 'active' : '' }}">
+                                            <img src="{{ image.urlImage }}" class="d-block w-100" 
+     alt="{{image.urlImage }}"
+     style="height: 400px; object-fit: cover;">
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <button class="carousel-control-prev" type="button" data-bs-target="#roomCarousel" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Précédent</span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#roomCarousel" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Suivant</span>
+                                </button>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5 bg-light h-100 d-flex align-items-center justify-content-center">
+                                <div>
+                                    <i class="fas fa-image fa-4x text-muted mb-3"></i>
+                                    <h4 class="text-muted">Aucune photo disponible</h4>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-            <div class="card-body p-0">
-                {% if chambre.url_3d %}
-                    <div class="ratio ratio-16x9">
-                        <iframe 
-                            src="{{ chambre.url_3d }}" 
-                            allowfullscreen
-                            class="border-0"
-                            aria-label="Visite virtuelle 3D de la chambre">
-                        </iframe>
+
+            {# 3D Tour - Right Side #}
+            <div class="col-lg-6">
+                <div class="card shadow-lg h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0"><i class="fas fa-vr-cardboard me-2"></i>Visite Virtuelle</h3>
                     </div>
-                {% else %}
-                    <div class="text-center py-5 bg-light">
-                        <i class="fas fa-image fa-4x text-muted mb-3"></i>
-                        <h4 class="text-muted">Aucune visite 3D disponible</h4>
+                    <div class="card-body p-0 h-100">
+                        {% if chambre.url_3d %}
+                            <div class="ratio ratio-16x9 h-100">
+                                <iframe 
+                                    src="{{ chambre.url_3d }}" 
+                                    allowfullscreen
+                                    class="border-0"
+                                    aria-label="Visite virtuelle 3D de la chambre">
+                                </iframe>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5 bg-light h-100 d-flex align-items-center justify-content-center">
+                                <div>
+                                    <i class="fas fa-vr-cardboard fa-4x text-muted mb-3"></i>
+                                    <h4 class="text-muted">Aucune visite 3D disponible</h4>
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
-                {% endif %}
+                </div>
             </div>
         </div>
 
@@ -59,7 +113,7 @@
                                     </dd>
 
                                     <dt class="col-sm-5">Prix:</dt>
-                                    <dd class="col-sm-7">{{ chambre.prix }}</dd>
+                                    <dd class="col-sm-7">{{ chambre.prix|number_format(2, ',', ' ') }} €</dd>
 
                                     <dt class="col-sm-5">Capacité:</dt>
                                     <dd class="col-sm-7">{{ chambre.capacite ?? '—' }} personnes</dd>
@@ -76,7 +130,7 @@
                                     <dt class="col-sm-5">Hébergement:</dt>
                                     <dd class="col-sm-7">
                                         {% if chambre.id_hebergement %}
-                                            {{ chambre.id_hebergement.id }}
+                                            {{ chambre.id_hebergement.nom ?? chambre.id_hebergement.id }}
                                         {% else %}
                                             <span class="text-muted">—</span>
                                         {% endif %}
@@ -93,7 +147,7 @@
                         <h3 class="mb-0"><i class="fas fa-align-left me-2"></i>Description</h3>
                     </div>
                     <div class="card-body">
-                        {{ chambre.description ?? 'Aucune description disponible' }}
+                        {{ chambre.description ? chambre.description|nl2br : 'Aucune description disponible' }}
                     </div>
                 </div>
             </div>
@@ -107,11 +161,13 @@
                     <div class="card-body">
                         {% if chambre.equipements %}
                             <ul class="list-group list-group-flush">
-                                {% for equipement in chambre.equipements|split(',') %}
-                                    <li class="list-group-item d-flex align-items-center">
-                                        <i class="fas fa-check-circle text-success me-2"></i>
-                                        {{ equipement|trim }}
-                                    </li>
+                                {% for equipement in chambre.equipements|split('\n') %}
+                                    {% if equipement|trim %}
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <i class="fas fa-check-circle text-success me-2"></i>
+                                            {{ equipement|trim }}
+                                        </li>
+                                    {% endif %}
                                 {% endfor %}
                             </ul>
                         {% else %}
@@ -139,6 +195,26 @@
             border-left: none;
             border-right: none;
             padding-left: 0;
+        }
+        .carousel-item {
+            transition: transform 0.6s ease-in-out;
+        }
+        .carousel-control-prev, .carousel-control-next {
+            background-color: rgba(0,0,0,0.2);
+            width: 40px;
+            height: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-radius: 50%;
+        }
+        .carousel-indicators button {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin: 0 5px;
+        }
+        .ratio-16x9 {
+            min-height: 400px;
         }
     </style>
 {% endblock %}
