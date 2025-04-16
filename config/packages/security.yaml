@@ -131,9 +131,34 @@ security:
         - { path: ^/PublicationsAdmin/post/[ 0-9 ]+/traiter, roles: PUBLIC_ACCESS }
         - { path: ^/PublicationsAdmin/post/[ 0-9 ]+/delete, roles: PUBLIC_ACCESS }
         
+
+
+
+        # Routes Gestion Transport
+        - { path: ^/TrajetsAdmin/liste, roles: PUBLIC_ACCESS }
+        - { path: ^/TrajetsAdmin/ajouter, roles: PUBLIC_ACCESS }
+        - { path: ^/TrajetsAdmin/modifier/[ 0-9 ]+, roles: PUBLIC_ACCESS }
+        - { path: ^/TrajetsAdmin/supprimer/[ 0-9 ]+, roles: PUBLIC_ACCESS }
+        - { path: ^/trajets, roles: PUBLIC_ACCESS }
+        - { path: ^/trajets/liste, roles: PUBLIC_ACCESS }
+        - { path: ^/trajets/ajouter, roles: PUBLIC_ACCESS }
+        - { path: ^/trajets/modifier/[ 0-9 ]+, roles: PUBLIC_ACCESS }
+        - { path: ^/trajets/supprimer/[ 0-9 ]+, roles: PUBLIC_ACCESS }
+        - { path: ^/TransportsAdmin, roles: PUBLIC_ACCESS }
+        - { path: ^/TransportsAdmin/liste, roles: PUBLIC_ACCESS }
+        - { path: ^/TransportsAdmin/ajouter, roles: PUBLIC_ACCESS }
+        - { path: ^/TransportsAdmin/modifier/[ 0-9 ]+, roles: PUBLIC_ACCESS }
+        - { path: ^/TransportsAdmin/supprimer/[ 0-9 ]+, roles: PUBLIC_ACCESS }
+        - { path: ^/transports, roles: PUBLIC_ACCESS }
+        - { path: ^/transports/liste, roles: PUBLIC_ACCESS }
+        - { path: ^/transports/ajouter, roles: PUBLIC_ACCESS }
+        - { path: ^/transports/modifier/[ 0-9 ]+, roles: PUBLIC_ACCESS }
+        - { path: ^/transports/supprimer/[ 0-9 ]+, roles: PUBLIC_ACCESS }
+
         # Règle générale - utilisez IS_AUTHENTICATED_ANONYMOUSLY au lieu de PUBLIC_ACCESS
         # pour les routes qui devraient être accessibles sans authentification
         - { path: ^/, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+
 
 when@test:
     security:
