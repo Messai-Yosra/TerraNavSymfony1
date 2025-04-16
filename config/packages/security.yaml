@@ -112,6 +112,24 @@ security:
         - { path: ^/panier/confirm/[ 0-9 ]+, roles: PUBLIC_ACCESS }
         - { path: ^/HistoriqueClient, roles: PUBLIC_ACCESS }
         - { path: ^/ReservationAdmin, roles: PUBLIC_ACCESS }
+
+
+
+        # Routes Gestion interactions
+        - { path: ^/new, roles: PUBLIC_ACCESS }
+        - { path: ^/ChatClient, roles: PUBLIC_ACCESS }
+        - { path: ^/post/[ 0-9 ]+/like, roles: PUBLIC_ACCESS }
+        - { path: ^/[ 0-9 ]+/edit, roles: PUBLIC_ACCESS }
+        - { path: ^/post/[ 0-9 ]+/delete, roles: PUBLIC_ACCESS }
+        - { path: ^/post/[ 0-9 ]+/details, roles: PUBLIC_ACCESS }
+        - { path: ^/commentaire/new/[ 0-9 ]+, roles: PUBLIC_ACCESS }
+        - { path: ^/post/[ 0-9 ]+, roles: PUBLIC_ACCESS }
+        - { path: ^/comment/[ 0-9 ]+/edit, roles: PUBLIC_ACCESS }
+        - { path: ^/commentaire/[ 0-9 ]+/delete, roles: PUBLIC_ACCESS }
+        - { path: ^/PublicationsAdmin, roles: PUBLIC_ACCESS }
+        - { path: ^/PublicationsAdmin/export-csv, roles: PUBLIC_ACCESS }
+        - { path: ^/PublicationsAdmin/post/[ 0-9 ]+/traiter, roles: PUBLIC_ACCESS }
+        - { path: ^/PublicationsAdmin/post/[ 0-9 ]+/delete, roles: PUBLIC_ACCESS }
         
         # Règle générale - utilisez IS_AUTHENTICATED_ANONYMOUSLY au lieu de PUBLIC_ACCESS
         # pour les routes qui devraient être accessibles sans authentification
