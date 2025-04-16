@@ -67,7 +67,7 @@
                     <div class="border rounded p-4 hover-effect">
                         <h3 class="text-primary mb-4">Détails du voyage</h3>
                         <div class="d-flex align-items-center mb-4">
-                            <img src="{{ asset(voyage.transformImagePaths(voyage.pathImages)|split('***')[0]|trim) }}"
+                            <img src="{{ asset(voyage.transformImagePaths(voyage.pathImages)|split('*')[0]|trim) }}"
                                  class="rounded me-3"
                                  style="width: 120px; height: 80px; object-fit: cover;"
                                  onerror="this.src='{{ asset('img/about-1.jpg') }}'"
@@ -182,7 +182,9 @@
     </div>
 
     <!-- JavaScript : For reservation-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+
         document.getElementById('reservationForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
@@ -229,14 +231,17 @@
 
         function showToast(message, isSuccess = false) {
             const toastEl = document.getElementById('notificationToast');
-            const toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+            const toastBody = toastEl.querySelector('.toast-body');
+            const toastHeader = toastEl.querySelector('.toast-header');
 
-            toastEl.querySelector('.toast-body').textContent = message;
-            const header = toastEl.querySelector('.toast-header');
-            header.className = isSuccess
+            // Set message and style
+            toastBody.textContent = message;
+            toastHeader.className = isSuccess
                 ? 'toast-header bg-success text-white'
                 : 'toast-header bg-danger text-white';
 
+            // Create toast instance if it doesn't exist
+            const toast = new bootstrap.Toast(toastEl);
             toast.show();
         }
 

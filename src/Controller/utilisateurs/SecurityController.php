@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Controller\utilisateurs;
+use App\Entity\Panier; //create panier for user
 use App\Entity\Utilisateur;
 use App\Form\SignUpType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -118,6 +119,13 @@ final class SecurityController extends AbstractController
             
             // Save the user to the database
             $entityManager->persist($user);
+            $entityManager->flush();
+
+            //create panier for user
+            $panier = new Panier();
+            $panier->setIdUser($user);  // Pass the User OBJECT, not ID
+            $panier->setPrixTotal(0.0);
+            $entityManager->persist($panier);
             $entityManager->flush();
 
             // Add a flash message

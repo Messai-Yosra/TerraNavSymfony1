@@ -5,76 +5,43 @@
     <title>{% block titre %}{% endblock %}</title>
     <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css'>
     <link rel="stylesheet" href="css/styleAdmin.css">
-    <style>
-        /* Assurez-vous que ce style est plus spécifique que les autres */
-        #nav-content .nav-button.active {
-            background-color: #4a5568 !important;
-            color: white !important;
-        }
-        #nav-content .nav-button.active i {
-            color: white !important;
-        }
-    </style>
 </head>
 <body>
+{% macro is_active_route(current_route, target_route) %}
+    {% if current_route == target_route %}active{% endif %}
+{% endmacro %}
 <div class="page-container">
     {% block navigation %}
         <div id="nav-bar">
             <input id="nav-toggle" type="checkbox"/>
-            <div id="nav-header">
-                <a id="nav-title" href="{{ path('admin_dashboard') }}">
-                    <i class="fab fa-codepen"></i>DMIN
-                </a>
-                <label for="nav-toggle">
-                    <span id="nav-toggle-burger"></span>
-                </label>
+            <div id="nav-header"><a id="nav-title" href="{{ path('admin_dashboard') }}"><i class="fab fa-codepen"></i>DMIN</a>
+                <label for="nav-toggle"><span id="nav-toggle-burger"></span></label>
                 <hr/>
             </div>
             <div id="nav-content">
-                {% set current_route = app.request.attributes.get('_route') %}
-
-                <!-- Dashboard - NE SERA PLUS TOUJOURS ACTIF -->
-                <a href="{{ path('admin_dashboard') }}"
-                   class="nav-button {% if current_route == 'admin_dashboard' %}active{% endif %}"
-                   id="dashboard-link">
+                <a href="{{ path('admin_dashboard') }}" class="nav-button {{ app.request.get('_route') == 'admin_dashboard' ? 'active' : '' }}">
                     <i class="fas fa-tachometer-alt"></i><span>Dashboard</span>
                 </a>
-
-                <!-- Autres liens -->
-                <a href="{{ path('admin_reclamation') }}"
-                   class="nav-button {% if current_route == 'admin_reclamation' %}active{% endif %}">
+                <a href="{{ path('admin_reclamation') }}" class="nav-button {{ app.request.get('_route') == 'admin_reclamation' ? 'active' : '' }}">
                     <i class="fas fa-exclamation-circle"></i><span>Reclamations</span>
                 </a>
-
-                <a href="{{ path('admin_reservations') }}"
-                   class="nav-button {% if current_route == 'admin_reservations' %}active{% endif %}">
+                <a href="{{ path('admin_reservations') }}" class="nav-button {{ app.request.get('_route') == 'admin_reservations' ? 'active' : '' }}">
                     <i class="fas fa-calendar-check"></i><span>Reservations</span>
                 </a>
-
                 <hr/>
-
-                <a href="{{ path('admin_voyages') }}"
-                   class="nav-button {% if current_route == 'admin_voyages' %}active{% endif %}">
+                <a href="{{ path('admin_voyages') }}" class="nav-button {{ app.request.get('_route') == 'admin_voyages' ? 'active' : '' }}">
                     <i class="fas fa-suitcase-rolling"></i><span>Voyages</span>
                 </a>
-
-                <a href="{{ path('admin_hebergements') }}"
-                   class="nav-button {% if current_route == 'admin_hebergements' %}active{% endif %}">
-                    <i class="fas fa-hotel"></i><span>Hébergements</span>
+                <a href="{{ path('admin_hebergements') }}" class="nav-button {{ app.request.get('_route') == 'admin_hebergements' ? 'active' : '' }}">
+                    <i class="fas fa-hotel"></i><span>Hebergements</span>
                 </a>
-
-                <a href="{{ path('admin_transports') }}"
-                   class="nav-button {% if current_route == 'admin_transports' %}active{% endif %}">
+                <a href="{{ path('admin_transports') }}" class="nav-button {{ app.request.get('_route') == 'admin_transports' ? 'active' : '' }}">
                     <i class="fas fa-bus"></i><span>Transports</span>
                 </a>
-
                 <hr/>
-
-                <a href="{{ path('admin_publications') }}"
-                   class="nav-button {% if current_route == 'admin_publications' %}active{% endif %}">
+                <a href="{{ path('admin_publications') }}" class="nav-button {{ app.request.get('_route') == 'admin_publications' ? 'active' : '' }}">
                     <i class="fas fa-newspaper"></i><span>Publications</span>
                 </a>
-
                 <div id="nav-content-highlight"></div>
             </div>
         </div>
@@ -83,32 +50,8 @@
     <div class="content-area">
         {% block content %}{% endblock %}
     </div>
+
 </div>
-
 <script src="js/mainAdmin.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Solution garantie sans conflit
-        const navButtons = document.querySelectorAll('.nav-button');
-        let activeFound = false;
-
-        navButtons.forEach(button => {
-            if (button.classList.contains('active')) {
-                // Si on trouve un autre bouton actif que le dashboard
-                if (button.id !== 'dashboard-link') {
-                    activeFound = true;
-                }
-            }
-        });
-
-        // Si un autre bouton que le dashboard est actif, on désactive le dashboard
-        if (activeFound) {
-            const dashboardLink = document.getElementById('dashboard-link');
-            if (dashboardLink) {
-                dashboardLink.classList.remove('active');
-            }
-        }
-    });
-</script>
 </body>
 </html>

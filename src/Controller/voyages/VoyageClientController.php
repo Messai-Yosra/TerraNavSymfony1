@@ -150,7 +150,4 @@ final class VoyageClientController extends AbstractController
         ]);
     }
 
-
-
-
 }
