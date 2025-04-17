@@ -26,7 +26,7 @@ final class TransportClientController extends AbstractController
     #[Route('/transports', name: 'app_transports')]
     public function index(): Response
     {
-        return $this->render('transports/client_index.html.twig');
+        return $this->render('transports/transportClient.html.twig');
     }
 
     #[Route('/transports/liste', name: 'client_transports_list')]
@@ -437,5 +437,34 @@ public function edit(Request $request, Transport $transport, EntityManagerInterf
         }
 
         return $this->redirectToRoute('client_transports_list');
+    }
+
+
+
+    #[Route('/transports/search', name: 'app_transport_search')]
+    public function search(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $departure = $request->query->get('departure');
+        $transports = [];
+
+        if ($departure) {
+            $transports = $entityManager->getRepository(Transport::class)
+                ->createQueryBuilder('t')
+                ->join('t.id_trajet', 'tr')
+                ->where('tr.pointDepart LIKE :departure')
+                ->andWhere('tr.disponibilite = :disponibilite')
+                ->setParameter('departure', '%' . $departure . '%')
+                ->setParameter('disponibilite', true)
+                ->getQuery()
+                ->getResult();
+        }
+
+        return $this->render('transports/Transport_search.html.twig', [
+            'transports' => $transports,
+            'departure' => $departure,
+            'destination' => null,
+            'date' => null,
+            'passengers' => null,
+        ]);
     }
 }
