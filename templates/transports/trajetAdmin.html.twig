@@ -1,30 +1,28 @@
 {% extends "baseAdmin.html.twig" %}
 
-{% block title %}Gestion des Trajets{% endblock %}
+{% block titre %}Trajets{% endblock %}
 
 {% block content %}
     <link rel="stylesheet" href="{{ asset('css/transports/adminTransportList.css') }}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
 
     <div class="content-card">
         <div class="card-header">
-            <h1><i class="fas fa-route"></i> Gestion des Trajets</h1>
+            <h1><i class="fas fa-route"></i> Gestion des trajets</h1>
         </div>
-
+        
         <div class="card-body">
             <div class="action-buttons">
                 <a href="{{ path('admin_transports') }}" class="btn btn-primary">
                     <i class="fas fa-arrow-left"></i> Retour à l'accueil
                 </a>
-
                 <a href="{{ path('admin_transports_list') }}" class="btn btn-primary">
                     <i class="fas fa-list"></i> Voir la liste des transports
                 </a>
-
-                <a href="{{ path('admin_trajets_new') }}" class="btn btn-success">
-                    <i class="fas fa-plus"></i> Créer un nouveau trajet
+                <a href="{{ path('admin_trajets_new') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Ajouter un trajet
                 </a>
-
-                {# Barre de recherche #}
+                <!-- Search Form -->
                 <form method="get" action="{{ path('admin_trajets_index') }}" class="form-inline search-form">
                     <div class="input-group">
                         <input type="text" 
@@ -45,25 +43,25 @@
                     </div>
                 </form>
             </div>
-
+            
             {% if trajets is defined and trajets is not empty %}
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Départ</th>
+                                <th>Point de départ</th>
                                 <th>Destination</th>
-                                <th>Date/Heure</th>
+                                <th>Date de départ</th>
                                 <th>Durée</th>
                                 <th>Disponibilité</th>
-                                <th>Transports associés</th>
+                                <th>Transports</th>
                                 <th class="actions-column">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for trajet in trajets %}
-                                <tr>
+                                <tr class="trajet-row" data-trajet-id="{{ trajet.id }}">
                                     <td>{{ trajet.id }}</td>
                                     <td>{{ trajet.pointDepart }}</td>
                                     <td>{{ trajet.destination }}</td>
@@ -87,18 +85,37 @@
                                     </td>
                                     <td class="actions-column">
                                         <div class="row-actions">
-                                            <a href="{{ path('admin_trajets_edit', {'id': trajet.id}) }}" 
-                                               class="btn-action btn-edit" title="Modifier">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <form method="post" action="{{ path('admin_trajets_delete', {'id': trajet.id}) }}" 
-                                                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce trajet ?');">
-                                                <input type="hidden" name="_method" value="POST">
-                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ trajet.id) }}">
-                                                <button class="btn btn-danger btn-sm">
-                                                    <i class="fas fa-trash-alt"></i> Supprimer
-                                                </button>
-                                            </form>
+                                            <button class="btn btn-primary btn-details" title="Détails" 
+                                                    data-trajet-id="{{ trajet.id }}">
+                                                <i class="fas fa-info-circle"></i> Détails
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- Expandable Details Row -->
+                                <tr class="details-row" id="details-{{ trajet.id }}" style="display: none;">
+                                    <td colspan="8">
+                                        <div class="details-content">
+                                            <h3>Détails du Trajet</h3>
+                                            <p><strong>ID:</strong> {{ trajet.id }}</p>
+                                            <p><strong>Point de départ:</strong> {{ trajet.pointDepart }}</p>
+                                            <p><strong>Destination:</strong> {{ trajet.destination }}</p>
+                                            <p><strong>Date de départ:</strong> {{ trajet.dateDepart|date('d/m/Y H:i') }}</p>
+                                            <p><strong>Durée:</strong> {{ trajet.duree }} min</p>
+                                            <p><strong>Disponibilité:</strong> {{ trajet.disponibilite ? 'Disponible' : 'Terminé' }}</p>
+                                            <p><strong>Description:</strong> {{ trajet.description|default('Non spécifié') }}</p>
+                                            <p><strong>Transports associés:</strong></p>
+                                            <div class="transports-list">
+                                                {% if trajet.transports is not empty %}
+                                                    <ul class="list-unstyled">
+                                                        {% for transport in trajet.transports %}
+                                                            <li>{{ transport.nom }} ({{ transport.type }}) - {{ transport.prix }} DTN, Capacité: {{ transport.capacite }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% else %}
+                                                    <span>Aucun transport associé</span>
+                                                {% endif %}
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -117,4 +134,35 @@
             {% endif %}
         </div>
     </div>
+
+    <!-- JavaScript for Expandable Rows -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const detailsButtons = document.querySelectorAll('.btn-details');
+
+            detailsButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const trajetId = this.getAttribute('data-trajet-id');
+                    const detailsRow = document.getElementById(`details-${trajetId}`);
+
+                    // Toggle visibility
+                    if (detailsRow.style.display === 'none' || detailsRow.style.display === '') {
+                        // Hide all other details rows
+                        document.querySelectorAll('.details-row').forEach(row => {
+                            row.style.display = 'none';
+                            row.classList.remove('expanded');
+                        });
+                        // Show the selected details row
+                        detailsRow.style.display = 'table-row';
+                        detailsRow.classList.add('expanded');
+                        this.innerHTML = '<i class="fas fa-times-circle"></i> Fermer';
+                    } else {
+                        detailsRow.style.display = 'none';
+                        detailsRow.classList.remove('expanded');
+                        this.innerHTML = '<i class="fas fa-info-circle"></i> Détails';
+                    }
+                });
+            });
+        });
+    </script>
 {% endblock %}

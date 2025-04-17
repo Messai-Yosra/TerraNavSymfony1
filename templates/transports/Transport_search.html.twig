@@ -1,0 +1,186 @@
+{% extends "baseClient.html.twig" %}
+
+{% block titre %}Résultats de recherche de transport{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="{{ asset('css/transports/ClientTransport.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <!-- Transport Search Results Section -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+                <h1 class="mb-5">Résultats de <span class="text-primary text-uppercase">Recherche</span></h1>
+                <p class="mb-4">
+                    {% if departure %}
+                        Trajets depuis {{ departure }}
+                    {% else %}
+                        Veuillez spécifier un point de départ
+                    {% endif %}
+                </p>
+                <a href="{{ path('app_transports') }}" class="btn btn-primary rounded-pill py-3 px-5 mb-4">Nouvelle recherche</a>
+            </div>
+
+            <!-- Flash Messages -->
+            {% for message in app.flashes('success') %}
+                <div class="alert alert-success">{{ message }}</div>
+            {% endfor %}
+            {% for message in app.flashes('error') %}
+                <div class="alert alert-danger">{{ message }}</div>
+            {% endfor %}
+
+            <div class="row g-4">
+                {% if transports|length > 0 %}
+                    {% for transport in transports %}
+                        <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.{{ loop.index * 0.1 }}s">
+                            <div class="service-item rounded h-100">
+                                <div class="service-icon bg-transparent border rounded p-1">
+                                    <div class="w-100 h-100 border rounded d-flex align-items-center justify-content-center">
+                                        {% if transport.type == 'Voiture privée' %}
+                                            <i class="fa fa-car fa-2x text-primary"></i>
+                                        {% elseif transport.type == 'Taxi' %}
+                                            <i class="fa fa-taxi fa-2x text-primary"></i>
+                                        {% else %}
+                                            <i class="fa fa-bus fa-2x text-primary"></i>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <h5 class="mb-3">{{ transport.nom }}</h5>
+                                <p class="text-body mb-0">
+                                    Trajet: {{ transport.id_trajet.pointDepart }} → {{ transport.id_trajet.destination }}<br>
+                                    Départ: {{ transport.id_trajet.dateDepart|date('d/m/Y H:i') }}<br>
+                                    Durée: {{ transport.id_trajet.duree }} minutes<br>
+                                    Type: {{ transport.type }}<br>
+                                    Capacité: {{ transport.capacite }} places<br>
+                                    Prix: {{ transport.prix|number_format(2) }} DTN<br>
+                                    Contact: {{ transport.contact }}
+                                </p>
+                                {% if transport.imagePath %}
+                                    <img src="{{ asset(transport.imagePath) }}" alt="{{ transport.nom }}" class="img-fluid rounded mt-3" style="max-height: 150px;">
+                                {% else %}
+                                    <img src="{{ asset('img/default-transport.jpg') }}" alt="Transport par défaut" class="img-fluid rounded mt-3" style="max-height: 150px;">
+                                {% endif %}
+                                <div class="service-hover-content">
+                                    <p class="text-white">
+                                        {{ transport.description|default('Aucune description disponible.')|length > 100 ? transport.description|slice(0, 100) ~ '...' : transport.description }}
+                                    </p>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <a href="{{ path('app_transport_search', {'id': transport.id}) }}" class="btn btn-primary rounded-pill">Réserver <i class="fa fa-ticket-alt ms-2"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12 text-center">
+                        <p class="text-muted">
+                            Aucun transport trouvé depuis {{ departure }}. 
+                            <a href="{{ path('app_transports') }}">Essayez une nouvelle recherche !</a>
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <!-- Transport Search Results Section End -->
+
+    <style>
+        .service-item {
+            position: relative;
+            padding: 30px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .service-hover-content {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            background: var(--primary);
+            color: white;
+            opacity: 0;
+            transition: all 0.3s;
+            transform: translateY(20px);
+        }
+
+        .service-item:hover .service-hover-content {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .service-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .service-item h5 {
+            color: var(--dark);
+            transition: all 0.3s;
+        }
+
+        .service-item:hover h5,
+        .service-item:hover .text-body {
+            color: white !important;
+        }
+
+        .alert {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Flash messages
+            {% for message in app.flashes('success') %}
+                Swal.fire({
+                    position: 'top-end',
+                    icon: 'success',
+                    title: '{{ message }}',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    toast: true
+                });
+            {% endfor %}
+            {% for message in app.flashes('error') %}
+                Swal.fire({
+                    position: 'top-end',
+                    icon: 'error',
+                    title: '{{ message }}',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    toast: true
+                });
+            {% endfor %}
+        });
+    </script>
+{% endblock %}

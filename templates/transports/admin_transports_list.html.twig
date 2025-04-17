@@ -4,7 +4,8 @@
 
 {% block content %}
     <link rel="stylesheet" href="{{ asset('css/transports/adminTransportList.css') }}"/>
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
+
     <div class="content-card">
         <div class="card-header">
             <h1><i class="fas fa-bus"></i> Gestion des transports</h1>
@@ -15,14 +16,9 @@
                 <a href="{{ path('admin_transports') }}" class="btn btn-primary">
                     <i class="fas fa-arrow-left"></i> Retour à l'accueil
                 </a>
-                <a href="{{ path('admin_transport_new') }}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Ajouter un transport
-                </a>
                 <a href="{{ path('admin_trajets_index') }}" class="btn btn-primary">
                     <i class="fas fa-list"></i> Voir la liste des Trajets
                 </a>
-                
-              
             </div>
             
             {% if transports is defined and transports is not empty %}
@@ -40,10 +36,10 @@
                         </thead>
                         <tbody>
                             {% for transport in transports %}
-                                <tr>
+                                <tr class="transport-row" data-transport-id="{{ transport.id }}">
                                     <td>{{ transport.nom }}</td>
                                     <td>{{ transport.type }}</td>
-                                    <td>{{ transport.prix }}DTN</td>
+                                    <td>{{ transport.prix }} DTN</td>
                                     <td>{{ transport.capacite }}</td>
                                     <td>
                                         {% if transport.id_trajet is not null %}
@@ -54,15 +50,39 @@
                                     </td>
                                     <td class="actions-column">
                                         <div class="row-actions">
-                                            <a href="{{ path('admin_transport_edit', {'id': transport.id}) }}" class="btn-action btn-edit" title="Modifier">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <form method="post" action="{{ path('admin_transport_delete', {'id': transport.id}) }}" onsubmit="return confirm('Voulez-vous vraiment supprimer ce transport ?');">
-                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ transport.id) }}">
-                                                <button type="submit" class="btn-action btn-delete" title="Supprimer">
-                                                    <i class="fas fa-trash-alt"></i>
-                                                </button>
-                                            </form>
+                                            <button class="btn btn-primary btn-details" title="Détails" 
+                                                    data-transport-id="{{ transport.id }}">
+                                                <i class="fas fa-info-circle"></i> Détails
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- Expandable Details Row -->
+                                <tr class="details-row" id="details-{{ transport.id }}" style="display: none;">
+                                    <td colspan="6">
+                                        <div class="details-content">
+                                            <h3>Détails du Transport</h3>
+                                            <p><strong>Nom:</strong> {{ transport.nom }}</p>
+                                            <p><strong>Type:</strong> {{ transport.type }}</p>
+                                            <p><strong>Prix:</strong> {{ transport.prix }} DTN</p>
+                                            <p><strong>Capacité:</strong> {{ transport.capacite }}</p>
+                                            <p><strong>Trajet:</strong> 
+                                                {% if transport.id_trajet %}
+                                                    {{ transport.id_trajet.pointDepart }} - {{ transport.id_trajet.destination }}
+                                                {% else %}
+                                                    Aucun trajet associé
+                                                {% endif %}
+                                            </p>
+                                            <p><strong>Description:</strong> {{ transport.description|default('Non spécifié') }}</p>
+                                            <p><strong>Contact:</strong> {{ transport.contact|default('Non spécifié') }}</p>
+                                            <p><strong>Image:</strong></p>
+                                            <div class="image-container">
+                                                {% if transport.imagePath %}
+                                                    <img src="{{ asset(transport.imagePath) }}" alt="Image du transport" class="transport-image">
+                                                {% else %}
+                                                    <span>Aucune image disponible</span>
+                                                {% endif %}
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -78,4 +98,32 @@
             {% endif %}
         </div>
     </div>
+
+    <!-- JavaScript for Expandable Rows -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const detailsButtons = document.querySelectorAll('.btn-details');
+
+            detailsButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const transportId = this.getAttribute('data-transport-id');
+                    const detailsRow = document.getElementById(`details-${transportId}`);
+
+                    // Toggle visibility
+                    if (detailsRow.style.display === 'none' || detailsRow.style.display === '') {
+                        // Hide all other details rows
+                        document.querySelectorAll('.details-row').forEach(row => {
+                            row.style.display = 'none';
+                        });
+                        // Show the selected details row
+                        detailsRow.style.display = 'table-row';
+                        this.innerHTML = '<i class="fas fa-times-circle"></i> Fermer';
+                    } else {
+                        detailsRow.style.display = 'none';
+                        this.innerHTML = '<i class="fas fa-info-circle"></i> Détails';
+                    }
+                });
+            });
+        });
+    </script>
 {% endblock %}
