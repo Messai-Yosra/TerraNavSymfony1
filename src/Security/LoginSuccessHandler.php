@@ -9,14 +9,20 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerInterface;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class LoginSuccessHandler implements AuthenticationSuccessHandlerInterface
 {
     private $urlGenerator;
-
-    public function __construct(UrlGeneratorInterface $urlGenerator)
-    {
+    private $tokenStorage;
+    
+    public function __construct(
+        UrlGeneratorInterface $urlGenerator, 
+        TokenStorageInterface $tokenStorage
+    ) {
         $this->urlGenerator = $urlGenerator;
+        $this->tokenStorage = $tokenStorage;
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token): Response
@@ -26,6 +32,27 @@ class LoginSuccessHandler implements AuthenticationSuccessHandlerInterface
         if (!$user instanceof Utilisateur) {
             // Fallback en cas de problème
             return new RedirectResponse($this->urlGenerator->generate('app_home'));
+        }
+        
+        // NOUVEAU: Vérification du bannissement (version robuste)
+        try {
+            $isBanned = method_exists($user, 'isBanned') 
+                ? $user->isBanned() 
+                : ($user->getBanned() !== null);
+                
+            if ($isBanned) {
+                // Déconnexion
+                $this->tokenStorage->setToken(null);
+                $request->getSession()->invalidate();
+                
+                // Rediriger avec un paramètre d'erreur
+                return new RedirectResponse(
+                    $this->urlGenerator->generate('app_login', ['banned' => 1])
+                );
+            }
+        } catch (\Exception $e) {
+            // Log l'erreur mais continuer le processus
+            error_log('Erreur lors de la vérification du bannissement: ' . $e->getMessage());
         }
         
         // Vérification du rôle (selon la structure de votre entité Utilisateur)

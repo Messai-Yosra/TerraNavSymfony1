@@ -13,7 +13,7 @@ final class HistoriqueController extends AbstractController
     #[Route('/HistoriqueClient', name: 'app_historique')]
     public function index(ReservationRepository $reservationRepository, PanierRepository $panierRepository): Response
     {
-        $userId = 4; // Static user ID - replace with actual user when auth is implemented
+        $userId = 252; // Static user ID - replace with actual user when auth is implemented
 
         // Get all validated paniers for this user
         $paniers = $panierRepository->createQueryBuilder('p')

@@ -88,7 +88,7 @@ final class VoyageClientController extends AbstractController
             $nbPlaces = $request->request->getInt('nbPlaces', 1);
 
             // Get or create panier for user ID 1
-            $userId = 4;
+            $userId = 252;
             $panier = $panierRepo->findByUser($userId) ?? $panierRepo->createPanierForUser($userId);
 
             $price = $voyage->getId_offre() ?

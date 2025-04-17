@@ -118,6 +118,9 @@ class Utilisateur implements PasswordAuthenticatedUserInterface, UserInterface
     #[ORM\Column(name: "reset_token_expiry", type: "datetime", nullable: true)]
     private ?\DateTimeInterface $reset_token_expiry;
 
+    #[ORM\Column(name: "banned", type: "datetime", nullable: true)]
+    private ?\DateTimeInterface $banned = null;
+
     #[ORM\OneToMany(mappedBy: "id_user", targetEntity: Hebergement::class)]
     private Collection $hebergements;
 
@@ -325,6 +328,22 @@ class Utilisateur implements PasswordAuthenticatedUserInterface, UserInterface
     {
         $this->reset_token_expiry = $reset_token_expiry;
         return $this;
+    }
+
+    public function getBanned(): ?\DateTimeInterface
+    {
+        return $this->banned;
+    }
+
+    public function setBanned(?\DateTimeInterface $banned): self
+    {
+        $this->banned = $banned;
+        return $this;
+    }
+
+    public function isBanned(): bool
+    {
+        return $this->banned !== null;
     }
 
     public function getHebergements(): Collection

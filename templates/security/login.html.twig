@@ -522,6 +522,13 @@
             background-color: #f8d7da;
             border-color: #f5c6cb;
             border-radius: 8px;
+            border-left: 5px solid #842029;
+            font-weight: 500;
+            animation: pulse 2s infinite;
+        }
+        
+        .alert-danger .alert-heading {
+            color: #6a1a21;
         }
         
         .input-error {
@@ -744,6 +751,15 @@
                         <h2>Connectez-vous à votre compte</h2>
                     </div>
                     <div class="card-body p-4">
+                        {% if app.request.query.get('banned') %}
+                            <div class="alert alert-danger" role="alert">
+                                <h4 class="alert-heading">Compte suspendu!</h4>
+                                <p>Votre compte a été suspendu par l'administrateur.</p>
+                                <hr>
+                                <p class="mb-0">Pour plus d'informations, veuillez contacter le support.</p>
+                            </div>
+                        {% endif %}
+                        
                         {% if error %}
                             <div class="alert alert-danger">
                                 {{ error.messageKey|trans(error.messageData, 'security') }}

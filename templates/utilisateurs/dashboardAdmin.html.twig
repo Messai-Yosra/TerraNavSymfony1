@@ -475,6 +475,16 @@
             font-size: 2.5rem;
             opacity: 0.8;
         }
+
+        /* Dans votre fichier CSS principal */
+        .banned-user .card {
+            opacity: 0.7;
+            border-left: 4px solid #dc3545;
+        }
+
+        .banned-user .card-header {
+            background-color: rgba(220, 53, 69, 0.1);
+        }
     </style>
 {% endblock %}
 
@@ -595,7 +605,7 @@
             <div class="row" id="usersList">
                 {% for utilisateur in utilisateurs %}
                     <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
-                        <div class="card user-card shadow-sm">
+                        <div class="card user-card {{ utilisateur.banned ? 'banned-user' : '' }} shadow-sm">
                             <!-- Banner colored top based on role -->
                             <div class="card-top-banner" 
                                 style="background: 
@@ -603,6 +613,12 @@
                                 {% elseif utilisateur.role == 'AGENCE' %}linear-gradient(135deg, #1cc88a, #169d68)
                                 {% else %}linear-gradient(135deg, #36b9cc, #258391){% endif %}">
                             </div>
+                            
+                            {% if utilisateur.banned %}
+                                <div class="badge bg-danger position-absolute top-0 end-0 m-2">
+                                    BANNI depuis {{ utilisateur.banned|date('d/m/Y') }}
+                                </div>
+                            {% endif %}
                             
                             <!-- Avatar and User Information -->
                             <div class="d-flex align-items-center p-3">
@@ -666,10 +682,11 @@
                                 >
                                     <i class="fas fa-edit"></i> Modifier
                                 </button>
-                                <a href="{{ path('admin_user_delete', {'id': utilisateur.id}) }}" 
-                                   class="btn btn-danger"
-                                   onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur?');">
-                                    <i class="fas fa-trash"></i> Supprimer
+                                <a href="{{ path('admin_user_ban', {'id': utilisateur.id}) }}" 
+                                   class="btn btn-sm {{ utilisateur.banned ? 'btn-success' : 'btn-warning' }}"
+                                   onclick="return confirm('Êtes-vous sûr de vouloir {{ utilisateur.banned ? 'réactiver' : 'bannir' }} cet utilisateur?')">
+                                    <i class="fas fa-{{ utilisateur.banned ? 'user-check' : 'ban' }}"></i> 
+                                    {{ utilisateur.banned ? 'Réactiver' : 'Bannir' }}
                                 </a>
                             </div>
                         </div>
@@ -710,7 +727,7 @@
                                         <label class="form-label">Email</label>
                                         <div class="form-input-wrapper">
                                             <i class="fas fa-envelope form-input-icon"></i>
-                                            <input type="email" name="email" class="form-control" value="{{ utilisateur.email }}" required>
+                                            <input type="email" name="email" class="form-control" value="{{ utilisateur.email }}" readonly>
                                         </div>
                                     </div>
                                 </div>

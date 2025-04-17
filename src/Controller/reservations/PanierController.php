@@ -20,7 +20,7 @@ final class PanierController extends AbstractController
     #[Route('/PanierClient', name: 'app_panier')]
     public function index(ReservationRepository $reservationRepository, PanierRepository $panierRepository): Response
     {
-        $userId = 4; // ID utilisateur statique - vous pourriez vouloir l'obtenir du contexte de sécurité
+        $userId = 252; // ID utilisateur statique - vous pourriez vouloir l'obtenir du contexte de sécurité
         $panier = $panierRepository->findByUser($userId);
 
         if (!$panier) {

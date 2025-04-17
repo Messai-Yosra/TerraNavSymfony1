@@ -65,15 +65,12 @@ final class DashboardController extends AbstractController
         ]);
     }
     
-    // Nouvelle méthode de suppression avec plus de debug
-    #[Route('/admin/user/delete/{id}', name: 'admin_user_delete', methods: ['GET'])]
-    public function delete(int $id, EntityManagerInterface $entityManager): Response
+    #[Route('/admin/user/{id}/ban', name: 'admin_user_ban', methods: ['GET'])]
+    public function banUser(int $id, EntityManagerInterface $entityManager): Response
     {
-        // Log de débogage
-        error_log("Tentative de suppression de l'utilisateur ID: $id");
+        error_log("Tentative de bannissement de l'utilisateur ID: $id");
         
         try {
-            // Récupérer l'utilisateur par ID
             $utilisateur = $entityManager->getRepository(Utilisateur::class)->find($id);
             
             if (!$utilisateur) {
@@ -81,20 +78,32 @@ final class DashboardController extends AbstractController
                 return $this->redirectToRoute('admin_dashboard');
             }
             
-            // Log juste avant suppression
-            error_log("Suppression de: " . $utilisateur->getEmail());
+            // Si l'utilisateur est admin, ne pas le bannir
+            if ($utilisateur->getRole() === 'admin') {
+                $this->addFlash('danger', "Impossible de bannir un administrateur");
+                return $this->redirectToRoute('admin_dashboard');
+            }
             
-            // Effectuer la suppression
-            $entityManager->remove($utilisateur);
+            // Si l'utilisateur est déjà banni, le débannir
+            if ($utilisateur->isBanned()) {
+                $utilisateur->setBanned(null);
+                $message = "L'utilisateur " . $utilisateur->getUsername() . " a été réactivé avec succès";
+            } else {
+                // Bannir l'utilisateur en enregistrant la date du bannissement
+                $utilisateur->setBanned(new \DateTime());
+                $message = "L'utilisateur " . $utilisateur->getUsername() . " a été banni avec succès";
+            }
+            
+            // Sauvegarder les modifications
             $entityManager->flush();
             
             // Message de succès
-            $this->addFlash('success', 'Utilisateur supprimé avec succès!');
+            $this->addFlash('success', $message);
         } catch (\Exception $e) {
             // Capture de toute exception
             $errorMsg = $e->getMessage();
-            error_log("ERREUR suppression: $errorMsg");
-            $this->addFlash('danger', "Erreur lors de la suppression: $errorMsg");
+            error_log("ERREUR bannissement: $errorMsg");
+            $this->addFlash('danger', "Erreur lors du bannissement: $errorMsg");
         }
         
         // Toujours rediriger vers le dashboard
@@ -107,13 +116,12 @@ final class DashboardController extends AbstractController
         // Récupérer les données du formulaire
         $prenom = $request->request->get('prenom');
         $nom = $request->request->get('nom');
-        $email = $request->request->get('email');
+        // Ne pas récupérer ni modifier l'email
         $role = $request->request->get('role');
         
         // Mettre à jour l'utilisateur
         $utilisateur->setPrenom($prenom);
         $utilisateur->setNom($nom);
-        $utilisateur->setEmail($email);
         $utilisateur->setRole($role);
         
         // Enregistrer les modifications

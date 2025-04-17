@@ -22,57 +22,11 @@ final class SecurityController extends AbstractController
         ]);
     }
     #[Route('/login', name: 'app_login')]
-    public function login(AuthenticationUtils $authenticationUtils): Response
+    public function login(Request $request, AuthenticationUtils $authenticationUtils): Response
     {
-        // Commentez ou supprimez cette redirection pour permettre l'affichage de la page login
-        // même si l'utilisateur est déjà connecté
-        /*        \SecurityController.php
-        <?php
-        
-        namespace App\Controller\Utilisateurs;
-        
-        use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-        use Symfony\Component\HttpFoundation\Response;
-        use Symfony\Component\Routing\Annotation\Route;
-        use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
-        
-        class SecurityController extends AbstractController
-        {
-            #[Route('/login', name: 'app_login')]
-            public function login(AuthenticationUtils $authenticationUtils): Response
-            {
-                // Ne pas ajouter de redirection ici - laissez le handler s'en occuper
-                
-                // Récupérer l'erreur d'authentification s'il y en a une
-                $error = $authenticationUtils->getLastAuthenticationError();
-                
-                // Dernier nom d'utilisateur entré
-                $lastUsername = $authenticationUtils->getLastUsername();
-        
-                return $this->render('security/login.html.twig', [
-                    'last_username' => $lastUsername,
-                    'error' => $error
-                ]);
-            }
-        
-            #[Route('/logout', name: 'app_logout')]
-            public function logout(): void
-            {
-                // Cette méthode sera interceptée par la clé logout du firewall
-                throw new \Exception('This method should never be reached!');
-            }
-        
-            #[Route('/login_check', name: 'app_login_check')]
-            public function loginCheck(): Response
-            {
-                // Cette route sera gérée par le système de sécurité de Symfony
-                throw new \Exception('This method should never be reached!');
-            }
+        if ($request->query->get('banned')) {
+            $this->addFlash('danger', 'Votre compte a été suspendu. Veuillez contacter l\'administrateur.');
         }
-        if ($this->getUser()) {
-            return $this->redirectToRoute('admin_dashboard');
-        }
-        */
 
         // Récupérer l'erreur d'authentification s'il y en a une
         $error = $authenticationUtils->getLastAuthenticationError();

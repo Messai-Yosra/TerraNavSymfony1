@@ -28,6 +28,7 @@ services:
     App\Security\LoginSuccessHandler:
         arguments:
             $urlGenerator: '@router'
+            $tokenStorage: '@security.token_storage'
 
     App\Service\utilisateurs\LoginHistoryLogger:
         arguments:
@@ -41,4 +42,4 @@ services:
         tags:
             - { name: kernel.event_subscriber }
 
-    
+
