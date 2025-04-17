@@ -7,16 +7,16 @@
     <link rel="stylesheet" href="{{ asset('css/styleClient.css') }}">
     <link rel="stylesheet" href="{{ asset('css/interactions/interactions.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    
+
     <div class="container mt-3 fade-in">
         <!-- Create Post Card (like Facebook) -->
         <div class="card mb-4 shadow-sm">
             <div class="card-body">
                 <div class="d-flex align-items-center mb-3">
-                    <img src="{{ asset('img/default-avatar.jpg') }}" 
-                         class="rounded-circle me-3" 
-                         width="40" 
-                         height="40" 
+                    <img src="{{ asset('img/default-avatar.jpg') }}"
+                         class="rounded-circle me-3"
+                         width="40"
+                         height="40"
                          alt="Profile picture">
                     <button class="btn btn-light w-100 text-start post-create-btn" id="createPostButton">
                         Quoi de neuf ?
@@ -30,8 +30,8 @@
             <div class="flex-grow-1" style="min-width: 200px;">
                 <div class="input-group">
                     <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
-                    <input type="text" id="searchInput" class="form-control" 
-                           placeholder="Rechercher une publication..." 
+                    <input type="text" id="searchInput" class="form-control"
+                           placeholder="Rechercher une publication..."
                            aria-label="Champ de recherche">
                 </div>
             </div>
@@ -62,7 +62,7 @@
         {% if posts is not empty %}
             <div id="postsContainer">
                 {% for post in posts %}
-                    <div class="card mb-4 shadow-sm post-item" 
+                    <div class="card mb-4 shadow-sm post-item"
                          data-description="{{ post.description|lower }}"
                          data-date="{{ post.date ? post.date|date('Y-m-d H:i:s') : '' }}"
                          data-comments="{{ post.nbCommentaires }}"
@@ -72,10 +72,10 @@
                         <div class="card-header bg-white">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="d-flex align-items-center">
-                                    <img src="{{ post.id_user.getPhoto() ? asset('img/' ~ post.id_user.getPhoto()) : asset('img/team-3.jpg') }}" 
-                                         class="rounded-circle me-3" 
-                                         width="40" 
-                                         height="40" 
+                                    <img src="{{ post.id_user.getPhoto() ? asset('img/' ~ post.id_user.getPhoto()) : asset('img/team-3.jpg') }}"
+                                         class="rounded-circle me-3"
+                                         width="40"
+                                         height="40"
                                          alt="Profile picture">
                                     <div>
                                         <h6 class="mb-0 fw-bold"> {{ post.id_user.getUsername }}</h6>
@@ -86,10 +86,10 @@
                                     </div>
                                 </div>
                                 <div class="dropdown">
-                                    <button class="btn btn-sm btn-link text-muted" 
-                                            type="button" 
-                                            id="dropdownMenuButton{{ post.id }}" 
-                                            data-bs-toggle="dropdown" 
+                                    <button class="btn btn-sm btn-link text-muted"
+                                            type="button"
+                                            id="dropdownMenuButton{{ post.id }}"
+                                            data-bs-toggle="dropdown"
                                             aria-expanded="false">
                                         <i class="fas fa-ellipsis-h"></i>
                                     </button>
@@ -100,7 +100,7 @@
                                             </a>
                                         </li>
                                         <li>
-                                            <button class="dropdown-item delete-btn" 
+                                            <button class="dropdown-item delete-btn"
                                                     data-delete-url="{{ path('app_post_delete', {'id': post.id}) }}"
                                                     data-post-title="{{ post.description|slice(0, 30) }}...">
                                                 <i class="fas fa-trash me-2"></i> Supprimer
@@ -110,21 +110,21 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Post Content -->
                         <div class="card-body">
                             <p class="card-text">{{ post.description }}</p>
-                            
+
                             {% if post.image %}
                                 <div class="mb-3">
-                                    <img src="{{ asset('img/' ~ post.image) }}" 
-                                         loading="lazy" 
+                                    <img src="{{ asset('img/' ~ post.image) }}"
+                                         loading="lazy"
                                          class="post-image img-fluid rounded w-100"
                                          alt="Image du post">
                                 </div>
                             {% endif %}
                         </div>
-                        
+
                         <!-- Post Stats -->
                         <div class="card-footer bg-white">
                             <div class="d-flex justify-content-between text-muted mb-2">
@@ -143,12 +143,10 @@
                                 </div>
                             </div>
                             <hr class="my-1">
-                            
+
                             <!-- Post Actions -->
                             <div class="d-flex justify-content-around">
-                                <button class="btn btn-sm btn-action rounded-pill flex-grow-1 mx-1 like-btn" 
-                                        data-like-url="{{ path('app_post_like', {'id': post.id}) }}" 
-                                        data-post-id="{{ post.id }}">
+                                <button class="btn btn-sm btn-action rounded-pill flex-grow-1 mx-1 like-btn">
                                     <i class="far fa-thumbs-up me-1"></i> J'aime
                                 </button>
                                 <button class="btn btn-sm btn-action rounded-pill flex-grow-1 mx-1">
@@ -156,6 +154,14 @@
                                 </button>
                                 <button class="btn btn-sm btn-action rounded-pill flex-grow-1 mx-1">
                                     <i class="fas fa-share me-1"></i> Partager
+                                </button>
+                                <a href="{{ path('app_post_edit', {'id': post.id}) }}" class="btn btn-sm btn-warning rounded-pill flex-grow-1 mx-1">
+                                    <i class="fas fa-edit me-1"></i> Modifier
+                                </a>
+                                <button class="btn btn-sm btn-danger rounded-pill flex-grow-1 mx-1 delete-btn"
+                                        data-delete-url="{{ path('app_post_delete', {'id': post.id}) }}"
+                                        data-post-title="{{ post.description|slice(0, 30) }}...">
+                                    <i class="fas fa-trash-alt me-1"></i> Supprimer
                                 </button>
                             </div>
                         </div>
@@ -210,7 +216,7 @@
         document.addEventListener('DOMContentLoaded', function () {
             // Add event listener for the "Create Post" button
             const createPostButton = document.getElementById('createPostButton');
-            if (createPostButton) { 
+            if (createPostButton) {
                 createPostButton.addEventListener('click', function () {
                     window.location.href = '{{ path("app_post_new") }}';
                 });
@@ -222,7 +228,7 @@
                     event.preventDefault();
                     const deleteUrl = this.getAttribute('data-delete-url');
                     const postTitle = this.getAttribute('data-post-title');
-                    
+
                     Swal.fire({
                         title: "Confirmer la suppression",
                         html: `Êtes-vous sûr de vouloir supprimer la publication <b>${postTitle}</b> ?`,
@@ -238,7 +244,7 @@
                             const form = document.createElement('form');
                             form.method = 'POST';
                             form.action = deleteUrl;
-                            
+
                             const csrfInput = document.createElement('input');
                             csrfInput.type = 'hidden';
                             csrfInput.name = '_token';
@@ -259,20 +265,20 @@
                 const sortSelect = document.getElementById('sortSelect');
                 const loadingIndicator = document.getElementById('loadingIndicator');
                 const postItems = Array.from(document.querySelectorAll('.post-item'));
-                
+
                 // Charger les préférences utilisateur
                 const savedSort = localStorage.getItem('postSortPreference');
                 if (savedSort) sortSelect.value = savedSort;
-                
+
                 // Debounce pour la recherche
                 let searchTimeout;
                 searchInput.addEventListener('input', function() {
                     clearTimeout(searchTimeout);
                     loadingIndicator.style.display = 'block';
-                    
+
                     searchTimeout = setTimeout(() => {
                         const searchTerm = this.value.toLowerCase();
-                        
+
                         postItems.forEach(item => {
                             const description = item.dataset.description;
                             if (description.includes(searchTerm)) {
@@ -281,7 +287,7 @@
                                 item.style.display = 'none';
                             }
                         });
-                        
+
                         loadingIndicator.style.display = 'none';
                     }, 300);
                 });
@@ -289,10 +295,10 @@
                 // Fonction de tri
                 sortSelect.addEventListener('change', function() {
                     loadingIndicator.style.display = 'block';
-                    
+
                     // Sauvegarder la préférence
                     localStorage.setItem('postSortPreference', this.value);
-                    
+
                     setTimeout(() => {
                         postItems.sort((a, b) => {
                             switch(this.value) {
@@ -314,7 +320,7 @@
                         loadingIndicator.style.display = 'none';
                     }, 200);
                 });
-                
+
                 // Déclencher le tri initial
                 const event = new Event('change');
                 sortSelect.dispatchEvent(event);
@@ -336,21 +342,68 @@
                         },
                         body: JSON.stringify({ postId: postId })
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            const likeCount = this.querySelector('i + span');
-                            if (likeCount) {
-                                likeCount.textContent = ` ${data.newLikeCount}`;
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                const likeCount = this.querySelector('i + span');
+                                if (likeCount) {
+                                    likeCount.textContent = ` ${data.newLikeCount}`;
+                                }
+                                this.classList.toggle('liked');
+                            } else {
+                                console.error('Error liking the post:', data.message);
                             }
-                            this.classList.toggle('liked');
-                        } else {
-                            console.error('Error liking the post:', data.message);
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
+                        })
+                        .catch(error => console.error('Error:', error));
                 });
             });
+
+            // Filtering functionality
+            if (postsContainer) {
+                const searchInput = document.getElementById('searchInput');
+                const sortSelect = document.getElementById('sortSelect');
+                const postItems = Array.from(document.querySelectorAll('.post-item'));
+
+                // Search functionality
+                searchInput.addEventListener('input', function () {
+                    const searchTerm = this.value.toLowerCase().trim();
+
+                    postItems.forEach(item => {
+                        const description = item.dataset.description || '';
+                        if (description.includes(searchTerm)) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+
+                // Sorting functionality
+                sortSelect.addEventListener('change', function () {
+                    const sortValue = this.value;
+
+                    postItems.sort((a, b) => {
+                        switch (sortValue) {
+                            case 'newest':
+                                return new Date(b.dataset.date) - new Date(a.dataset.date);
+                            case 'oldest':
+                                return new Date(a.dataset.date) - new Date(b.dataset.date);
+                            case 'most-commented':
+                                return parseInt(b.dataset.comments) - parseInt(a.dataset.comments);
+                            case 'most-liked':
+                                return parseInt(b.dataset.likes) - parseInt(a.dataset.likes);
+                            default:
+                                return 0;
+                        }
+                    });
+
+                    // Reorganize posts in the DOM
+                    postItems.forEach(item => postsContainer.appendChild(item));
+                });
+
+                // Trigger initial sort
+                sortSelect.dispatchEvent(new Event('change'));
+            }
         });
     </script>
     <style>
@@ -364,68 +417,68 @@
             color: #65676b;
             font-weight: 500;
         }
-        
+
         .post-create-btn:hover {
             background-color: #e4e6e9;
         }
-        
+
         .post-item {
             border-radius: 8px;
             overflow: hidden;
             transition: transform 0.2s, box-shadow 0.2s;
         }
-        
+
         .post-item:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
-        
+
         .post-image {
             max-height: 500px;
             object-fit: contain;
             cursor: pointer;
         }
-        
+
         .btn-action {
             color: #65676b;
             border: none;
             background: none;
             font-weight: 600;
         }
-        
+
         .btn-action:hover {
             background-color: #f0f2f5;
             color: #1877f2;
         }
-        
+
         .dropdown-toggle::after {
             display: none;
         }
-        
+
         .card-footer {
             padding: 10px 16px;
         }
-        
+
         .card-header {
             padding: 12px 16px;
         }
-        
+
         @media (max-width: 768px) {
             .post-image {
                 max-height: 300px;
             }
-            
-            .card-body {
-                padding: 12px;
+
+            .card-body {s
+            padding: 12px;
             }
         }
-        
+
         /* Animation for new posts */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
+
         .fade-in {
             animation: fadeIn 0.3s ease-out;
         }

@@ -49,12 +49,12 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>ID</th>
+
                                 <th>Point de départ</th>
                                 <th>Destination</th>
                                 <th>Date de départ</th>
                                 <th>Durée</th>
-                                <th>Disponibilité</th>
+
                                 <th>Transports</th>
                                 <th class="actions-column">Actions</th>
                             </tr>
@@ -62,16 +62,11 @@
                         <tbody>
                             {% for trajet in trajets %}
                                 <tr class="trajet-row" data-trajet-id="{{ trajet.id }}">
-                                    <td>{{ trajet.id }}</td>
+
                                     <td>{{ trajet.pointDepart }}</td>
                                     <td>{{ trajet.destination }}</td>
                                     <td>{{ trajet.dateDepart|date('d/m/Y H:i') }}</td>
                                     <td>{{ trajet.duree }} min</td>
-                                    <td>
-                                        <span class="badge badge-{{ trajet.disponibilite ? 'success' : 'secondary' }}">
-                                            {{ trajet.disponibilite ? 'Disponible' : 'Terminé' }}
-                                        </span>
-                                    </td>
                                     <td>
                                         {% if trajet.transports is not empty %}
                                             <ul class="list-unstyled">
@@ -97,7 +92,7 @@
                                     <td colspan="8">
                                         <div class="details-content">
                                             <h3>Détails du Trajet</h3>
-                                            <p><strong>ID:</strong> {{ trajet.id }}</p>
+
                                             <p><strong>Point de départ:</strong> {{ trajet.pointDepart }}</p>
                                             <p><strong>Destination:</strong> {{ trajet.destination }}</p>
                                             <p><strong>Date de départ:</strong> {{ trajet.dateDepart|date('d/m/Y H:i') }}</p>
