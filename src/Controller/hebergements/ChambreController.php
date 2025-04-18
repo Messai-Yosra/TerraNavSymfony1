@@ -16,17 +16,32 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 #[Route('/chambre')]
 final class ChambreController extends AbstractController
 {
-    #[Route(name: 'app_chambre_index', methods: ['GET'])]
-    public function index(EntityManagerInterface $entityManager): Response
-    {
-        $chambres = $entityManager
-            ->getRepository(Chambre::class)
-            ->findAll();
+    #[Route('/', name: 'app_chambre_index', methods: ['GET'])]
+public function index(EntityManagerInterface $entityManager, Request $request): Response
+{
+    $page = $request->query->getInt('page', 1);
+    $query = $entityManager
+        ->getRepository(Chambre::class)
+        ->createQueryBuilder('c')
+        ->leftJoin('c.images', 'i')  // This joins the images
+        ->addSelect('i')             // This selects the images to be hydrated
+        ->leftJoin('c.id_hebergement', 'h')
+        ->addSelect('h')
+        ->orderBy('c.numero', 'ASC');
 
-        return $this->render('hebergements/chambre/index.html.twig', [
-            'chambres' => $chambres,
-        ]);
-    }
+    $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query);
+    $paginator
+        ->getQuery()
+        ->setFirstResult(($page - 1) * 9)
+        ->setMaxResults(9);
+
+    return $this->render('hebergements/chambre/index.html.twig', [
+        'chambres' => $paginator,
+        'totalItems' => count($paginator),
+        'currentPage' => $page,
+        'itemsPerPage' => 9
+    ]);
+}
 
     #[Route('/new', name: 'app_chambre_new', methods: ['GET', 'POST'])]
     public function new(

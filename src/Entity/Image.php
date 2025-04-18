@@ -50,4 +50,13 @@ class Image
     {
         $this->url_image = $value;
     }
+    public function getUrl_Image(): string
+    {
+        return $this->url_image;
+    }
+
+    public function setUrl_Image(string $value): void
+    {
+        $this->url_image = $value;
+    }
 }

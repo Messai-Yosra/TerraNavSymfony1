@@ -64,6 +64,7 @@ class Hebergement
     private string $pays;
 
     #[ORM\Column(name: "note_moyenne", type: "float")]
+    #[Assert\NotBlank(message: "La note moyenne ne peut pas être vide")]
     #[Assert\Range(
         min: 0,
         max: 5,
@@ -76,15 +77,28 @@ class Hebergement
     private string $services;
 
     #[ORM\Column(name: "politique_annulation", type: "text")]
+    #[Assert\NotBlank(message: "La politique d'annulation ne peut pas être vide")]
     private string $politique_annulation;
 
     #[ORM\Column(name: "contact", type: "string", length: 255)]
+    #[Assert\NotBlank(message: "Le contact ne peut pas être vide")]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: "Le contact ne peut pas dépasser {{ limit }} caractères"
+    )]
     private string $contact;
 
     #[ORM\Column(name: "type_hebergement", type: "string", length: 50)]
+    #[Assert\NotBlank(message: "Le type d'hébergement ne peut pas être vide")]
+    #[Assert\Length(
+        max: 50,
+        maxMessage: "Le type d'hébergement ne peut pas dépasser {{ limit }} caractères"
+    )]
     private string $type_hebergement;
 
     #[ORM\Column(name: "nb_chambres", type: "integer")]
+    #[Assert\NotBlank(message: "Le nombre de chambres ne peut pas être vide")]
+    #[Assert\PositiveOrZero(message: "Le nombre de chambres doit être positif ou zéro")]
     private int $nb_chambres;
 
     #[ORM\OneToMany(mappedBy: "id_hebergement", targetEntity: Chambre::class)]
@@ -93,7 +107,7 @@ class Hebergement
     public function __construct()
     {
         $this->chambres = new ArrayCollection();
-        $this->note_moyenne = 0.0; // Valeur par défaut
+        $this->note_moyenne = 0.0;
     }
 
     public function getId(): int
@@ -184,6 +198,17 @@ class Hebergement
         return $this;
     }
 
+    public function getNote_Moyenne(): float
+    {
+        return $this->note_moyenne;
+    }
+
+    public function setNote_Moyenne(float $note_moyenne): self
+    {
+        $this->note_moyenne = $note_moyenne;
+        return $this;
+    }
+
     public function getServices(): string
     {
         return $this->services;
@@ -223,6 +248,17 @@ class Hebergement
     }
 
     public function setTypeHebergement(string $type_hebergement): self
+    {
+        $this->type_hebergement = $type_hebergement;
+        return $this;
+    }
+
+    public function getType_Hebergement(): string
+    {
+        return $this->type_hebergement;
+    }
+
+    public function setType_Hebergement(string $type_hebergement): self
     {
         $this->type_hebergement = $type_hebergement;
         return $this;

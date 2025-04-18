@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Validator\Constraints as Assert;
 use App\Entity\Hebergement;
 use App\Entity\Reservation;
 use App\Entity\Image;
@@ -19,34 +20,68 @@ class Chambre
 
     #[ORM\ManyToOne(targetEntity: Hebergement::class, inversedBy: "chambres")]
     #[ORM\JoinColumn(name: 'id_hebergement', referencedColumnName: 'id', onDelete: 'CASCADE')]
+    #[Assert\NotNull(message: "L'hébergement associé ne peut pas être vide")]
     private Hebergement $id_hebergement;
 
     #[ORM\Column(type: "string", length: 50)]
+    #[Assert\NotBlank(message: "Le numéro de chambre ne peut pas être vide")]
+    #[Assert\Length(
+        max: 50,
+        maxMessage: "Le numéro ne peut pas dépasser {{ limit }} caractères"
+    )]
     private string $numero;
 
     #[ORM\Column(type: "boolean", nullable: true)]
-    private ?bool $disponibilite;
+    #[Assert\Type(type: "bool", message: "La disponibilité doit être un booléen")]
+    private ?bool $disponibilite = null;
 
     #[ORM\Column(type: "float", nullable: true)]
-    private ?float $prix;
+    #[Assert\Type(type: "float", message: "Le prix doit être un nombre décimal")]
+    #[Assert\PositiveOrZero(message: "Le prix doit être positif ou zéro")]
+    private ?float $prix = null;
 
     #[ORM\Column(type: "text", nullable: true)]
-    private ?string $description;
+    #[Assert\Type(type: "string", message: "La description doit être une chaîne de caractères")]
+    #[Assert\Length(
+        max: 1000,
+        maxMessage: "La description ne peut pas dépasser {{ limit }} caractères"
+    )]
+    private ?string $description = null;
 
     #[ORM\Column(type: "integer", nullable: true)]
-    private ?int $capacite;
+    #[Assert\Type(type: "integer", message: "La capacité doit être un entier")]
+    #[Assert\Positive(message: "La capacité doit être un nombre positif")]
+    private ?int $capacite = null;
 
     #[ORM\Column(type: "text", nullable: true)]
-    private ?string $equipements;
+    #[Assert\Type(type: "string", message: "Les équipements doivent être une chaîne de caractères")]
+    #[Assert\Length(
+        max: 500,
+        maxMessage: "Les équipements ne peuvent pas dépasser {{ limit }} caractères"
+    )]
+    private ?string $equipements = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
-    private ?string $vue;
+    #[Assert\Type(type: "string", message: "La vue doit être une chaîne de caractères")]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: "La vue ne peut pas dépasser {{ limit }} caractères"
+    )]
+    private ?string $vue = null;
 
     #[ORM\Column(type: "float", nullable: true)]
-    private ?float $taille;
+    #[Assert\Type(type: "float", message: "La taille doit être un nombre décimal")]
+    #[Assert\Positive(message: "La taille doit être un nombre positif")]
+    private ?float $taille = null;
 
     #[ORM\Column(name: "url_3d", type: "string", length: 2000, nullable: true)]
-    private ?string $url_3d;
+    #[Assert\Type(type: "string", message: "L'URL doit être une chaîne de caractères")]
+    #[Assert\Url(message: "L'URL 3D doit être une URL valide")]
+    #[Assert\Length(
+        max: 2000,
+        maxMessage: "L'URL ne peut pas dépasser {{ limit }} caractères"
+    )]
+    private ?string $url_3d = null;
 
     #[ORM\OneToMany(mappedBy: "id_chambre", targetEntity: Image::class)]
     private Collection $images;
@@ -228,6 +263,7 @@ class Chambre
         }
         return $this;
     }
+
     public function getHebergement(): Hebergement
     {
         return $this->id_hebergement;
@@ -239,8 +275,7 @@ class Chambre
         return $this;
     }
 
-
-public function getUrl3d(): ?string
+    public function getUrl3d(): ?string
     {
         return $this->url_3d;
     }
@@ -250,6 +285,4 @@ public function getUrl3d(): ?string
         $this->url_3d = $url_3d;
         return $this;
     }
-    
-
 }

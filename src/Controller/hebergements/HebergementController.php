@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Security;
 
-// Correction de la route principale pour utiliser /hebergements au lieu de symfon
+
 #[Route('/hebergements')]
 final class HebergementController extends AbstractController
 {
@@ -24,7 +24,7 @@ final class HebergementController extends AbstractController
     }
 
     /**
-     * Affiche la liste de tous les hébergements
+     * tous les hébergements
      */
     #[Route('/', name: 'app_hebergement_index', methods: ['GET'])]
     public function index(EntityManagerInterface $entityManager): Response

@@ -13,8 +13,173 @@
             <div class="row g-5">
                 <div class="col-lg-12">
                     <div class="wow fadeInUp" data-wow-delay="0.2s">
-                        <!-- Inclure le formulaire -->
-                        {{ include('hebergement/_form.html.twig') }}
+                        {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'needs-validation'}}) }}
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        {{ form_widget(form.nom, {
+                                            'attr': {
+                                                'class': 'form-control' ~ (form.nom.vars.valid ? '' : ' is-invalid'),
+                                                'placeholder': 'Nom de l\'hébergement'
+                                            }
+                                        }) }}
+                                        {{ form_label(form.nom) }}
+                                        <div class="invalid-feedback">
+                                            {{ form_errors(form.nom) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        {{ form_widget(form.type_hebergement, {
+                                            'attr': {
+                                                'class': 'form-control' ~ (form.type_hebergement.vars.valid ? '' : ' is-invalid'),
+                                                'placeholder': 'Type d\'hébergement'
+                                            }
+                                        }) }}
+                                        {{ form_label(form.type_hebergement) }}
+                                        <div class="invalid-feedback">
+                                            {{ form_errors(form.type_hebergement) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        {{ form_widget(form.adresse, {
+                                            'attr': {
+                                                'class': 'form-control' ~ (form.adresse.vars.valid ? '' : ' is-invalid'),
+                                                'placeholder': 'Adresse'
+                                            }
+                                        }) }}
+                                        {{ form_label(form.adresse) }}
+                                        <div class="invalid-feedback">
+                                            {{ form_errors(form.adresse) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        {{ form_widget(form.ville, {
+                                            'attr': {
+                                                'class': 'form-control' ~ (form.ville.vars.valid ? '' : ' is-invalid'),
+                                                'placeholder': 'Ville'
+                                            }
+                                        }) }}
+                                        {{ form_label(form.ville) }}
+                                        <div class="invalid-feedback">
+                                            {{ form_errors(form.ville) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        {{ form_widget(form.pays, {
+                                            'attr': {
+                                                'class': 'form-control' ~ (form.pays.vars.valid ? '' : ' is-invalid'),
+                                                'placeholder': 'Pays'
+                                            }
+                                        }) }}
+                                        {{ form_label(form.pays) }}
+                                        <div class="invalid-feedback">
+                                            {{ form_errors(form.pays) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        {{ form_widget(form.nb_chambres, {
+                                            'attr': {
+                                                'class': 'form-control' ~ (form.nb_chambres.vars.valid ? '' : ' is-invalid'),
+                                                'placeholder': 'Nombre de chambres'
+                                            }
+                                        }) }}
+                                        {{ form_label(form.nb_chambres) }}
+                                        <div class="invalid-feedback">
+                                            {{ form_errors(form.nb_chambres) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        {{ form_widget(form.note_moyenne, {
+                                            'attr': {
+                                                'class': 'form-control' ~ (form.note_moyenne.vars.valid ? '' : ' is-invalid'),
+                                                'placeholder': 'Note moyenne',
+                                                'min': 0,
+                                                'max': 5,
+                                                'step': 0.1
+                                            }
+                                        }) }}
+                                        {{ form_label(form.note_moyenne) }}
+                                        <div class="invalid-feedback">
+                                            {{ form_errors(form.note_moyenne) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        {{ form_widget(form.contact, {
+                                            'attr': {
+                                                'class': 'form-control' ~ (form.contact.vars.valid ? '' : ' is-invalid'),
+                                                'placeholder': 'Contact'
+                                            }
+                                        }) }}
+                                        {{ form_label(form.contact) }}
+                                        <div class="invalid-feedback">
+                                            {{ form_errors(form.contact) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        {{ form_widget(form.description, {
+                                            'attr': {
+                                                'class': 'form-control' ~ (form.description.vars.valid ? '' : ' is-invalid'),
+                                                'placeholder': 'Description',
+                                                'style': 'height: 100px'
+                                            }
+                                        }) }}
+                                        {{ form_label(form.description) }}
+                                        <div class="invalid-feedback">
+                                            {{ form_errors(form.description) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        {{ form_widget(form.services, {
+                                            'attr': {
+                                                'class': 'form-control' ~ (form.services.vars.valid ? '' : ' is-invalid'),
+                                                'placeholder': 'Services',
+                                                'style': 'height: 100px'
+                                            }
+                                        }) }}
+                                        {{ form_label(form.services) }}
+                                        <div class="invalid-feedback">
+                                            {{ form_errors(form.services) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        {{ form_widget(form.politique_annulation, {
+                                            'attr': {
+                                                'class': 'form-control' ~ (form.politique_annulation.vars.valid ? '' : ' is-invalid'),
+                                                'placeholder': 'Politique d\'annulation',
+                                                'style': 'height: 100px'
+                                            }
+                                        }) }}
+                                        {{ form_label(form.politique_annulation) }}
+                                        <div class="invalid-feedback">
+                                            {{ form_errors(form.politique_annulation) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <button class="btn btn-primary w-100 py-3" type="submit">Créer l'hébergement</button>
+                                </div>
+                            </div>
+                        {{ form_end(form) }}
                     </div>
                 </div>
             </div>
@@ -24,4 +189,27 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Activation des validations Bootstrap
+        (function() {
+            'use strict';
+            
+            // Récupère tous les formulaires auxquels nous voulons appliquer les styles de validation Bootstrap
+            var forms = document.querySelectorAll('.needs-validation');
+            
+            // Boucle sur les formulaires et empêche la soumission
+            Array.prototype.slice.call(forms)
+                .forEach(function(form) {
+                    form.addEventListener('submit', function(event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+        })();
+    </script>
 {% endblock %}

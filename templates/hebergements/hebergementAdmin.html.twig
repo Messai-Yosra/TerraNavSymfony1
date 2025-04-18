@@ -1,5 +1,360 @@
-{% extends "baseAdmin.html.twig" %}
+{% extends 'baseAdmin.html.twig' %}
 
-{% block titre %} Hebergements {% endblock %}
+{% block title %}Consultation des Hébergements{% endblock %}
 
-{% block content %} hebergements d'utilisateur 1 {% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #1cc88a;
+            --dark-color: #2d3748;
+            --light-color: #f8f9fc;
+            --border-color: #e2e8f0;
+        }
+        
+        /* Système de grille amélioré */
+        .hebergement-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 24px;
+            padding: 24px 0;
+        }
+        
+        /* Carte redessinée */
+        .hebergement-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 
+                        0 2px 4px -1px rgba(0, 0, 0, 0.02);
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .hebergement-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Container d'image */
+        .card-media {
+            position: relative;
+            height: 200px;
+            background-color: #f5f7fa;
+            overflow: hidden;
+        }
+        
+        .card-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .hebergement-card:hover .card-media img {
+            transform: scale(1.05);
+        }
+        
+        /* Placeholder stylisé */
+        .media-placeholder {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #a0aec0;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .media-placeholder i {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.6;
+        }
+        
+        /* Contenu de la carte */
+        .card-content {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* En-tête avec badge */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        
+        .type-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .type-hotel {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .type-appartement {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        /* Titre et sous-titre */
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--dark-color);
+            line-height: 1.3;
+        }
+        
+        .card-subtitle {
+            display: flex;
+            align-items: center;
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        
+        /* Rating */
+        .rating-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .rating-stars {
+            color: #f6ad55;
+            letter-spacing: 2px;
+            margin-right: 8px;
+        }
+        
+        .rating-value {
+            font-weight: 600;
+            color: var(--dark-color);
+            font-size: 14px;
+        }
+        
+        /* Footer informatif */
+        .card-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-color);
+            background-color: #f8fafc;
+            text-align: center;
+        }
+        
+        .chambre-count {
+            font-size: 13px;
+            color: #718096;
+            font-weight: 500;
+        }
+        
+        /* Pagination */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            padding: 32px 0;
+        }
+        
+        .pagination {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .page-item {
+            margin: 0 4px;
+        }
+        
+        .page-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            color: #4a5568;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+        
+        .page-item:not(.active):not(.disabled) .page-link:hover {
+            background-color: #edf2f7;
+        }
+        
+        /* État vide */
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px 20px;
+            background-color: #f8fafc;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            color: #cbd5e0;
+            margin-bottom: 16px;
+        }
+        
+        .empty-state h3 {
+            color: #4a5568;
+            margin-bottom: 8px;
+        }
+        
+        /* Header */
+        .admin-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+        
+        .admin-title {
+            color: var(--dark-color);
+            font-size: 28px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .admin-title i {
+            margin-right: 12px;
+            color: var(--primary-color);
+        }
+        
+        .admin-subtitle {
+            color: #718096;
+            font-size: 16px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hebergement-grid {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .admin-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- En-tête simplifié et centré -->
+    <header class="admin-header">
+        <h1 class="admin-title">
+            <i class="fas fa-hotel"></i>
+            <span>Consultation des Hébergements</span>
+        </h1>
+        <p class="admin-subtitle">Liste complète des hébergements disponibles</p>
+    </header>
+
+    <div class="hebergement-grid">
+        {% for hebergement in hebergements %}
+        <article class="hebergement-card">
+            <div class="card-media">
+                {% if hebergement.chambres|length > 0 and hebergement.chambres[0].images|length > 0 %}
+                    <img src="{{ asset(hebergement.chambres[0].images[0].url_image) }}" 
+                         alt="{{ hebergement.nom }}"
+                         loading="lazy">
+                {% else %}
+                    <div class="media-placeholder">
+                        <i class="fas fa-image"></i>
+                        <span>Aucune photo disponible</span>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="card-content">
+                <div class="card-header">
+                    <span class="type-badge type-{{ hebergement.type_hebergement|lower }}">
+                        {{ hebergement.type_hebergement }}
+                    </span>
+                    <div class="rating-value">{{ hebergement.note_moyenne|number_format(1) }}</div>
+                </div>
+                
+                <h2 class="card-title">{{ hebergement.nom }}</h2>
+                
+                <div class="card-subtitle">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>{{ hebergement.adresse }}, {{ hebergement.ville }}</span>
+                </div>
+                
+                <div class="rating-container">
+                    <div class="rating-stars">
+                        {% for i in 1..5 %}
+                            <i class="fas fa-star{{ i > hebergement.note_moyenne ? '-half-alt' : '' }}"></i>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <footer class="card-footer">
+                <div class="chambre-count">
+                    {{ hebergement.chambres|length }} chambre(s) disponible(s)
+                </div>
+            </footer>
+        </article>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-hotel"></i>
+            <h3>Aucun hébergement disponible</h3>
+            <p>Il n'y a actuellement aucun hébergement à afficher dans le système.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if totalPages > 1 %}
+    <div class="pagination-container">
+        <nav aria-label="Pagination">
+            <ul class="pagination">
+                <li class="page-item {{ currentPage == 1 ? 'disabled' : '' }}">
+                    <a class="page-link" href="{{ path('admin_hebergements', {'page': currentPage - 1}) }}" aria-label="Précédent">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+                
+                {% for i in 1..totalPages %}
+                <li class="page-item {{ i == currentPage ? 'active' : '' }}">
+                    <a class="page-link" href="{{ path('admin_hebergements', {'page': i}) }}">{{ i }}</a>
+                </li>
+                {% endfor %}
+                
+                <li class="page-item {{ currentPage == totalPages ? 'disabled' : '' }}">
+                    <a class="page-link" href="{{ path('admin_hebergements', {'page': currentPage + 1}) }}" aria-label="Suivant">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
