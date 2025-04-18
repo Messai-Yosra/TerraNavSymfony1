@@ -156,6 +156,19 @@ security:
         - { path: ^/transports/modifier/[ 0-9 ]+, roles: PUBLIC_ACCESS }
         - { path: ^/transports/supprimer/[ 0-9 ]+, roles: PUBLIC_ACCESS }
 
+
+
+        # Routes Gestion Hebergement
+        - { path: ^/hebergements/*, roles: PUBLIC_ACCESS }
+        - { path: ^/chambre/*, roles: PUBLIC_ACCESS }
+        - { path: ^/chambresAdmin/*, roles: ROLE_ADMIN }
+        - { path: ^/HebergementsAdmin/*, roles: ROLE_ADMIN }
+        - { path: ^/HebergementsClient/*, roles: PUBLIC_ACCESS }
+
+
+
+
+
         # Règle générale - utilisez IS_AUTHENTICATED_ANONYMOUSLY au lieu de PUBLIC_ACCESS
         # pour les routes qui devraient être accessibles sans authentification
         - { path: ^/, roles: IS_AUTHENTICATED_ANONYMOUSLY }
