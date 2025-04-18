@@ -1,0 +1,120 @@
+{% extends 'baseClient.html.twig' %}
+
+{% block title %}Chambres de {{ hebergement.nom }}{% endblock %}
+
+{% block content %}
+    <style>
+        .btn-icon {
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            font-size: 16px;
+            border: none;
+            color: #fff;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-left: 5px;
+        }
+
+        .btn-detail {
+            background-color: #002B5B;
+        }
+
+        .btn-edit {
+            background-color: #FFB703;
+        }
+
+        .btn-delete {
+            background-color: #d90429;
+        }
+
+        .btn-icon:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            opacity: 0.9;
+        }
+    </style>
+
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="text-center wow fadeInUp mb-4" data-wow-delay="0.1s">
+                <h6 class="section-title text-primary text-uppercase">Chambres associées</h6>
+                <h2 class="mb-3">Hébergement: <span class="text-primary">{{ hebergement.nom }}</span></h2>
+                <a href="{{ path('app_hebergements') }}" class="btn btn-secondary mt-3">
+                    <i class="fas fa-arrow-left me-2"></i>Retour aux hébergements
+                </a>
+            </div>
+
+            {% if chambres is empty %}
+                <div class="alert alert-info text-center">Aucune chambre disponible pour cet hébergement.</div>
+            {% else %}
+                <div class="row g-4">
+                    {% for chambre in chambres %}
+                        <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
+                            <div class="room-item shadow rounded overflow-hidden">
+                                <div class="position-relative">
+                                    {% if chambre.images|length > 0 %}
+                                        <div id="carousel-{{ chambre.id }}" class="carousel slide" data-bs-ride="carousel">
+                                            <div class="carousel-inner">
+                                                {% for image in chambre.images %}
+                                                    <div class="carousel-item {{ loop.first ? 'active' : '' }}">
+                                                        <img class="img-fluid w-100" src="{{ image.urlImage }}" alt="Image Chambre" style="height: 250px; object-fit: cover;">
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                            {% if chambre.images|length > 1 %}
+                                                <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ chambre.id }}" data-bs-slide="prev">
+                                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                </button>
+                                                <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ chambre.id }}" data-bs-slide="next">
+                                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center bg-light py-5">
+                                            <i class="fas fa-image fa-3x text-muted mb-2"></i>
+                                            <p class="text-muted">Aucune image</p>
+                                        </div>
+                                    {% endif %}
+                                    <small class="position-absolute start-0 top-100 translate-middle-y bg-primary text-white rounded py-1 px-3 ms-4">
+                                        {{ chambre.prix|number_format(2, ',', ' ') }}€/Nuit
+                                    </small>
+                                </div>
+
+                                <div class="p-4 mt-2">
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <h5 class="mb-0">Chambre {{ chambre.numero }}</h5>
+                                        <span class="badge bg-{{ chambre.disponibilite ? 'success' : 'danger' }}">
+                                            {{ chambre.disponibilite ? 'Disponible' : 'Indisponible' }}
+                                        </span>
+                                    </div>
+
+                                    <div class="d-flex mb-3">
+                                        <small class="border-end me-3 pe-3"><i class="fa fa-user text-primary me-2"></i>{{ chambre.capacite }} Pers.</small>
+                                        <small class="border-end me-3 pe-3"><i class="fa fa-ruler-combined text-warning me-2"></i>{{ chambre.taille }} m²</small>
+                                        <small><i class="fa fa-eye text-secondary me-2"></i>{{ chambre.vue ?? '—' }}</small>
+                                    </div>
+
+                                    <p class="text-body mb-3">Équipements : {{ chambre.equipements|default('Non spécifié') }}</p>
+
+                                    <div class="d-flex justify-content-between align-items-center">
+                                     <a href="{{ path('app_chambre_show', {'id': chambre.id}) }}"
+                                           class="btn-icon btn-detail animate-btn"
+                                           title="Voir détails">
+                                            <i class="fas fa-eye"></i>
+                                        </a>   
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Controller\hebergements;
+use App\Entity\Hebergement;
 use App\Entity\Image;
 use App\Form\ImageType;
 use App\Service\hebergements\FileUploader;
@@ -17,32 +18,73 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 final class ChambreController extends AbstractController
 {
     #[Route('/', name: 'app_chambre_index', methods: ['GET'])]
-public function index(EntityManagerInterface $entityManager, Request $request): Response
-{
-    $page = $request->query->getInt('page', 1);
-    $query = $entityManager
-        ->getRepository(Chambre::class)
-        ->createQueryBuilder('c')
-        ->leftJoin('c.images', 'i')  // This joins the images
-        ->addSelect('i')             // This selects the images to be hydrated
-        ->leftJoin('c.id_hebergement', 'h')
-        ->addSelect('h')
-        ->orderBy('c.numero', 'ASC');
+    public function index(EntityManagerInterface $entityManager, Request $request): Response
+    {
+        $page = $request->query->getInt('page', 1);
+        $hebergementId = $request->query->get('hebergement', '');
+        $disponibilite = $request->query->get('disponibilite', '');
+        $capacite = $request->query->get('capacite', '');
+        $maxPrice = $request->query->get('maxPrice', '');
 
-    $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query);
-    $paginator
-        ->getQuery()
-        ->setFirstResult(($page - 1) * 9)
-        ->setMaxResults(9);
+        // Build the query
+        $queryBuilder = $entityManager
+            ->getRepository(Chambre::class)
+            ->createQueryBuilder('c')
+            ->leftJoin('c.images', 'i')
+            ->addSelect('i')
+            ->leftJoin('c.id_hebergement', 'h')
+            ->addSelect('h')
+            ->orderBy('c.numero', 'ASC');
 
-    return $this->render('hebergements/chambre/index.html.twig', [
-        'chambres' => $paginator,
-        'totalItems' => count($paginator),
-        'currentPage' => $page,
-        'itemsPerPage' => 9
-    ]);
-}
+        // Apply filters
+        if ($hebergementId !== '') {
+            $queryBuilder->andWhere('h.id = :hebergementId')
+                ->setParameter('hebergementId', $hebergementId);
+        }
+        if ($disponibilite !== '') {
+            $queryBuilder->andWhere('c.disponibilite = :disponibilite')
+                ->setParameter('disponibilite', $disponibilite === '1');
+        }
+        if ($capacite !== '') {
+            $queryBuilder->andWhere('c.capacite = :capacite')
+                ->setParameter('capacite', $capacite);
+        }
+        if ($maxPrice !== '') {
+            $queryBuilder->andWhere('c.prix <= :maxPrice')
+                ->setParameter('maxPrice', $maxPrice);
+        }
 
+        // Pagination
+        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($queryBuilder);
+        $paginator
+            ->getQuery()
+            ->setFirstResult(($page - 1) * 9)
+            ->setMaxResults(9);
+
+        // Fetch filter options
+        $hebergements = $entityManager->getRepository(Hebergement::class)->findBy([], ['nom' => 'ASC']);
+        $capacites = $entityManager->createQueryBuilder()
+            ->select('DISTINCT c.capacite')
+            ->from(Chambre::class, 'c')
+            ->where('c.capacite IS NOT NULL')
+            ->orderBy('c.capacite', 'ASC')
+            ->getQuery()
+            ->getScalarResult();
+        $capacites = array_column($capacites, 'capacite');
+
+        return $this->render('hebergements/chambre/index.html.twig', [
+            'chambres' => $paginator,
+            'totalItems' => count($paginator),
+            'currentPage' => $page,
+            'itemsPerPage' => 9,
+            'hebergements' => $hebergements,
+            'capacites' => $capacites,
+            'hebergement_selected' => $hebergementId,
+            'disponibilite_selected' => $disponibilite,
+            'capacite_selected' => $capacite,
+            'maxPrice_selected' => $maxPrice,
+        ]);
+    }
     #[Route('/new', name: 'app_chambre_new', methods: ['GET', 'POST'])]
     public function new(
         Request $request, 

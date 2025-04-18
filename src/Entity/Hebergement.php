@@ -100,7 +100,16 @@ class Hebergement
     #[Assert\NotBlank(message: "Le nombre de chambres ne peut pas être vide")]
     #[Assert\PositiveOrZero(message: "Le nombre de chambres doit être positif ou zéro")]
     private int $nb_chambres;
+    public function getNbChambres(): int
+    {
+        return $this->nb_chambres;
+    }
 
+    public function setNbChambres(int $nb_chambres): self
+    {
+        $this->nb_chambres = $nb_chambres;
+        return $this;
+    }
     #[ORM\OneToMany(mappedBy: "id_hebergement", targetEntity: Chambre::class)]
     private Collection $chambres;
 
@@ -264,16 +273,7 @@ class Hebergement
         return $this;
     }
 
-    public function getNbChambres(): int
-    {
-        return $this->nb_chambres;
-    }
 
-    public function setNbChambres(int $nb_chambres): self
-    {
-        $this->nb_chambres = $nb_chambres;
-        return $this;
-    }
 
     public function getChambres(): Collection
     {

@@ -1,166 +1,338 @@
 {% extends 'baseClient.html.twig' %}
 
-{% block title %}Liste des chambres{% endblock %}
+{% block title %}Liste des Chambres{% endblock %}
 
 {% block content %}
-    <div class="container mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>Liste des chambres</h1>
-            <a href="{{ path('app_chambre_new') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Ajouter une chambre
-            </a>
-        </div>
-
-        {% if chambres|length == 0 %}
-            <div class="alert alert-info">
-                Aucune chambre trouvée.
+    <!-- En-tête avec image de couverture -->
+    <div class="container-fluid page-header mb-5 p-0" style="background-image: url({{ asset('img/chambre-banner.jpg') }}); background-size: cover; background-position: center;">
+        <div class="container-fluid page-header-inner py-5">
+            <div class="container text-center pb-5">
+                <h1 class="display-3 text-white mb-3 animated slideInDown">Chambres Disponibles</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center text-uppercase">
+                        <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+                        <li class="breadcrumb-item text-white active" aria-current="page">Chambres</li>
+                    </ol>
+                </nav>
             </div>
-        {% else %}
-            <div class="row">
-                {% for chambre in chambres %}
-                    <div class="col-lg-4 col-md-6 mb-4">
-                        <div class="card h-100 shadow-sm">
-                            {# Image Carousel #}
-                            {% if chambre.images is defined and chambre.images|length > 0 %}
-                                <div id="carousel-{{ chambre.id }}" class="carousel slide" data-bs-ride="carousel">
-                                    <div class="carousel-inner">
-                                        {% for image in chambre.images %}
-                                            <div class="carousel-item {{ loop.first ? 'active' : '' }}">
-                                                <img src="{{ (image.urlImage) }}" 
-                                                     class="d-block w-100" 
-                                                     alt="Chambre {{ chambre.numero }} - Image {{ loop.index }}"
-                                                     style="height: 200px; object-fit: cover;">
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                    {% if chambre.images|length > 1 %}
-                                        <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ chambre.id }}" data-bs-slide="prev">
-                                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                            <span class="visually-hidden">Previous</span>
-                                        </button>
-                                        <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ chambre.id }}" data-bs-slide="next">
-                                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                            <span class="visually-hidden">Next</span>
-                                        </button>
+        </div>
+    </div>
+
+    <!-- Formulaire de recherche avancée -->
+    <div class="container-fluid booking pb-5 wow fadeIn" data-wow-delay="0.1s">
+        <div class="container">
+            <div class="bg-white shadow rounded-3 p-4">
+                <form method="get" action="{{ path('app_chambre_index') }}">
+                    <div class="row g-3 align-items-end">
+                        <!-- Hébergement -->
+                        <div class="col-md-3">
+                            <label for="hebergement" class="form-label fw-semibold">Hébergement</label>
+                            <select name="hebergement" id="hebergement" class="form-select">
+                                <option value="">Tous les hébergements</option>
+                                {% for hebergement in hebergements %}
+                                    <option value="{{ hebergement.id }}" {{ hebergement.id == hebergement_selected ? 'selected' : '' }}>{{ hebergement.nom }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Disponibilité -->
+                        <div class="col-md-3">
+                            <label for="disponibilite" class="form-label fw-semibold">Disponibilité</label>
+                            <select name="disponibilite" id="disponibilite" class="form-select">
+                                <option value="">Tous</option>
+                                <option value="1" {{ disponibilite_selected == '1' ? 'selected' : '' }}>Disponible</option>
+                                <option value="0" {{ disponibilite_selected == '0' ? 'selected' : '' }}>Occupée</option>
+                            </select>
+                        </div>
+
+                        <!-- Capacité -->
+                        <div class="col-md-3">
+                            <label for="capacite" class="form-label fw-semibold">Capacité</label>
+                            <select name="capacite" id="capacite" class="form-select">
+                                <option value="">Toutes capacités</option>
+                                {% for capacite in capacites %}
+                                    <option value="{{ capacite }}" {{ capacite == capacite_selected ? 'selected' : '' }}>{{ capacite }} pers.</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Prix max -->
+                        <div class="col-md-3">
+                            <label for="maxPrice" class="form-label fw-semibold">Prix Max (€)</label>
+                            <input type="number" name="maxPrice" id="maxPrice" class="form-control" placeholder="Ex: 200" value="{{ maxPrice_selected|default('') }}">
+                        </div>
+
+                        <div class="col-12 text-end mt-3">
+                            <button type="submit" class="btn btn-warning px-4 py-2">
+                                <i class="fas fa-search me-2"></i>Rechercher
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Affichage des chambres -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="text-center wow fadeInUp mb-4" data-wow-delay="0.1s">
+                <h6 class="section-title text-center text-primary text-uppercase">Nos Chambres</h6>
+                <h1 class="mb-3">Découvrez les <span class="text-primary text-uppercase">Meilleures Chambres</span></h1>
+            </div>
+
+            <div class="row g-4">
+                {% if chambres|length > 0 %}
+                    {% for chambre in chambres %}
+                        <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.{{ loop.index0 * 2 }}s">
+                            <div class="room-item shadow rounded overflow-hidden">
+                                <div class="position-relative">
+                                    {% if chambre.images|length > 0 %}
+                                        <img class="img-fluid chambre-image" src="{{ asset(chambre.images[0].url_image) }}" alt="Chambre {{ chambre.numero }}">
+                                    {% else %}
+                                        <img class="img-fluid chambre-image" src="{{ asset('img/chambre-default.jpg') }}" alt="Chambre {{ chambre.numero }}">
                                     {% endif %}
+                                    <small class="price-badge">
+                                        {{ chambre.prix is not null ? chambre.prix|number_format(2, '.', ',') ~ ' €/Nuit' : 'Prix non défini' }}
+                                    </small>
                                 </div>
-                            {% else %}
-                                <div class="text-center py-4 bg-light" style="height: 200px;">
-                                    <i class="fas fa-image fa-3x text-muted mb-2"></i>
-                                    <p class="text-muted">Aucune image</p>
-                                </div>
-                            {% endif %}
-
-                            {# Card Body #}
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <h5 class="card-title mb-0">Chambre {{ chambre.numero }}</h5>
-                                    <span class="badge bg-{{ chambre.disponibilite ? 'success' : 'danger' }}">
-                                        {{ chambre.disponibilite ? 'Disponible' : 'Indisponible' }}
-                                    </span>
-                                </div>
-
-                                <div class="row mt-3">
-                                    <div class="col-6">
-                                        <p class="mb-1"><i class="fas fa-euro-sign text-primary me-2"></i> <strong>{{ chambre.prix|number_format(2, ',', ' ') }} €</strong></p>
-                                        <p class="mb-1"><i class="fas fa-users text-info me-2"></i> {{ chambre.capacite }} pers.</p>
+                                <div class="p-4 mt-2 d-flex flex-column card-content">
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <h5 class="mb-0 text-truncate">Chambre {{ chambre.numero }}</h5>
+                                        <div class="ps-2">
+                                            <span class="badge bg-{{ chambre.disponibilite ? 'success' : 'danger' }}">
+                                                {{ chambre.disponibilite ? 'Disponible' : 'Occupée' }}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div class="col-6">
-                                        <p class="mb-1"><i class="fas fa-ruler-combined text-warning me-2"></i> {{ chambre.taille }} m²</p>
-                                        <p class="mb-1"><i class="fas fa-home text-secondary me-2"></i> 
-                                            {% if chambre.id_hebergement %}
-                                                {{ chambre.id_hebergement.nom ?? chambre.id_hebergement.id }}
-                                            {% else %}
-                                                <span class="text-muted">—</span>
-                                            {% endif %}
-                                        </p>
+                                    <div class="d-flex mb-3">
+                                        <small class="border-end me-3 pe-3">
+                                            <i class="fa fa-user text-primary me-2"></i>{{ chambre.capacite|default(0) }} pers.
+                                        </small>
+                                        <small class="border-end me-3 pe-3">
+                                            <i class="fa fa-ruler-combined text-primary me-2"></i>{{ chambre.taille|default(0) }} m²
+                                        </small>
+                                        <small>
+                                            <i class="fa fa-home text-primary me-2"></i>{{ chambre.id_hebergement.nom|default('—') }}
+                                        </small>
                                     </div>
-                                </div>
-                            </div>
-
-                            {# Card Footer - Actions #}
-                            <div class="card-footer bg-white border-top-0">
-                                <div class="d-flex justify-content-between">
-                                    <a href="{{ path('app_chambre_show', {'id': chambre.id}) }}" 
-                                       class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-eye"></i> Détails
-                                    </a>
-                                    <div class="btn-group">
-                                        <a href="{{ path('app_chambre_edit', {'id': chambre.id}) }}" 
-                                           class="btn btn-sm btn-outline-warning">
-                                            <i class="fas fa-edit"></i>
+                                    <p class="text-body mb-2 text-truncate">
+                                        {{ chambre.description|striptags|length > 100 ? chambre.description|striptags|slice(0, 100) ~ '...' : chambre.description|striptags|default('Découvrez le confort de cette chambre.') }}
+                                    </p>
+                                    <div class="mb-2">
+                                        <i class="fas fa-bed text-primary me-2"></i>
+                                        <strong>{{ chambre.id_hebergement.nbChambres }}</strong> chambre{{ chambre.id_hebergement.nbChambres > 1 ? 's' : '' }}
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                                        <a href="{{ path('app_chambre_show', {'id': chambre.id}) }}"
+                                           class="btn-icon btn-detail animate-btn"
+                                           title="Voir détails">
+                                            <i class="fas fa-eye"></i>
                                         </a>
-                                        <form action="{{ path('app_chambre_delete', {'id': chambre.id}) }}" 
-                                              method="post" 
-                                              class="d-inline"
-                                              onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette chambre ?');">
-                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ chambre.id) }}">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
-                                        </form>
+                                        <div class="btn-group"></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12 text-center py-5">
+                        <h4>Aucune chambre disponible pour le moment.</h4>
                     </div>
-                {% endfor %}
+                {% endif %}
             </div>
 
-            {# Pagination #}
+            <!-- Pagination -->
             {% if totalItems > itemsPerPage %}
-                <div class="d-flex justify-content-center mt-4">
-                    <nav aria-label="Pagination">
-                        <ul class="pagination">
-                            {% if currentPage > 1 %}
-                                <li class="page-item">
-                                    <a class="page-link" href="{{ path('app_chambre_index', {page: currentPage - 1}) }}">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </a>
-                                </li>
-                            {% endif %}
-
-                            {% for i in 1..((totalItems / itemsPerPage)|round(0, 'ceil')) %}
-                                <li class="page-item {{ currentPage == i ? 'active' : '' }}">
-                                    <a class="page-link" href="{{ path('app_chambre_index', {page: i}) }}">{{ i }}</a>
-                                </li>
-                            {% endfor %}
-
-                            {% if currentPage < (totalItems / itemsPerPage)|round(0, 'ceil') %}
-                                <li class="page-item">
-                                    <a class="page-link" href="{{ path('app_chambre_index', {page: currentPage + 1}) }}">
-                                        <i class="fas fa-chevron-right"></i>
-                                    </a>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                </div>
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item {{ currentPage == 1 ? 'disabled' : '' }}">
+                            <a class="page-link" href="{{ path('app_chambre_index', {'page': currentPage - 1, 'hebergement': hebergement_selected, 'disponibilite': disponibilite_selected, 'capacite': capacite_selected, 'maxPrice': maxPrice_selected}) }}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        {% set totalPages = (totalItems / itemsPerPage)|round(0, 'ceil') %}
+                        {% for i in 1..totalPages %}
+                            <li class="page-item {{ currentPage == i ? 'active' : '' }}">
+                                <a class="page-link" href="{{ path('app_chambre_index', {'page': i, 'hebergement': hebergement_selected, 'disponibilite': disponibilite_selected, 'capacite': capacite_selected, 'maxPrice': maxPrice_selected}) }}">{{ i }}</a>
+                            </li>
+                        {% endfor %}
+                        <li class="page-item {{ currentPage == totalPages ? 'disabled' : '' }}">
+                            <a class="page-link" href="{{ path('app_chambre_index', {'page': currentPage + 1, 'hebergement': hebergement_selected, 'disponibilite': disponibilite_selected, 'capacite': capacite_selected, 'maxPrice': maxPrice_selected}) }}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
             {% endif %}
-        {% endif %}
+        </div>
     </div>
 
     <style>
-        .card {
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        /* Container and general styles */
+        .container-xxl {
+            padding: 40px 0;
+        }
+
+        .room-item {
+            background: #fff;
             border-radius: 10px;
             overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
-        .card:hover {
+
+        .room-item:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
         }
-        .carousel-control-prev, .carousel-control-next {
-            background-color: rgba(0,0,0,0.2);
-            width: 30px;
-            height: 30px;
-            top: 50%;
+
+        /* Image styling */
+        .chambre-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        /* Price badge */
+        .price-badge {
+            position: absolute;
+            left: 0;
+            top: 100%;
             transform: translateY(-50%);
-            border-radius: 50%;
+            background: #ffc107;
+            color: #333;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            margin-left: 16px;
+            font-weight: 500;
         }
-        .page-item.active .page-link {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
+
+        /* Card content */
+        .card-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 220px;
+        }
+
+        .card-content h5 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            max-width: 70%;
+        }
+
+        .card-content p.text-body {
+            font-size: 0.9rem;
+            color: #555;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+
+        /* Buttons */
+        .btn {
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .btn-warning {
+            background-color: #ffc107;
+            border-color: #ffc107;
+            color: #333;
+        }
+
+        .btn-warning:hover {
+            background-color: #e0a800;
+            transform: scale(1.05);
+        }
+
+        .btn-icon {
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            font-size: 16px;
+            border: none;
+            color: #fff;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-detail {
+            background-color: #002B5B;
+        }
+
+        .btn-icon:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            opacity: 0.9;
+        }
+
+        /* Search form */
+        .form-select, .form-control {
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 0.95rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #333;
+        }
+
+        /* Pagination */
+        .pagination .page-link {
+            border-radius: 5px;
+            margin: 0 3px;
+            color: #002B5B;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #ffc107;
+            border-color: #ffc107;
+            color: #333;
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: #ccc;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 767px) {
+            .room-item {
+                margin-bottom: 20px;
+            }
+
+            .chambre-image {
+                height: 180px;
+            }
+
+            .card-content {
+                min-height: 200px;
+            }
+
+            .btn {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
+
+            .btn-icon {
+                width: 34px;
+                height: 34px;
+                font-size: 14px;
+            }
         }
     </style>
 {% endblock %}

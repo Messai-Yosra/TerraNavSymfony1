@@ -3,6 +3,8 @@
 {% block title %}Créer une nouvelle chambre{% endblock %}
 
 {% block content %}
+    {% form_theme form 'bootstrap_5_layout.html.twig' %}
+
     <div class="container mt-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1>Créer une nouvelle chambre</h1>
@@ -11,391 +13,173 @@
             </a>
         </div>
 
-        {{ form_start(form, {'attr': {'class': 'row g-3 needs-validation', 'enctype': 'multipart/form-data', 'novalidate': 'novalidate'}}) }}
+        {{ form_start(form, {'attr': {'class': 'needs-validation', 'enctype': 'multipart/form-data', 'novalidate': 'novalidate'}}) }}
 
-            {# Affichage global des erreurs #}
-            {% if form.vars.errors|length > 0 %}
-                <div class="col-12">
-                    <div class="alert alert-danger">
-                        <ul class="mb-0">
-                            {% for error in form.vars.errors %}
-                                <li>{{ error.message }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-            {% endif %}
-
-            <div class="col-md-6">
-                <div class="form-group">
-                    {{ form_label(form.numero, 'Numéro de chambre', {'label_attr': {'class': 'form-label'}}) }}
-                    {{ form_widget(form.numero, {'attr': {
-                        'class': 'form-control',
-                        'placeholder': 'Ex: 101',
-                        'required': 'required'
-                    }}) }}
-                    <div class="invalid-feedback">
-                        Veuillez saisir un numéro de chambre valide (max 50 caractères)
-                    </div>
-                </div>
+        {% if form.vars.errors|length > 0 %}
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    {% for error in form.vars.errors %}
+                        <li>{{ error.message }}</li>
+                    {% endfor %}
+                </ul>
             </div>
+        {% endif %}
 
-            <div class="col-md-6">
-                <div class="form-check">
-                    {{ form_widget(form.disponibilite, {'attr': {
-                        'class': 'form-check-input'
-                    }}) }}
-                    {{ form_label(form.disponibilite, 'Disponible immédiatement', {'label_attr': {'class': 'form-check-label'}}) }}
-                    <div class="invalid-feedback">
-                        Veuillez spécifier la disponibilité
-                    </div>
-                </div>
+        <!-- 🟨 Bloc 1 : Informations de base -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-warning text-dark fw-bold">📁 Informations de base</div>
+            <div class="card-body row">
+                <div class="col-md-4">{{ form_row(form.numero) }}</div>
+                <div class="col-md-4 d-flex align-items-center">{{ form_row(form.disponibilite) }}</div>
+                <div class="col-md-4">{{ form_row(form.prix) }}</div>
+                <div class="col-md-4">{{ form_row(form.capacite) }}</div>
+                <div class="col-md-4">{{ form_row(form.taille) }}</div>
+                <div class="col-md-4">{{ form_row(form.vue) }}</div>
             </div>
+        </div>
 
-            <div class="col-md-6">
-                <div class="form-group">
-                    {{ form_label(form.prix, 'Prix par nuit (€)', {'label_attr': {'class': 'form-label'}}) }}
-                    {{ form_widget(form.prix, {'attr': {
-                        'class': 'form-control',
-                        'placeholder': 'Ex: 120.50',
-                        'required': 'required',
-                        'min': '0',
-                        'step': '0.01'
-                    }}) }}
-                    <div class="invalid-feedback">
-                        Veuillez saisir un prix valide (nombre positif ou zéro)
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="form-group">
-                    {{ form_label(form.capacite, 'Capacité (personnes)', {'label_attr': {'class': 'form-label'}}) }}
-                    {{ form_widget(form.capacite, {'attr': {
-                        'class': 'form-control',
-                        'placeholder': 'Ex: 2',
-                        'required': 'required',
-                        'min': '1'
-                    }}) }}
-                    <div class="invalid-feedback">
-                        Veuillez saisir une capacité valide (nombre entier positif)
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="form-group">
-                    {{ form_label(form.taille, 'Taille (m²)', {'label_attr': {'class': 'form-label'}}) }}
-                    {{ form_widget(form.taille, {'attr': {
-                        'class': 'form-control',
-                        'placeholder': 'Ex: 25.5',
-                        'required': 'required',
-                        'min': '0',
-                        'step': '0.1'
-                    }}) }}
-                    <div class="invalid-feedback">
-                        Veuillez saisir une taille valide (nombre positif)
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="form-group">
-                    {{ form_label(form.vue, 'Vue', {'label_attr': {'class': 'form-label'}}) }}
-                    {{ form_widget(form.vue, {'attr': {
-                        'class': 'form-control',
-                        'placeholder': 'Ex: Vue sur mer',
-                        'maxlength': '255'
-                    }}) }}
-                    <div class="invalid-feedback">
-                        La vue ne peut pas dépasser 255 caractères
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-12">
-                <div class="form-group">
-                    {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label'}}) }}
-                    {{ form_widget(form.description, {'attr': {
-                        'class': 'form-control',
-                        'rows': 3,
-                        'placeholder': 'Décrivez la chambre en détail...',
-                        'maxlength': '1000'
-                    }}) }}
-                    <div class="invalid-feedback">
-                        La description ne peut pas dépasser 1000 caractères
-                    </div>
+        <!-- 🟨 Bloc 2 : Description -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-warning text-dark fw-bold">📝 Description et détails</div>
+            <div class="card-body row">
+                <div class="col-md-6">
+                    {{ form_label(form.description) }}
+                    {{ form_widget(form.description, {'attr': {'class': 'form-control', 'maxlength': '1000'}}) }}
                     <small class="form-text text-muted"><span id="description-counter">0</span>/1000 caractères</small>
                 </div>
-            </div>
-
-            <div class="col-12">
-                <div class="form-group">
-                    {{ form_label(form.equipements, 'Équipements', {'label_attr': {'class': 'form-label'}}) }}
-                    {{ form_widget(form.equipements, {'attr': {
-                        'class': 'form-control',
-                        'rows': 3,
-                        'placeholder': 'Listez les équipements disponibles...',
-                        'maxlength': '500'
-                    }}) }}
-                    <div class="invalid-feedback">
-                        Les équipements ne peuvent pas dépasser 500 caractères
-                    </div>
+                <div class="col-md-6">
+                    {{ form_label(form.equipements) }}
+                    {{ form_widget(form.equipements, {'attr': {'class': 'form-control', 'maxlength': '500'}}) }}
                     <small class="form-text text-muted"><span id="equipements-counter">0</span>/500 caractères</small>
                 </div>
+                <div class="col-md-6">{{ form_row(form.url_3d) }}</div>
+                <div class="col-md-6">{{ form_row(form.hebergement) }}</div>
             </div>
+        </div>
 
-            <div class="col-12">
-                <div class="form-group">
-                    {{ form_label(form.url_3d, 'Lien visite virtuelle 3D', {'label_attr': {'class': 'form-label'}}) }}
-                    {{ form_widget(form.url_3d, {'attr': {
-                        'class': 'form-control',
-                        'placeholder': 'https://...',
-                        'pattern': 'https?://.+'
-                    }}) }}
-                    <div class="invalid-feedback">
-                        Veuillez saisir une URL valide commençant par http:// ou https://
-                    </div>
-                </div>
+        <!-- 🟨 Bloc 3 : Images -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-warning text-dark fw-bold">🖼️ Images de la chambre</div>
+            <div class="card-body">
+                {{ form_row(form.images) }}
+                <small class="form-text text-muted">Formats acceptés : JPG, PNG, WEBP (max 5MB)</small>
+                <div id="image-preview" class="d-flex flex-wrap gap-3 mt-3"></div>
             </div>
+        </div>
 
-            <div class="col-12">
-                <div class="form-group">
-                    {{ form_label(form.hebergement, 'Hébergement associé', {'label_attr': {'class': 'form-label'}}) }}
-                    {{ form_widget(form.hebergement, {'attr': {
-                        'class': 'form-select',
-                        'required': 'required'
-                    }}) }}
-                    <div class="invalid-feedback">
-                        Veuillez sélectionner un hébergement
-                    </div>
-                </div>
-            </div>
+        <!-- Boutons -->
+        <div class="text-end mt-4">
+            <button type="submit" class="btn btn-primary me-2">
+                <i class="fas fa-save me-1"></i> Enregistrer
+            </button>
+            <button type="reset" class="btn btn-outline-secondary" onclick="resetValidation()">
+                <i class="fas fa-eraser me-1"></i> Réinitialiser
+            </button>
+        </div>
 
-            <div class="col-12 mt-3">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0">Images de la chambre</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group">
-                            {{ form_widget(form.images, {
-                                'attr': {
-                                    'class': 'form-control',
-                                    'onchange': 'previewImages(this)',
-                                    'accept': 'image/jpeg,image/png,image/webp'
-                                }
-                            }) }}
-                            <div class="invalid-feedback">
-                                Veuillez sélectionner des images valides (JPG, PNG, WEBP - max 5MB)
-                            </div>
-                            <small class="form-text text-muted">Formats acceptés: JPG, PNG, WEBP (max 5MB par image)</small>
-                        </div>
-                        <div id="image-preview" class="d-flex flex-wrap gap-3 mt-3"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-12 mt-4">
-                <button type="submit" class="btn btn-primary me-2">
-                    <i class="fas fa-save me-1"></i> Enregistrer
-                </button>
-                <button type="reset" class="btn btn-outline-secondary" onclick="resetValidation()">
-                    <i class="fas fa-eraser me-1"></i> Réinitialiser
-                </button>
-            </div>
         {{ form_end(form) }}
     </div>
 
     <style>
-        .image-preview-container {
-            position: relative;
-            width: 150px;
-            height: 150px;
-            border: 1px solid #dee2e6;
-            border-radius: 0.375rem;
-            overflow: hidden;
-            background-color: #f8f9fa;
+        .form-control,
+        .form-select {
+            border-radius: 8px;
+            padding: 10px 14px;
+            border: 1px solid #ced4da;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
         }
-        .image-preview {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #ffa500;
+            box-shadow: 0 0 0 0.2rem rgba(255, 165, 0, 0.25);
         }
-        .remove-image-btn {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            width: 25px;
-            height: 25px;
-            background: rgba(0,0,0,0.5);
+
+        .card-header {
+            font-weight: bold;
+            padding: 10px 20px;
+            font-size: 1.05rem;
+            background-color: #ffc107 !important;
+        }
+
+        input[type="file"]::file-selector-button {
+            background-color: #ffa500;
             color: white;
             border: none;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            padding: 8px 16px;
+            margin-right: 10px;
+            border-radius: 6px;
             cursor: pointer;
+            transition: 0.3s;
         }
-        .remove-image-btn:hover {
-            background: rgba(0,0,0,0.7);
+
+        input[type="file"]::file-selector-button:hover {
+            background-color: #e69500;
         }
-        .was-validated .form-control:invalid,
-        .was-validated .form-select:invalid,
-        .was-validated .form-check-input:invalid {
-            border-color: #dc3545;
+
+        .form-check-input {
+            transform: scale(1.2);
+            margin-top: 0.5rem;
+            accent-color: #ffa500;
         }
-        .was-validated .form-control:invalid:focus,
-        .was-validated .form-select:invalid:focus {
-            border-color: #dc3545;
-            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+
+        .btn-primary {
+            background-color: #ff8800;
+            border-color: #ff8800;
         }
-        .invalid-feedback {
-            display: none;
-            width: 100%;
-            margin-top: 0.25rem;
-            font-size: 0.875em;
-            color: #dc3545;
-        }
-        .was-validated .form-control:invalid ~ .invalid-feedback,
-        .was-validated .form-select:invalid ~ .invalid-feedback,
-        .was-validated .form-check-input:invalid ~ .invalid-feedback {
-            display: block;
+
+        .btn-primary:hover {
+            background-color: #e67300;
+            border-color: #e67300;
         }
     </style>
 
     <script>
-        // Validation côté client
-        (function() {
-            'use strict';
-            
-            // Récupère le formulaire auquel nous voulons ajouter la validation
-            const form = document.querySelector('.needs-validation');
-            
-            // Empêche la soumission si le formulaire n'est pas valide
-            form.addEventListener('submit', function(event) {
-                if (!form.checkValidity()) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-                
-                form.classList.add('was-validated');
-            }, false);
-            
-            // Validation en temps réel
-            const inputs = form.querySelectorAll('input, select, textarea');
-            inputs.forEach(input => {
-                input.addEventListener('input', function() {
-                    if (input.checkValidity()) {
-                        input.classList.remove('is-invalid');
-                        input.classList.add('is-valid');
-                    } else {
-                        input.classList.remove('is-valid');
-                        input.classList.add('is-invalid');
-                    }
-                });
-                
-                // Validation lors de la perte de focus
-                input.addEventListener('blur', function() {
-                    if (input.checkValidity()) {
-                        input.classList.remove('is-invalid');
-                        input.classList.add('is-valid');
-                    } else {
-                        input.classList.remove('is-valid');
-                        input.classList.add('is-invalid');
-                    }
-                });
-            });
-        })();
-        
-        // Compteur de caractères
-        document.addEventListener('DOMContentLoaded', function() {
+        // Char counters
+        document.addEventListener('DOMContentLoaded', () => {
             const description = document.getElementById('{{ form.description.vars.id }}');
-            const descriptionCounter = document.getElementById('description-counter');
-            
             const equipements = document.getElementById('{{ form.equipements.vars.id }}');
-            const equipementsCounter = document.getElementById('equipements-counter');
-            
             if (description) {
-                description.addEventListener('input', function() {
-                    descriptionCounter.textContent = this.value.length;
+                description.addEventListener('input', () => {
+                    document.getElementById('description-counter').textContent = description.value.length;
                 });
-                descriptionCounter.textContent = description.value.length;
             }
-            
             if (equipements) {
-                equipements.addEventListener('input', function() {
-                    equipementsCounter.textContent = this.value.length;
+                equipements.addEventListener('input', () => {
+                    document.getElementById('equipements-counter').textContent = equipements.value.length;
                 });
-                equipementsCounter.textContent = equipements.value.length;
             }
         });
-        
+
         function previewImages(input) {
             const previewContainer = document.getElementById('image-preview');
             previewContainer.innerHTML = '';
-            
-            if (input.files && input.files.length > 0) {
+            if (input.files) {
                 Array.from(input.files).forEach((file, index) => {
-                    // Vérification de la taille du fichier (5MB max)
-                    if (file.size > 5 * 1024 * 1024) {
-                        input.setCustomValidity('Fichier trop volumineux (max 5MB)');
-                        input.reportValidity();
-                        return;
-                    }
-                    
                     const reader = new FileReader();
-                    
                     reader.onload = function(e) {
-                        const previewDiv = document.createElement('div');
-                        previewDiv.className = 'image-preview-container';
-                        
+                        const div = document.createElement('div');
+                        div.className = 'image-preview-container';
                         const img = document.createElement('img');
                         img.src = e.target.result;
                         img.className = 'image-preview';
-                        img.alt = 'Preview ' + (index + 1);
-                        
-                        const removeBtn = document.createElement('button');
-                        removeBtn.className = 'remove-image-btn';
-                        removeBtn.innerHTML = '×';
-                        removeBtn.title = 'Supprimer cette image';
-                        removeBtn.onclick = function() {
-                            previewDiv.remove();
-                            // Mise à jour de l'input file
-                            const files = Array.from(input.files);
-                            files.splice(index, 1);
-                            const dataTransfer = new DataTransfer();
-                            files.forEach(file => dataTransfer.items.add(file));
-                            input.files = dataTransfer.files;
-                        };
-                        
-                        previewDiv.appendChild(img);
-                        previewDiv.appendChild(removeBtn);
-                        previewContainer.appendChild(previewDiv);
+                        div.appendChild(img);
+                        previewContainer.appendChild(div);
                     };
-
                     reader.readAsDataURL(file);
                 });
             }
         }
-        
+
         function resetValidation() {
-            const form = document.querySelector('.needs-validation');
-            form.classList.remove('was-validated');
-            
-            const inputs = form.querySelectorAll('input, select, textarea');
-            inputs.forEach(input => {
-                input.classList.remove('is-valid', 'is-invalid');
+            document.querySelector('.needs-validation').classList.remove('was-validated');
+            document.querySelectorAll('input, select, textarea').forEach(el => {
+                el.classList.remove('is-valid', 'is-invalid');
             });
-            
-            // Réinitialiser les compteurs
-            const descriptionCounter = document.getElementById('description-counter');
-            const equipementsCounter = document.getElementById('equipements-counter');
-            if (descriptionCounter) descriptionCounter.textContent = '0';
-            if (equipementsCounter) equipementsCounter.textContent = '0';
-            
-            // Vider l'aperçu des images
             document.getElementById('image-preview').innerHTML = '';
+            document.getElementById('description-counter').textContent = '0';
+            document.getElementById('equipements-counter').textContent = '0';
         }
     </script>
 {% endblock %}

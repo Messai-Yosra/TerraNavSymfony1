@@ -23,31 +23,6 @@ final class HebergementController extends AbstractController
         $this->security = $security;
     }
 
-    /**
-     * tous les hébergements
-     */
-    #[Route('/', name: 'app_hebergement_index', methods: ['GET'])]
-    public function index(EntityManagerInterface $entityManager): Response
-    {
-        try {
-            $hebergements = $entityManager
-                ->getRepository(Hebergement::class)
-                ->findAll();
-                
-            return $this->render('hebergements/hebergement/index.html.twig', [
-                'hebergements' => $hebergements,
-                'type' => null,
-                'ville' => null
-            ]);
-        } catch (\Exception $e) {
-            $this->addFlash('error', 'Erreur lors du chargement des hébergements: ' . $e->getMessage());
-            return $this->render('hebergements/hebergement/index.html.twig', [
-                'hebergements' => [],
-                'type' => null,
-                'ville' => null
-            ]);
-        }
-    }
 
     #[Route('/new', name: 'app_hebergement_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
@@ -114,41 +89,262 @@ final class HebergementController extends AbstractController
         ]);
     }
 
-    /**
-     * Recherche d'hébergements par type ou ville
-     */
-    #[Route('/search', name: 'app_hebergement_search', methods: ['GET'])]
-    public function search(Request $request, EntityManagerInterface $entityManager): Response
+    #[Route('/', name: 'app_hebergement_index', methods: ['GET'])]
+    public function index(EntityManagerInterface $entityManager): Response
     {
-        $type = $request->query->get('type');
-        $ville = $request->query->get('ville');
-        
         try {
-            $repository = $entityManager->getRepository(Hebergement::class);
-            
-            // Préparation des critères de recherche
-            $criteria = [];
-            if ($type) {
-                $criteria['type_hebergement'] = $type;
+            $hebergements = $entityManager
+                ->getRepository(Hebergement::class)
+                ->findAll();
+
+            // Fetch unique types and villes for the search form
+            $types = $entityManager->createQuery('SELECT DISTINCT h.type_hebergement FROM App\Entity\Hebergement h ORDER BY h.type_hebergement')
+                ->getResult();
+            $types = array_column($types, 'type_hebergement');
+
+            $villes = $entityManager->createQuery('SELECT DISTINCT h.ville FROM App\Entity\Hebergement h ORDER BY h.ville')
+                ->getResult();
+            $villes = array_column($villes, 'ville');
+
+            // Prepare an array to store the first image for each hébergement
+            $hebergementImages = [];
+            foreach ($hebergements as $hebergement) {
+                $firstImage = null;
+                $chambres = $hebergement->getChambres();
+                if (!$chambres->isEmpty()) {
+                    $firstChambre = $chambres->first();
+                    $images = $firstChambre->getImages();
+                    if (!$images->isEmpty()) {
+                        $firstImage = $images->first()->getUrlImage();
+                    }
+                }
+                $hebergementImages[$hebergement->getId()] = $firstImage;
             }
-            if ($ville) {
-                $criteria['ville'] = $ville;
-            }
-            
-            // Effectuer la recherche
-            $hebergements = empty($criteria) ? $repository->findAll() : $repository->findBy($criteria);
-            
+
             return $this->render('hebergements/hebergement/index.html.twig', [
                 'hebergements' => $hebergements,
-                'type' => $type,
-                'ville' => $ville
+                'hebergementImages' => $hebergementImages,
+                'types' => $types,
+                'villes' => $villes,
+                'type_selected' => null,
+                'ville_selected' => null
             ]);
         } catch (\Exception $e) {
-            $this->addFlash('error', 'Erreur lors de la recherche: ' . $e->getMessage());
-            return $this->redirectToRoute('app_hebergement_index');
+            $this->addFlash('error', 'Erreur lors du chargement des hébergements: ' . $e->getMessage());
+            return $this->render('hebergements/hebergement/index.html.twig', [
+                'hebergements' => [],
+                'hebergementImages' => [],
+                'types' => [],
+                'villes' => [],
+                'type_selected' => null,
+                'ville_selected' => null
+            ]);
         }
     }
 
+    #[Route('/hebergement/{id}/chambres', name: 'app_chambres_by_hebergement', methods: ['GET'])]
+    public function chambresParHebergement(Hebergement $hebergement): Response
+    {
+        $chambres = $hebergement->getChambres();
+
+        return $this->render('hebergements/chambre/chambres_par_hebergement.html.twig', [
+            'hebergement' => $hebergement,
+            'chambres' => $chambres,
+        ]);
+    }
+    #[Route('/hebergementClient/{id}/chambres', name: 'app_chambres_by_hebergementC', methods: ['GET'])]
+    public function chambresParHebergementClient(Hebergement $hebergement): Response
+    {
+        $chambres = $hebergement->getChambres();
+
+        return $this->render('hebergements/chambre/ChambreParHebergementClient.html.twig', [
+            'hebergement' => $hebergement,
+            'chambres' => $chambres,
+        ]);
+    }
+
+#[Route('/search', name: 'app_hebergement_search', methods: ['GET'])]
+public function search(Request $request, EntityManagerInterface $entityManager): Response
+{
+    $type = $request->query->get('type');
+    $ville = $request->query->get('ville');
+    $maxPrice = $request->query->get('maxPrice');
+    $minRooms = $request->query->get('nbChambres');
+
+    try {
+        $qb = $entityManager->createQueryBuilder()
+            ->select('h')
+            ->from(Hebergement::class, 'h');
+
+        // Only join chambres if filtering by price
+        if ($maxPrice !== null && $maxPrice !== '') {
+            $qb->innerJoin('h.chambres', 'c');
+        } else {
+            $qb->leftJoin('h.chambres', 'c');
+        }
+
+        if ($type) {
+            $qb->andWhere('h.type_hebergement = :type')
+               ->setParameter('type', $type);
+        }
+
+        if ($ville) {
+            $qb->andWhere('h.ville = :ville')
+               ->setParameter('ville', $ville);
+        }
+
+        if ($maxPrice !== null && $maxPrice !== '') {
+            $qb->andWhere('c.prix <= :maxPrice')
+               ->setParameter('maxPrice', (float)$maxPrice);
+        }
+
+        if ($minRooms !== null && $minRooms !== '') {
+            $qb->andWhere('h.nb_chambres >= :minRooms')
+               ->setParameter('minRooms', (int)$minRooms);
+        }
+
+        // Ensure unique results
+        $qb->distinct();
+
+        $hebergements = $qb->getQuery()->getResult();
+
+        $types = $entityManager->createQuery('SELECT DISTINCT h.type_hebergement FROM App\Entity\Hebergement h ORDER BY h.type_hebergement')
+            ->getResult();
+        $types = array_column($types, 'type_hebergement');
+
+        $villes = $entityManager->createQuery('SELECT DISTINCT h.ville FROM App\Entity\Hebergement h ORDER BY h.ville')
+            ->getResult();
+        $villes = array_column($villes, 'ville');
+
+        $hebergementImages = [];
+        foreach ($hebergements as $hebergement) {
+            $firstImage = null;
+            $chambres = $hebergement->getChambres();
+            if (!$chambres->isEmpty()) {
+                $firstChambre = $chambres->first();
+                $images = $firstChambre->getImages();
+                if (!$images->isEmpty()) {
+                    $firstImage = $images->first()->getUrlImage();
+                }
+            }
+            $hebergementImages[$hebergement->getId()] = $firstImage;
+        }
+
+        return $this->render('hebergements/hebergement/index.html.twig', [
+            'hebergements' => $hebergements,
+            'hebergementImages' => $hebergementImages,
+            'types' => $types,
+            'villes' => $villes,
+            'type_selected' => $type,
+            'ville_selected' => $ville,
+            'maxPrice_selected' => $maxPrice,
+            'nbChambres_selected' => $minRooms,
+        ]);
+    } catch (\Exception $e) {
+        $this->addFlash('error', 'Erreur lors de la recherche: ' . $e->getMessage());
+        return $this->render('hebergements/hebergement/index.html.twig', [
+            'hebergements' => [],
+            'hebergementImages' => [],
+            'types' => [],
+            'villes' => [],
+            'type_selected' => $type,
+            'ville_selected' => $ville,
+            'maxPrice_selected' => $maxPrice,
+            'nbChambres_selected' => $minRooms,
+        ]);
+    }
+}
+#[Route('/searchClient', name: 'app_hebergement_search_client', methods: ['GET'])]
+public function searchClient(Request $request, EntityManagerInterface $entityManager): Response
+{
+    $type = $request->query->get('type');
+    $ville = $request->query->get('ville');
+    $maxPrice = $request->query->get('maxPrice');
+    $minRooms = $request->query->get('nbChambres');
+
+    try {
+        $qb = $entityManager->createQueryBuilder()
+            ->select('h')
+            ->from(Hebergement::class, 'h');
+
+        // Only join chambres if filtering by price
+        if ($maxPrice !== null && $maxPrice !== '') {
+            $qb->innerJoin('h.chambres', 'c');
+        } else {
+            $qb->leftJoin('h.chambres', 'c');
+        }
+
+        if ($type) {
+            $qb->andWhere('h.type_hebergement = :type')
+               ->setParameter('type', $type);
+        }
+
+        if ($ville) {
+            $qb->andWhere('h.ville = :ville')
+               ->setParameter('ville', $ville);
+        }
+
+        if ($maxPrice !== null && $maxPrice !== '') {
+            $qb->andWhere('c.prix <= :maxPrice')
+               ->setParameter('maxPrice', (float)$maxPrice);
+        }
+
+        if ($minRooms !== null && $minRooms !== '') {
+            $qb->andWhere('h.nb_chambres >= :minRooms')
+               ->setParameter('minRooms', (int)$minRooms);
+        }
+
+        // Ensure unique results
+        $qb->distinct();
+
+        $hebergements = $qb->getQuery()->getResult();
+
+        $types = $entityManager->createQuery('SELECT DISTINCT h.type_hebergement FROM App\Entity\Hebergement h ORDER BY h.type_hebergement')
+            ->getResult();
+        $types = array_column($types, 'type_hebergement');
+
+        $villes = $entityManager->createQuery('SELECT DISTINCT h.ville FROM App\Entity\Hebergement h ORDER BY h.ville')
+            ->getResult();
+        $villes = array_column($villes, 'ville');
+
+        $hebergementImages = [];
+        foreach ($hebergements as $hebergement) {
+            $firstImage = null;
+            $chambres = $hebergement->getChambres();
+            if (!$chambres->isEmpty()) {
+                $firstChambre = $chambres->first();
+                $images = $firstChambre->getImages();
+                if (!$images->isEmpty()) {
+                    $firstImage = $images->first()->getUrlImage();
+                }
+            }
+            $hebergementImages[$hebergement->getId()] = $firstImage;
+        }
+
+        return $this->render('hebergements/hebergementClient.html.twig', [
+            'hebergements' => $hebergements,
+            'hebergementImages' => $hebergementImages,
+            'types' => $types,
+            'villes' => $villes,
+            'type_selected' => $type,
+            'ville_selected' => $ville,
+            'maxPrice_selected' => $maxPrice,
+            'nbChambres_selected' => $minRooms,
+        ]);
+    } catch (\Exception $e) {
+        $this->addFlash('error', 'Erreur lors de la recherche: ' . $e->getMessage());
+        return $this->render('hebergements/hebergement/index.html.twig', [
+            'hebergements' => [],
+            'hebergementImages' => [],
+            'types' => [],
+            'villes' => [],
+            'type_selected' => $type,
+            'ville_selected' => $ville,
+            'maxPrice_selected' => $maxPrice,
+            'nbChambres_selected' => $minRooms,
+        ]);
+    }
+}
     /**
      * Affiche les détails d'un hébergement spécifique
      */
