@@ -1,0 +1,679 @@
+{% extends "baseClient.html.twig" %}
+
+{% block title %}Proposer un Voyage{% endblock %}
+
+{% block content %}
+    <!-- Page Header Start -->
+    <div class="container-fluid page-header mb-5 p-0" style="background-image: url(img/voyages/1.avif);">
+        <div class="container-fluid page-header-inner py-5">
+            <div class="container text-center pb-5">
+                <h1 class="display-3 text-white mb-3 animated slideInDown">Proposer un nouveau voyage</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center text-uppercase">
+                        <li class="breadcrumb-item"><a href="#">Accueil</a></li>
+                        <li class="breadcrumb-item text-white active" aria-current="page">Ajout Voyage</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <!-- Page Header End -->
+
+    <!-- Voyage Form Start -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+                <h6 class="section-title text-center text-primary text-uppercase">Formulaire d'ajout</h6>
+                <h1 class="mb-5">Proposer un <span class="text-primary text-uppercase">Nouveau Voyage</span></h1>
+            </div>
+            <form id="voyageForm" action="{{ path('app_ajout_voyage') }}" method="POST" enctype="multipart/form-data" novalidate>
+                <div class="row g-5">
+                    <div class="col-lg-6">
+                        <!-- Première série d'images -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-6 text-end">
+                                <img class="img-fluid rounded w-75 wow zoomIn hover-zoom" data-wow-delay="0.1s"
+                                     src="img/voyages/ajout1.avif" style="margin-top: 25%;">
+                            </div>
+                            <div class="col-6 text-start">
+                                <img class="img-fluid rounded w-100 wow zoomIn hover-zoom" data-wow-delay="0.3s"
+                                     src="img/voyages/ajout2.avif">
+                            </div>
+                            <div class="col-6 text-end">
+                                <img class="img-fluid rounded w-50 wow zoomIn hover-zoom" data-wow-delay="0.5s"
+                                     src="img/voyages/ajout3.avif">
+                            </div>
+                            <div class="col-6 text-start">
+                                <img class="img-fluid rounded w-75 wow zoomIn hover-zoom" data-wow-delay="0.7s"
+                                     src="img/voyages/ajout4.avif">
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-6 text-end">
+                                <img class="img-fluid rounded w-75 wow zoomIn hover-zoom" data-wow-delay="0.1s"
+                                     src="img/voyages/ajout5.avif" style="margin-top: 25%;">
+                            </div>
+                            <div class="col-6 text-start">
+                                <img class="img-fluid rounded w-100 wow zoomIn hover-zoom" data-wow-delay="0.3s"
+                                     src="img/voyages/ajout2.avif">
+                            </div>
+                            <div class="col-6 text-end">
+                                <img class="img-fluid rounded w-50 wow zoomIn hover-zoom" data-wow-delay="0.5s"
+                                     src="img/voyages/ajout7.avif">
+                            </div>
+                            <div class="col-6 text-start">
+                                <img class="img-fluid rounded w-75 wow zoomIn hover-zoom" data-wow-delay="0.7s"
+                                     src="img/voyages/ajout8.avif">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="wow fadeInUp" data-wow-delay="0.2s">
+                            <!-- Section Informations de base -->
+                            <div class="card mb-4 border-primary hover-effect">
+                                <div class="card-header bg-primary text-white">
+                                    <i class="fas fa-info-circle me-2"></i>Informations de base
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <!-- Destination -->
+                                        <div class="col-md-6">
+                                            <div class="form-floating {% if form.destination.vars.errors|length %}has-error{% endif %}">
+                                                {{ form_widget(form.destination, {'attr': {'class': form.destination.vars.errors|length ? 'form-control is-invalid' : 'form-control'}}) }}
+                                                {{ form_label(form.destination) }}
+                                                {% if form.destination.vars.errors|length %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ form_errors(form.destination) }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <!-- Point de départ -->
+                                        <div class="col-md-6">
+                                            <div class="form-floating {% if form.pointDepart.vars.errors|length %}has-error{% endif %}">
+                                                {{ form_widget(form.pointDepart, {'attr': {'class': form.pointDepart.vars.errors|length ? 'form-control is-invalid' : 'form-control'}}) }}
+                                                {{ form_label(form.pointDepart) }}
+                                                {% if form.pointDepart.vars.errors|length %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ form_errors(form.pointDepart) }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <!-- Titre du voyage -->
+                                        <div class="col-12">
+                                            <div class="form-floating {% if form.titre.vars.errors|length %}has-error{% endif %}">
+                                                {{ form_widget(form.titre, {'attr': {'class': form.titre.vars.errors|length ? 'form-control is-invalid' : 'form-control'}}) }}
+                                                {{ form_label(form.titre) }}
+                                                {% if form.titre.vars.errors|length %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ form_errors(form.titre) }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section Dates -->
+                            <div class="card mb-4 border-primary hover-effect">
+                                <div class="card-header bg-primary text-white">
+                                    <i class="far fa-calendar-alt me-2"></i>Dates du voyage
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <!-- Date de départ -->
+                                        <div class="col-md-6">
+                                            <div class="form-floating {% if form.dateDepart.vars.errors|length %}has-error{% endif %}">
+                                                {{ form_widget(form.dateDepart, {'attr': {'class': form.dateDepart.vars.errors|length ? 'form-control is-invalid' : 'form-control'}}) }}
+                                                {{ form_label(form.dateDepart) }}
+                                                {% if form.dateDepart.vars.errors|length %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ form_errors(form.dateDepart) }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <!-- Date de retour -->
+                                        <div class="col-md-6">
+                                            <div class="form-floating {% if form.dateRetour.vars.errors|length %}has-error{% endif %}">
+                                                {{ form_widget(form.dateRetour, {'attr': {'class': form.dateRetour.vars.errors|length ? 'form-control is-invalid' : 'form-control'}}) }}
+                                                {{ form_label(form.dateRetour) }}
+                                                {% if form.dateRetour.vars.errors|length %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ form_errors(form.dateRetour) }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section Détails -->
+                            <div class="card mb-4 border-primary hover-effect">
+                                <div class="card-header bg-primary text-white">
+                                    <i class="fas fa-list-ul me-2"></i>Détails du voyage
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <!-- Type de voyage -->
+                                        <div class="col-md-6">
+                                            <div class="form-floating {% if form.type.vars.errors|length %}has-error{% endif %}">
+                                                {{ form_widget(form.type, {'attr': {'class': form.type.vars.errors|length ? 'form-select is-invalid' : 'form-select'}}) }}
+                                                {{ form_label(form.type) }}
+                                                {% if form.type.vars.errors|length %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ form_errors(form.type) }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <!-- Nombre de places -->
+                                        <div class="col-md-6">
+                                            <div class="form-floating {% if form.nbPlacesD.vars.errors|length %}has-error{% endif %}">
+                                                {{ form_widget(form.nbPlacesD, {'attr': {'class': form.nbPlacesD.vars.errors|length ? 'form-control is-invalid' : 'form-control'}}) }}
+                                                {{ form_label(form.nbPlacesD) }}
+                                                {% if form.nbPlacesD.vars.errors|length %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ form_errors(form.nbPlacesD) }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <!-- Prix -->
+                                        <div class="col-md-6">
+                                            <div class="form-floating {% if form.prix.vars.errors|length %}has-error{% endif %}">
+                                                {{ form_widget(form.prix, {'attr': {'class': form.prix.vars.errors|length ? 'form-control is-invalid' : 'form-control'}}) }}
+                                                {{ form_label(form.prix) }}
+                                                {% if form.prix.vars.errors|length %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ form_errors(form.prix) }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <!-- Offre associée -->
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="id_offre" name="id_offre">
+                                                    <option value="">Aucune offre</option>
+                                                    {% for offre in offres %}
+                                                        <option value="{{ offre.id }}">{{ offre.titre }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                <label for="id_offre"><i class="fas fa-percent me-2 text-primary"></i>Offre associée</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section Description et Images -->
+                            <div class="card mb-4 border-primary hover-effect">
+                                <div class="card-header bg-primary text-white">
+                                    <i class="fas fa-image me-2"></i>Description et médias
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <!-- Images -->
+                                        <div class="col-12">
+                                            <div class="form-group">
+                                                <label for="images"><i class="fas fa-camera me-2 text-primary"></i>Images du voyage</label>
+                                                <input type="file" class="form-control hover-file-input"
+                                                       id="images" name="images[]" multiple accept="image/*">
+                                                <small class="form-text text-muted">Sélectionnez une ou plusieurs images (max 5)</small>
+                                                <div id="imagePreview" class="mt-2"></div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Description -->
+                                        <div class="col-12">
+                                            <div class="form-group {% if form.description.vars.errors|length %}has-error{% endif %}">
+                                                <label for="{{ form.description.vars.id }}">
+                                                    <i class="fas fa-align-left me-2 text-primary"></i>Description détaillée
+                                                </label>
+                                                <div class="input-group">
+                                                    {{ form_widget(form.description, {
+                                                        'attr': {
+                                                            'style': 'height: 100px',
+                                                            'class': form.description.vars.errors|length ? 'form-control is-invalid' : 'form-control'
+                                                        }
+                                                    }) }}
+                                                    <button class="btn btn-outline-primary" type="button"
+                                                            id="generateDescBtn" style="height: 58px;">
+                                                        <i class="fas fa-magic me-1"></i> Générer
+                                                    </button>
+                                                </div>
+                                                {% if form.description.vars.errors|length %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ form_errors(form.description) }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Boutons -->
+                            <div class="row g-3 mt-2">
+                                <div class="col-6">
+                                    <button class="btn btn-primary w-100 py-3 btn-hover" type="submit"
+                                            id="submitBtn">
+                                        <i class="fas fa-plus-circle me-2"></i>Ajouter le voyage
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <a href="{{ path('app_voyages_agence') }}" class="btn btn-secondary w-100 py-3 btn-hover" id="cancelBtn">
+                                        <i class="fas fa-times-circle me-2"></i>Annuler
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{ form_end(form) }}
+            </form>
+        </div>
+    </div>
+    <!-- Voyage Form End -->
+
+    <style>
+        /* Style spécifique pour le champ description */
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group .input-group {
+            width: 100%;
+        }
+
+
+
+        /* Style du bouton générer */
+        #generateDescBtn {
+            height: 58px;
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+            margin-left: -1px; /* Pour coller au textarea */
+        }
+
+        /* Style des messages d'erreur */
+        .invalid-feedback {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: block;
+        }
+
+        /* Style des champs invalides */
+        .is-invalid {
+            border-color: #dc3545 !important;
+        }
+
+        .is-invalid:focus {
+            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
+        }
+
+        /* Positionnement des messages d'erreur */
+        .form-floating {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        /* Espacement supplémentaire pour les champs avec erreur */
+        .has-error {
+            margin-bottom: 1.5rem;
+        }
+
+        /* Correction du hover pour tous les champs */
+        .form-control:hover,
+        .form-select:hover {
+            border-color: #0d6efd;
+            background-color: #f8f9fa;
+        }
+
+        /* Effets de hover */
+        .hover-effect {
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .hover-effect:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .hover-zoom {
+            transition: transform 0.3s ease;
+        }
+
+        .hover-zoom:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-hover {
+            transition: all 0.3s ease;
+        }
+
+        .btn-hover:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Style pour les cartes */
+        .card-header {
+            font-weight: 600;
+        }
+
+        /* Style pour les inputs file */
+        .hover-file-input:hover {
+            border-color: #0d6efd;
+            background-color: #f8f9fa;
+        }
+
+        /* Style pour le bouton générer */
+        #generateDescBtn {
+            transition: all 0.3s ease;
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        #generateDescBtn:hover {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        /* Style pour les labels avec icônes */
+        .form-floating label i {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Animation pour les champs */
+        .form-control {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:hover {
+            border-color: #666;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-control.is-invalid:hover {
+            border-color: #c82333;
+            box-shadow: 0 0 5px rgba(220, 53, 69, 0.25);
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        /* Ajustement des marges */
+        .col-lg-6:first-child {
+            padding-left: 2rem;
+        }
+
+        .col-lg-6:last-child {
+            padding-right: 2rem;
+        }
+        /* Style spécifique pour le groupe description */
+        .input-group {
+            margin-top: 0.5rem;
+        }
+
+        /* Ajustement du bouton générer */
+        #generateDescBtn {
+            height: 58px !important;
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+        /* Styles pour le champ titre */
+        .auto-generated {
+            border-left: 3px solid #28a745 !important;
+            background-color: #f8fff8 !important;
+        }
+
+        .user-modified {
+            border-left: 3px solid #ffc107 !important;
+            background-color: #fffdf5 !important;
+        }
+
+        .titre-hint {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+            display: block;
+        }
+
+        /* Style pour le bouton de reset */
+        #resetTitreBtn {
+            transition: all 0.3s ease;
+            height: 58px; /* Pour correspondre à la hauteur du champ */
+        }
+
+        #resetTitreBtn:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Ajustement pour le groupe input */
+        .input-group .form-control {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .input-group .btn {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Éléments du formulaire
+            const destinationInput = document.getElementById('{{ form.destination.vars.id }}');
+            const departInput = document.getElementById('{{ form.pointDepart.vars.id }}');
+            const titreInput = document.getElementById('{{ form.titre.vars.id }}');
+            const resetTitreBtn = document.getElementById('resetTitreBtn');
+            const titreContainer = titreInput.closest('.form-floating');
+
+            // Créer l'élément d'aide
+            const hintElement = document.createElement('small');
+            hintElement.className = 'titre-hint';
+            titreContainer.appendChild(hintElement);
+
+            let titreModifiedManually = false;
+
+            // Fonction pour mettre à jour l'état visuel
+            function updateTitleState() {
+                if (titreModifiedManually) {
+                    titreInput.classList.remove('auto-generated');
+                    titreInput.classList.add('user-modified');
+                    hintElement.textContent = 'Modification manuelle - vous pouvez éditer librement';
+                    resetTitreBtn.style.display = 'block';
+                } else {
+                    titreInput.classList.remove('user-modified');
+                    titreInput.classList.add('auto-generated');
+                    hintElement.textContent = 'Généré automatiquement - cliquez pour modifier';
+                    resetTitreBtn.style.display = 'none';
+                }
+            }
+
+            // Fonction pour générer le titre automatique
+            function generateAutoTitle() {
+                if (titreModifiedManually) return;
+
+                const destination = destinationInput.value.trim();
+                const depart = departInput.value.trim();
+
+                if (destination && depart) {
+                    const destCode = destination.substring(0, 3).toUpperCase();
+                    const departCode = depart.substring(0, 3).toUpperCase();
+                    titreInput.value = `${departCode}-${destCode}`;
+                    updateTitleState();
+                }
+            }
+
+            // Écouteurs d'événements
+            destinationInput.addEventListener('input', generateAutoTitle);
+            departInput.addEventListener('input', generateAutoTitle);
+
+            titreInput.addEventListener('focus', function() {
+                if (!titreModifiedManually && !titreInput.value) {
+                    generateAutoTitle();
+                }
+            });
+
+            titreInput.addEventListener('input', function() {
+                if (!titreModifiedManually && titreInput.value) {
+                    titreModifiedManually = true;
+                    updateTitleState();
+                }
+            });
+
+            // Bouton de réinitialisation
+            resetTitreBtn.addEventListener('click', function() {
+                titreModifiedManually = false;
+                generateAutoTitle();
+            });
+
+            // Réinitialisation si les champs sont vidés
+            [destinationInput, departInput].forEach(input => {
+                input.addEventListener('change', function() {
+                    if (!destinationInput.value && !departInput.value && titreInput.value) {
+                        titreInput.value = '';
+                        titreModifiedManually = false;
+                        updateTitleState();
+                    }
+                });
+            });
+
+            // Initialisation des tooltips Bootstrap
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Initialisation de l'état
+            updateTitleState();
+            resetTitreBtn.style.display = 'none'; // Cache le bouton au départ
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Gestion de la prévisualisation des images (optionnel)
+            document.getElementById('images').addEventListener('change', function(e) {
+                const preview = document.getElementById('imagePreview');
+                preview.innerHTML = '';
+
+                if (this.files.length > 5) {
+                    alert('Vous ne pouvez sélectionner que 5 images maximum');
+                    this.value = '';
+                    return;
+                }
+
+                for (let i = 0; i < this.files.length; i++) {
+                    const file = this.files[i];
+                    if (file.type.match('image.*')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const img = document.createElement('img');
+                            img.src = e.target.result;
+                            img.style.maxWidth = '100px';
+                            img.style.maxHeight = '100px';
+                            img.className = 'img-thumbnail';
+                            preview.appendChild(img);
+                        }
+                        reader.readAsDataURL(file);
+                    }
+                }
+            });
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('voyageForm');
+            let submitted = false;
+
+            form.addEventListener('submit', function() {
+                if (!submitted) {
+                    // Première soumission - laisse le navigateur faire sa validation
+                    submitted = true;
+                } else {
+                    // Soumissions suivantes - désactive la validation HTML5
+                    form.setAttribute('novalidate', 'novalidate');
+                }
+            });
+        });
+    </script>
+    <!-- Modal de confirmation -->
+    <div class="modal fade" id="confirmCancelModal" tabindex="-1" aria-labelledby="confirmCancelModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="confirmCancelModalLabel"><i class="fas fa-exclamation-triangle me-2"></i>Confirmation</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Êtes-vous sûr de vouloir annuler la création de ce voyage ?<br>
+                    <small class="text-muted">Toutes les informations non enregistrées seront perdues.</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-hover" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Annuler
+                    </button>
+                    <button type="button" class="btn btn-primary btn-hover" id="confirmCancelBtn">
+                        <i class="fas fa-check me-2"></i>Confirmer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Ajouts de style pour la modale */
+        .modal-content {
+            border: 2px solid #0d6efd;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(13, 110, 253, 0.3);
+        }
+
+        .modal-header {
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 13px 13px 0 0;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Gestion du bouton Annuler avec modale Bootstrap
+            const cancelBtn = document.getElementById('cancelBtn');
+            const confirmCancelModal = new bootstrap.Modal(document.getElementById('confirmCancelModal'));
+
+            cancelBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                confirmCancelModal.show();
+            });
+
+            // Confirmation de l'annulation
+            document.getElementById('confirmCancelBtn').addEventListener('click', function () {
+                window.location.href = cancelBtn.href;
+            });
+        });
+    </script>
+
+{% endblock %}

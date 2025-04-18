@@ -1,3 +1,445 @@
-{% extends "baseClient.html.twig" %}
+{% extends 'baseClient.html.twig' %}
 
-{% block titre %} Profile {% endblock %}
+{% block titre %}Mon Profil - TerraNav{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .profile-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 15px;
+        }
+
+        .profile-header {
+            background: linear-gradient(120deg, #2193b0, #6dd5ed);
+            color: white;
+            padding: 40px 0;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 20px rgba(33, 147, 176, 0.2);
+        }
+        
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #2193b0, #6dd5ed);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            color: white;
+            border: 5px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            margin: 0 auto 20px;
+        }
+        
+        .profile-username {
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .profile-email {
+            text-align: center;
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+        
+        .profile-role-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .profile-card {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            border: none;
+            transition: all 0.3s ease;
+        }
+        
+        .profile-card:hover {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transform: translateY(-5px);
+        }
+        
+        .profile-card-header {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .profile-card-header h3 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.3rem;
+            color: #4a5568;
+        }
+        
+        .profile-form-control {
+            transition: all 0.3s;
+        }
+        
+        .profile-form-control:focus {
+            border-color: #2193b0;
+            box-shadow: 0 0 0 3px rgba(33, 147, 176, 0.2);
+        }
+        
+        .profile-form-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6B7280;
+        }
+        
+        .profile-form-input {
+            padding-left: 45px;
+        }
+        
+        .profile-submit-btn {
+            background: linear-gradient(45deg, #2193b0, #6dd5ed);
+            border: none;
+            padding: 12px 25px;
+            font-weight: 500;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(33, 147, 176, 0.3);
+            transition: all 0.3s;
+            color: white;
+        }
+        
+        .profile-submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(33, 147, 176, 0.4);
+        }
+        
+        .profile-info-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .profile-info-label {
+            color: #6B7280;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .profile-info-value {
+            font-weight: 500;
+            color: #1F2937;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container-xxl py-5">
+    <div class="container">
+        <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+            <h6 class="section-title text-center text-primary text-uppercase">Mon Profil</h6>
+            <h1 class="mb-5">Gérer <span class="text-primary text-uppercase">votre compte</span></h1>
+        </div>
+        
+        <div class="row g-5">
+            <div class="col-lg-6 mx-auto wow fadeInUp" data-wow-delay="0.2s">
+                <div class="bg-light rounded p-5">
+                    {# Affichage des messages flash #}
+                    {% for label, messages in app.flashes %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
+                    
+                    <form id="profileForm" action="{{ path('user_profile_update') }}" method="post" enctype="multipart/form-data">
+                        <div class="row g-3">
+                            <!-- Photo de profil -->
+                            <div class="col-12 mb-4">
+                                <label class="form-label">Photo de profil</label>
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="profile-avatar me-4" id="profilePreview" style="width: 150px; height: 150px; border-radius: 50%; overflow: hidden; background-color: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+                                        {% if app.user.photo %}
+                                            <img src="{{ asset('uploads/profile/' ~ app.user.photo) }}" alt="Photo de profil" class="img-fluid rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
+                                        {% else %}
+                                            <span style="font-size: 3rem; color: #6c757d;">{{ app.user.prenom|slice(0, 1) }}{{ app.user.nom|slice(0, 1) }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <button type="button" id="cameraBtn" class="btn btn-secondary">
+                                                <i class="fas fa-camera me-1"></i> Prendre une photo
+                                            </button>
+                                            <span class="align-self-center">ou</span>
+                                            <label for="photo_upload" class="btn btn-outline-primary">
+                                                <i class="fas fa-upload me-1"></i> Télécharger une image
+                                            </label>
+                                            
+                                            <!-- Input pour l'upload normal -->
+                                            <input type="file" class="form-control d-none" id="photo_upload" name="photo_upload" accept="image/*">
+                                        </div>
+                                        <div class="form-text">
+                                            Formats acceptés : JPG, PNG, GIF. Max 2 Mo.
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Champ caché pour stocker l'image de la caméra -->
+                                <input type="hidden" id="base64_camera_image" name="base64_camera_image">
+                            </div>
+
+                            <!-- Informations personnelles -->
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="prenom" name="prenom" value="{{ app.user.prenom }}" required>
+                                    <label for="prenom">Prénom</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="nom" name="nom" value="{{ app.user.nom }}" required>
+                                    <label for="nom">Nom</label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ app.user.email }}" required>
+                                    <label for="email">Email</label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="numTelephone" name="numTelephone" value="{{ app.user.numTel }}">
+                                    <label for="numTelephone">Numéro de téléphone</label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="cin" name="cin" value="{{ app.user.cin }}">
+                                    <label for="cin">CIN</label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="adresse" name="adresse" value="{{ app.user.address }}">
+                                    <label for="adresse">Adresse</label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <button class="btn btn-primary w-100 py-3" type="submit">Mettre à jour mon profil</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+// Use a single initialization approach with a flag to prevent multiple initializations
+let cameraInitialized = false;
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (!cameraInitialized) {
+        initCameraFunctionality();
+        cameraInitialized = true;
+    }
+});
+function initCameraFunctionality() {
+    console.log('Initializing camera functionality...');
+    
+    const cameraBtn = document.querySelector('#cameraBtn');
+    const photoUpload = document.querySelector('#photo_upload');
+    
+    if (!cameraBtn) {
+        console.error('Camera button (#cameraBtn) not found in DOM!');
+        return;
+    }
+    
+    // Use a single event attachment method
+    cameraBtn.addEventListener('click', handleCameraClick);
+    
+    // Handle photo upload through file input
+    if (photoUpload) {
+        photoUpload.addEventListener('change', handleFileUpload);
+    }
+    
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                updateProfilePreview(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+    
+    function handleCameraClick(event) {
+        console.log('Camera button clicked!', event);
+        
+        // Check if Bootstrap is available
+        if (typeof bootstrap === 'undefined') {
+            console.error('Bootstrap not found! Modal functionality requires Bootstrap JS.');
+            alert('Camera functionality requires Bootstrap. Please check console for details.');
+            return;
+        }
+        
+        // Rest of camera handling code
+        const video = document.createElement('video');
+        const canvas = document.createElement('canvas');
+        const cameraError = document.querySelector('.camera-error') || document.createElement('div');
+
+        // Request camera access
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            console.error('Media devices API not supported in this browser');
+            showCameraError('Your browser does not support camera access.');
+            return;
+        }
+        
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function(stream) {
+                // Create modal for camera
+                createCameraModal(stream, video, canvas);
+            })
+            .catch(function(error) {
+                console.error('Camera access error:', error);
+                showCameraError();
+            });
+    }
+    
+    // Helper function for camera errors
+    function showCameraError(message) {
+        const errorElement = document.querySelector('.camera-error');
+        if (errorElement) {
+            errorElement.style.display = 'block';
+            setTimeout(() => { errorElement.style.display = 'none'; }, 5000);
+        } else {
+            alert(message || 'Could not access camera. Please check permissions.');
+        }
+    }
+    
+    // Helper function to create camera modal
+    function createCameraModal(stream, video, canvas) {
+        const modal = document.createElement('div');
+        modal.className = 'modal fade';
+        modal.id = 'cameraModal';
+        modal.setAttribute('tabindex', '-1');
+        modal.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Prendre une photo</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <div id="videoContainer" style="width: 100%; max-width: 400px; margin: 0 auto;"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="button" class="btn btn-primary" id="captureBtn">
+                            <i class="fas fa-camera me-1"></i> Capturer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Set up the video stream
+        video.srcObject = stream;
+        video.setAttribute('playsinline', '');
+        video.style.width = '100%';
+        video.style.borderRadius = '8px';
+        
+        document.getElementById('videoContainer').appendChild(video);
+        video.play();
+        
+        // Initialize Bootstrap modal
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
+        
+        // Set up the canvas for capturing
+        canvas.width = 640;
+        canvas.height = 480;
+        
+        // Set up the capture button
+        const captureBtn = document.getElementById('captureBtn');
+        captureBtn.addEventListener('click', function() {
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Convert the canvas to a data URL
+            const imageData = canvas.toDataURL('image/png');
+            
+            // Display the captured image in the profile preview
+            const profilePreview = document.getElementById('profilePreview');
+            profilePreview.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = imageData;
+            img.alt = 'Photo de profil';
+            img.className = 'img-fluid rounded-circle';
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+            profilePreview.appendChild(img);
+            
+            // Store the base64 data in the hidden input
+            document.getElementById('base64_camera_image').value = imageData;
+            
+            // Close modal and stop camera
+            bsModal.hide();
+            stopCamera();
+        });
+        
+        // Clean up when the modal is closed
+        modal.addEventListener('hidden.bs.modal', function() {
+            stopCamera();
+            document.body.removeChild(modal);
+        });
+        
+        function stopCamera() {
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+            }
+        }
+    }
+    
+    function updateProfilePreview(imageData) {
+        const profilePreview = document.getElementById('profilePreview');
+        profilePreview.innerHTML = '';
+        const img = document.createElement('img');
+        img.src = imageData;
+        img.alt = 'Photo de profil';
+        img.className = 'img-fluid rounded-circle';
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        profilePreview.appendChild(img);
+    }
+}
+</script>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<div class="camera-error alert alert-warning" style="display:none;">
+    <p><i class="fas fa-exclamation-triangle me-2"></i> Impossible d'accéder à votre caméra.</p>
+    <p class="mb-0">Causes possibles:</p>
+    <ul>
+        <li>L'accès a été refusé dans les paramètres de votre navigateur</li>
+        <li>Votre appareil n'a pas de caméra</li>
+        <li>Une autre application utilise déjà la caméra</li>
+    </ul>
+</div>
+{% endblock %}

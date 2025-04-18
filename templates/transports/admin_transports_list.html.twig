@@ -1,0 +1,129 @@
+{% extends "baseAdmin.html.twig" %}
+
+{% block titre %}Transports{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="{{ asset('css/transports/adminTransportList.css') }}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
+
+    <div class="content-card">
+        <div class="card-header">
+            <h1><i class="fas fa-bus"></i> Gestion des transports</h1>
+        </div>
+        
+        <div class="card-body">
+            <div class="action-buttons">
+                <a href="{{ path('admin_transports') }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left"></i> Retour à l'accueil
+                </a>
+                <a href="{{ path('admin_trajets_index') }}" class="btn btn-primary">
+                    <i class="fas fa-list"></i> Voir la liste des Trajets
+                </a>
+            </div>
+            
+            {% if transports is defined and transports is not empty %}
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Type</th>
+                                <th>Prix</th>
+                                <th>Capacité</th>
+                                <th>Trajet</th>
+                                <th class="actions-column">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transport in transports %}
+                                <tr class="transport-row" data-transport-id="{{ transport.id }}">
+                                    <td>{{ transport.nom }}</td>
+                                    <td>{{ transport.type }}</td>
+                                    <td>{{ transport.prix }} DTN</td>
+                                    <td>{{ transport.capacite }}</td>
+                                    <td>
+                                        {% if transport.id_trajet is not null %}
+                                            {{ transport.id_trajet.pointDepart }} - {{ transport.id_trajet.destination }}
+                                        {% else %}
+                                            <span class="text-muted">Aucun trajet associé</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="actions-column">
+                                        <div class="row-actions">
+                                            <button class="btn btn-primary btn-details" title="Détails" 
+                                                    data-transport-id="{{ transport.id }}">
+                                                <i class="fas fa-info-circle"></i> Détails
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- Expandable Details Row -->
+                                <tr class="details-row" id="details-{{ transport.id }}" style="display: none;">
+                                    <td colspan="6">
+                                        <div class="details-content">
+                                            <h3>Détails du Transport</h3>
+                                            <p><strong>Nom:</strong> {{ transport.nom }}</p>
+                                            <p><strong>Type:</strong> {{ transport.type }}</p>
+                                            <p><strong>Prix:</strong> {{ transport.prix }} DTN</p>
+                                            <p><strong>Capacité:</strong> {{ transport.capacite }}</p>
+                                            <p><strong>Trajet:</strong> 
+                                                {% if transport.id_trajet %}
+                                                    {{ transport.id_trajet.pointDepart }} - {{ transport.id_trajet.destination }}
+                                                {% else %}
+                                                    Aucun trajet associé
+                                                {% endif %}
+                                            </p>
+                                            <p><strong>Description:</strong> {{ transport.description|default('Non spécifié') }}</p>
+                                            <p><strong>Contact:</strong> {{ transport.contact|default('Non spécifié') }}</p>
+                                            <p><strong>Image:</strong></p>
+                                            <div class="image-container">
+                                                {% if transport.imagePath %}
+                                                    <img src="{{ asset(transport.imagePath) }}" alt="Image du transport" class="transport-image">
+                                                {% else %}
+                                                    <span>Aucune image disponible</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-bus-alt empty-icon"></i>
+                    <p>Aucun transport disponible pour le moment.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- JavaScript for Expandable Rows -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const detailsButtons = document.querySelectorAll('.btn-details');
+
+            detailsButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const transportId = this.getAttribute('data-transport-id');
+                    const detailsRow = document.getElementById(`details-${transportId}`);
+
+                    // Toggle visibility
+                    if (detailsRow.style.display === 'none' || detailsRow.style.display === '') {
+                        // Hide all other details rows
+                        document.querySelectorAll('.details-row').forEach(row => {
+                            row.style.display = 'none';
+                        });
+                        // Show the selected details row
+                        detailsRow.style.display = 'table-row';
+                        this.innerHTML = '<i class="fas fa-times-circle"></i> Fermer';
+                    } else {
+                        detailsRow.style.display = 'none';
+                        this.innerHTML = '<i class="fas fa-info-circle"></i> Détails';
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

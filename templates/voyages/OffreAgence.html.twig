@@ -1,0 +1,271 @@
+{% extends "baseClient.html.twig" %}
+
+{% block title %}Gestion de vos Offres{% endblock %}
+
+{% block content %}
+    <!-- Page Header Start -->
+    <link rel="stylesheet" href="{{ asset('css/voyages/offers.css') }}">
+    <div class="container-fluid page-header mb-5 p-0"
+         style="background-image: url({{ asset('img/voyages/acceuil2.avif') }}); background-position: center center; background-size: cover;">
+        <div class="container-fluid page-header-inner py-5">
+            <div class="container text-center pb-5">
+                <h1 class="display-3 text-white mb-3 animated slideInDown">Gestion de vos Offres</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center text-uppercase">
+                        <li class="breadcrumb-item"><a href="{{ path('app_bienvenue_agence') }}">Tableau de bord</a></li>
+                        <li class="breadcrumb-item text-white active" aria-current="page">Vos offres</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <!-- Page Header End -->
+
+    <!-- Filtres améliorés -->
+    <div class="container-fluid booking pb-5 wow fadeIn" data-wow-delay="0.1s">
+        <div class="container">
+            <div class="bg-white shadow" style="padding: 35px;">
+                <form id="filterForm" method="get" action="#">
+                    <div class="row g-3">
+                        <div class="col-md-10">
+                            <div class="row g-3">
+                                <!-- Date de début -->
+                                <div class="col-md-3">
+                                    <label for="dateDebut" class="form-label">Date de début</label>
+                                    <input type="date" class="form-control" id="dateDebut" name="dateDebut"
+                                           value="{{ filterParams.dateDebut ?? '' }}">
+                                </div>
+
+                                <!-- Date de fin -->
+                                <div class="col-md-3">
+                                    <label for="dateFin" class="form-label">Date de fin</label>
+                                    <input type="date" class="form-control" id="dateFin" name="dateFin"
+                                           value="{{ filterParams.dateFin ?? '' }}">
+                                </div>
+
+                                <!-- Réduction minimum -->
+                                <div class="col-md-2">
+                                    <label for="minReduction" class="form-label">Réduction min (%)</label>
+                                    <input type="number" class="form-control" id="minReduction" name="minReduction"
+                                           min="0" max="100" step="5" value="{{ filterParams.minReduction ?? '' }}">
+                                </div>
+
+                                <!-- Trier par -->
+                                <div class="col-md-2">
+                                    <label for="sort" class="form-label">Trier par</label>
+                                    <select class="form-select" id="sort" name="sort">
+                                        <option value="">Par défaut</option>
+                                        <option value="alpha" {% if filterParams.sort == 'alpha' %}selected{% endif %}>
+                                            Ordre alphabétique
+                                        </option>
+                                        <option value="reduction_asc"
+                                                {% if filterParams.sort == 'reduction_asc' %}selected{% endif %}>
+                                            Réduction croissante
+                                        </option>
+                                        <option value="reduction_desc"
+                                                {% if filterParams.sort == 'reduction_desc' %}selected{% endif %}>
+                                            Réduction décroissante
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100 py-2">Filtrer</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barre de recherche -->
+    <div class="container mb-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <form method="get" action="#" class="input-group shadow-lg">
+                    <input type="text" class="form-control border-0" name="search" placeholder="Rechercher une offre..."
+                           value="{{ filterParams.search ?? '' }}">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search me-2"></i>Rechercher
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barre d'actions agence -->
+    <div class="container-xxl py-3">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="ms-3">
+                    <h6 class="section-title text-start text-primary text-uppercase">Vos Promotions</h6>
+                    <h1 class="mb-0">Liste de vos <span class="text-primary text-uppercase">Offres</span></h1>
+                </div>
+                <a href="{{ path('app_ajouter_offre') }}" class="btn btn-primary me-3">
+                    <i class="fas fa-plus me-2"></i>Créer une offre
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Offres Section -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="row g-4 justify-content-center">
+                {% for offre in offres %}
+                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="{{ 0.1 + (loop.index0 * 0.2) }}s">
+                        <div class="offer-card rounded shadow overflow-hidden position-relative h-100">
+                            <div class="position-relative overflow-hidden">
+                                <img class="img-fluid w-100 offer-image"
+                                     src="{{ asset(offre.transformSingleImagePath(offre.imagePath) ?? 'img/default-offer.jpg') }}"
+                                     alt="{{ offre.titre }}">
+                                {% if offre.reduction %}
+                                    <div class="offer-badge position-absolute top-0 end-0 m-3">
+                                        <span class="badge bg-danger rounded-pill px-3 py-2">
+                                            <i class="fas fa-percentage me-1"></i>-{{ offre.reduction }}%
+                                        </span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="p-4">
+                                <div class="d-flex justify-content-between mb-3">
+                                    <h5 class="mb-0">{{ offre.titre }}</h5>
+                                    <span class="badge bg-{% if offre.dateDebut > date() %}info
+                                                        {% elseif offre.dateFin >= date() %}success
+                                                        {% else %}secondary{% endif %}">
+                                        {% if offre.dateDebut > date() %}À venir
+                                        {% elseif offre.dateFin >= date() %}Active
+                                        {% else %}Expirée{% endif %}
+                                    </span>
+                                </div>
+
+                                <!-- Dates -->
+                                <div class="offer-dates mb-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-calendar-day text-primary me-2"></i>
+                                        <small>Début: {{ offre.dateDebut|date('d/m/Y') }}</small>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-calendar-check text-primary me-2"></i>
+                                        <small>Fin: {{ offre.dateFin|date('d/m/Y') }}</small>
+                                    </div>
+                                </div>
+
+                                <!-- Statut et réduction -->
+                                <div class="d-flex justify-content-between align-items-center mb-3 ms-5">
+                                    <span class="text-muted">
+                                        {{ offre.voyages|length }} voyage(s) associé(s)
+                                    </span>
+                                </div>
+
+                                <!-- Boutons d'actions -->
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a href="{{path('app_offre_show_agence', {id: offre.id})}}" class="btn btn-sm btn-outline-primary rounded-pill py-2 px-3">
+                                        <i class="fas fa-eye me-1"></i>Voir
+                                    </a>
+                                    <a href="{{ path('app_modifier_offre', {'id': offre.id}) }}" class="btn btn-sm btn-outline-warning rounded-pill py-2 px-3">
+                                        <i class="fas fa-edit me-1"></i>Modifier
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="col-12 text-center py-5">
+                        <div class="no-offers wow fadeIn" data-wow-delay="0.1s">
+                            <i class="fas fa-exclamation-circle fa-4x text-muted mb-4"></i>
+                            <h3 class="mb-3">Aucune offre trouvée</h3>
+                            <p class="text-muted">Commencez par créer votre première offre</p>
+                            <a href="{{ path('app_ajouter_offre') }}" class="btn btn-primary mt-3">
+                                <i class="fas fa-plus me-2"></i>Créer une offre
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Style additionnel -->
+    <style>
+        /* Styles pour les cartes d'offres */
+        .offer-card {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .offer-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .offer-image {
+            height: 200px;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .offer-card:hover .offer-image {
+            transform: scale(1.05);
+        }
+
+        .offer-badge {
+            transition: all 0.3s ease;
+        }
+
+        .offer-card:hover .offer-badge {
+            transform: scale(1.1);
+        }
+
+        .offer-dates {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 3px solid #0d6efd;
+        }
+
+        /* Style des boutons */
+        .btn-outline-primary {
+            border-color: #0d6efd;
+            color: #0d6efd;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        .btn-outline-warning {
+            border-color: #ffc107;
+            color: #ffc107;
+        }
+
+        .btn-outline-warning:hover {
+            background-color: #ffc107;
+            color: #212529;
+        }
+
+        .btn-outline-danger {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+        .btn-outline-danger:hover {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .offer-card {
+                margin-bottom: 2rem;
+            }
+
+            .d-flex.justify-content-between {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+{% endblock %}

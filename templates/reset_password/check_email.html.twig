@@ -1,0 +1,31 @@
+{# templates/reset_password/check_email.html.twig #}
+{% extends 'baseClient.html.twig' %}
+
+{% block titre %}Email envoyé - TerraNav{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="text-center h3">Email envoyé</h1>
+                </div>
+                <div class="card-body">
+                    <p>
+                        Un email contenant un lien pour réinitialiser votre mot de passe a été envoyé.
+                        Ce lien expirera dans 1 heure.
+                    </p>
+                    <p>
+                        Si vous ne recevez pas l'email, vérifiez votre dossier spam ou 
+                        <a href="{{ path('app_forgot_password_request') }}">essayez à nouveau</a>.
+                    </p>
+                    <div class="text-center mt-3">
+                        <a href="{{ path('app_login') }}" class="btn btn-primary">Retour à la connexion</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

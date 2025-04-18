@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Validator\Constraints as Assert;
 use App\Entity\Utilisateur;
 use App\Entity\Offre;
 use App\Entity\Reservation;
@@ -17,40 +18,66 @@ class Voyage
     #[ORM\Column(name: "id", type: "integer")]
     private int $id;
 
-    #[ORM\ManyToOne(targetEntity: Offre::class, inversedBy: "voyages")]
-    #[ORM\JoinColumn(name: 'id_offre', referencedColumnName: 'id', onDelete: 'CASCADE')]
-    private Offre $id_offre;
+    #[ORM\ManyToOne(targetEntity: Offre::class, inversedBy: "voyages", cascade: ["persist"])] // Ajoutez cascade: ["persist"]
+    #[ORM\JoinColumn(name: 'id_offre', referencedColumnName: 'id', onDelete: 'SET NULL')]
+    private ?Offre $id_offre = null;
 
-    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: "voyages")]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: "voyages", cascade: ["persist"])] // Ajoutez cascade persist
     #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id', onDelete: 'CASCADE')]
     private Utilisateur $id_user;
 
-    #[ORM\Column(name: "pointDepart", type: "string", length: 50, nullable: true)]
-    private ?string $pointDepart;
+    #[ORM\Column(name: "pointDepart", type: "string", length: 50)]
+    #[Assert\NotBlank(message: "Le point de départ est obligatoire")]
+    #[Assert\Length(
+        min: 3,
+        max: 50,
+        minMessage: "Le point de départ doit faire au moins {{ limit }} caractères",
+        maxMessage: "Le point de départ ne peut pas dépasser {{ limit }} caractères"
+    )]
+    private string $pointDepart;
 
-    #[ORM\Column(name: "dateDepart", type: "datetime", nullable: true)]
-    private ?\DateTimeInterface $dateDepart;
+    #[ORM\Column(name: "dateDepart", type: "datetime")]
+    #[Assert\NotBlank(message: "La date de départ est obligatoire")]
+    #[Assert\GreaterThan("today", message: "La date de départ doit être dans le futur")]
+    private ?\DateTimeInterface $dateDepart = null;
 
-    #[ORM\Column(name: "dateRetour", type: "datetime", nullable: true)]
-    private ?\DateTimeInterface $dateRetour;
+    #[ORM\Column(name: "dateRetour", type: "datetime")]
+    #[Assert\NotBlank(message: "La date de retour est obligatoire")]
+    #[Assert\Expression(
+        "this.getDateRetour() > this.getDateDepart()",
+        message: "La date de retour doit être après la date de départ"
+    )]
+    private ?\DateTimeInterface $dateRetour = null;
 
-    #[ORM\Column(name: "destination", type: "string", length: 50, nullable: true)]
-    private ?string $destination;
+    #[ORM\Column(name: "destination", type: "string", length: 50)]
+    #[Assert\NotBlank(message: "La destination est obligatoire")]
+    #[Assert\Length(min: 3, max: 50)]
+    private string $destination;
 
-    #[ORM\Column(name: "nbPlacesD", type: "integer", nullable: true)]
-    private ?int $nbPlacesD;
+    #[ORM\Column(name: "nbPlacesD", type: "integer")]
+    #[Assert\NotBlank(message: "Le nombre de places est obligatoire")]
+    #[Assert\Positive(message: "Le nombre de places doit être positif")]
+    private int $nbPlacesD;
 
-    #[ORM\Column(name: "type", type: "string", length: 50, nullable: true)]
-    private ?string $type;
+    #[ORM\Column(name: "type", type: "string", length: 50)]
+    #[Assert\NotBlank(message: "Le type de voyage est obligatoire")]
+    #[Assert\Choice(choices: ["Avion", "Train", "Bateau"], message: "Choisissez un type valide")]
+    private string $type;
 
-    #[ORM\Column(name: "prix", type: "float", nullable: true)]
-    private ?float $prix;
+    #[ORM\Column(name: "prix", type: "float")]
+    #[Assert\NotBlank(message: "Le prix est obligatoire")]
+    #[Assert\Positive(message: "Le prix doit être positif")]
+    private float $prix;
 
-    #[ORM\Column(name: "description", type: "text", nullable: true)]
-    private ?string $description;
+    #[ORM\Column(name: "description", type: "text")]
+    #[Assert\NotBlank(message: "La description est obligatoire")]
+    #[Assert\Length(min: 20, minMessage: "La description doit faire au moins {{ limit }} caractères")]
+    private string $description;
 
-    #[ORM\Column(name: "titre", type: "string", length: 50, nullable: true)]
-    private ?string $titre;
+    #[ORM\Column(name: "titre", type: "string", length: 50)]
+    #[Assert\NotBlank(message: "Le titre est obligatoire")]
+    #[Assert\Length(min: 5, max: 50)]
+    private string $titre;
 
     #[ORM\Column(name: "pathImages", type: "text", nullable: true)]
     private ?string $pathImages;
@@ -74,12 +101,12 @@ class Voyage
         return $this;
     }
 
-    public function getId_offre(): Offre
+    public function getId_offre(): ?Offre
     {
         return $this->id_offre;
     }
 
-    public function setId_offre(Offre $id_offre): self
+    public function setId_offre(?Offre $id_offre): self
     {
         $this->id_offre = $id_offre;
         return $this;
@@ -229,4 +256,42 @@ class Voyage
         }
         return $this;
     }
+
+    private ?array $imageList = null;
+
+    public function getImageList(): ?array
+    {
+        return $this->imageList;
+    }
+
+    public function setImageList(array $imageList): self
+    {
+        $this->imageList = $imageList;
+        return $this;
+    }
+
+    public function getNomOffre(): ?string
+    {
+        return $this->id_offre ? $this->id_offre->getTitre() : null;
+    }
+
+    public function transformImagePaths(string $absolutePaths): string
+    {
+        return str_replace(
+            [
+                'C:\TerraNavSymfony1\public\\',
+                'C:/TerraNavSymfony1/public/',
+                '\\',
+                '***'
+            ],
+            [
+                '',
+                '',
+                '/',
+                '***'
+            ],
+            $absolutePaths
+        );
+    }
+
 }

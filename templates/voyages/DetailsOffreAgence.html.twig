@@ -1,0 +1,491 @@
+{% extends "baseClient.html.twig" %}
+
+{% block title %}Détails de l'Offre - {{ offre.titre }}{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    <div class="container-fluid page-header mb-5 p-0" style="background-image: url({{ asset('img/voyages/5.avif') }});">
+        <div class="container-fluid page-header-inner py-5">
+            <div class="container text-center pb-5">
+                <h1 class="display-3 text-white mb-3 animated slideInDown">{{ offre.titre }}</h1>
+                <div class="badge bg-danger fs-4 mb-3 hover-badge">Réduction: -{{ offre.reduction }}%</div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center text-uppercase">
+                        <li class="breadcrumb-item"><a href="{{ path('app_offres_agence') }}" class="text-white hover-grow">Vos offres</a></li>
+                        <li class="breadcrumb-item text-white active" aria-current="page">Détails</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Bar -->
+    <div class="container-xxl py-3">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h6 class="section-title text-start text-primary text-uppercase">Gestion de l'offre</h6>
+                    <h1 class="mb-0">Détails de <span class="text-primary text-uppercase">l'offre</span></h1>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ path('app_offres_agence') }}" class="btn btn-secondary hover-scale">
+                        <i class="fas fa-arrow-left me-2"></i>Retour
+                    </a>
+                    <a href="{{ path('app_modifier_offre', {'id': offre.id}) }}" class="btn btn-warning hover-scale">
+                        <i class="fas fa-edit me-2"></i>Modifier
+                    </a>
+                    <form method="post" action="{{ path('app_supprimer_offre', {'id': offre.id}) }}" id="deleteForm">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ offre.id) }}">
+                        <button type="button" class="btn btn-danger hover-scale" onclick="showDeleteConfirmation()">
+                            <i class="fas fa-trash-alt me-2"></i>Supprimer
+                        </button>
+                    </form>
+                    <a href="#" class="btn btn-info hover-scale">
+                        <i class="fas fa-chart-bar me-2"></i>Statistiques
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="row g-5">
+                <!-- Left Column - Image -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm mb-4 hover-lift">
+                        <div class="card-body p-0">
+                            <div class="image-hover-container">
+                                <img class="img-fluid rounded-top img-hover-zoom"
+                                     src="{{ asset(offre.transformSingleImagePath(offre.imagePath) ?? 'img/default-offer.jpg') }}"
+                                     style="height: 400px; width: 100%; object-fit: cover;"
+                                     alt="Image de l'offre {{ offre.titre }}"
+                                     onerror="this.src='{{ asset('img/about-1.jpg') }}'">
+                                <div class="image-hover-overlay">
+                                    <div class="image-hover-text">Voir en grand</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Details -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm mb-4 hover-lift">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h2 class="mb-0 text-hover-primary">{{ offre.titre }}</h2>
+                                <span class="badge bg-danger fs-6 hover-badge">
+                                    -{{ offre.reduction }}% de réduction
+                                </span>
+                            </div>
+
+                            <!-- Validity Period -->
+                            <div class="validity-section mb-4 p-3 rounded bg-light hover-price">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-calendar-alt fa-2x text-primary me-3 hover-icon"></i>
+                                    <div>
+                                        <h4 class="mb-1">Période de validité</h4>
+                                        <p class="mb-0">
+                                            Du {{ offre.dateDebut|date('d/m/Y') }} au {{ offre.dateFin|date('d/m/Y') }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Key Information -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <div class="info-card p-3 rounded hover-effect">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-percent text-primary me-3 fs-4 hover-icon"></i>
+                                            <div>
+                                                <h6 class="mb-0">Réduction</h6>
+                                                <p class="mb-0 text-hover-dark">{{ offre.reduction }}%</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-card p-3 rounded hover-effect">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-plane text-primary me-3 fs-4 hover-icon"></i>
+                                            <div>
+                                                <h6 class="mb-0">Voyages associés</h6>
+                                                <p class="mb-0 text-hover-dark">{{ offre.voyages|length }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="mb-4">
+                                <h5 class="mb-3"><i class="fas fa-align-left text-primary me-2 hover-icon"></i>Description</h5>
+                                <p class="text-muted text-hover-dark">{{ offre.description }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Voyages associés -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm hover-lift">
+                        <div class="card-header bg-primary text-white">
+                            <i class="fas fa-plane me-2"></i>Voyages associés à cette offre
+                        </div>
+                        <div class="card-body">
+                            {% if offre.voyages|length > 0 %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                        <tr>
+                                            <th>Titre</th>
+                                            <th>Destination</th>
+                                            <th>Dates</th>
+                                            <th>Prix original</th>
+                                            <th>Prix avec réduction</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for voyage in offre.voyages %}
+                                            <tr class="hover-row">
+                                                <td>{{ voyage.titre }}</td>
+                                                <td>{{ voyage.destination }}</td>
+                                                <td>
+                                                    {{ voyage.dateDepart|date('d/m/Y') }} -
+                                                    {{ voyage.dateRetour|date('d/m/Y') }}
+                                                </td>
+                                                <td>{{ voyage.prix }} DT</td>
+                                                <td class="text-danger fw-bold">
+                                                    {{ (voyage.prix * (1 - offre.reduction/100))|number_format(2) }} DT
+                                                </td>
+                                                <td>
+                                                    <a href="{{ path('app_voyage_show', {'id': voyage.id}) }}"
+                                                       class="btn btn-sm btn-outline-primary hover-scale">
+                                                        <i class="fas fa-eye"></i> Voir
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-plane-slash fa-3x text-muted mb-3"></i>
+                                    <h5>Aucun voyage associé à cette offre</h5>
+                                    <p class="text-muted">Les voyages que vous associerez à cette offre apparaîtront ici</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="row mt-4">
+                <div class="col-md-6 mb-4">
+                    <div class="card border-0 shadow-sm h-100 hover-lift">
+                        <div class="card-body">
+                            <h4 class="card-title mb-4">
+                                <i class="fas fa-chart-pie text-info me-2 hover-icon"></i>Statistiques
+                            </h4>
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <div class="bg-light p-3 rounded text-center hover-effect">
+                                        <i class="fas fa-ticket-alt text-primary fs-3 mb-2 hover-icon"></i>
+                                        <h5 class="mb-0 hover-pulse">{{ random(5, 50) }}</h5>
+                                        <small class="text-muted">Réservations</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="bg-light p-3 rounded text-center hover-effect">
+                                        <i class="fas fa-money-bill-wave text-success fs-3 mb-2 hover-icon"></i>
+                                        <h5 class="mb-0 hover-pulse">
+                                            {{ (random(1000, 5000))|number_format(0) }} DT
+                                        </h5>
+                                        <small class="text-muted">Revenu généré</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="card border-0 shadow-sm h-100 hover-lift">
+                        <div class="card-body">
+                            <h4 class="card-title mb-4">
+                                <i class="fas fa-info-circle text-primary me-2 hover-icon"></i>Informations
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <img id="modalImage" src="" class="img-fluid rounded hover-scale" alt="Modal Image">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary hover-scale" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Custom Styles */
+        .validity-section {
+            border-left: 4px solid #0d6efd;
+            background: linear-gradient(to right, rgba(13, 110, 253, 0.05), transparent);
+        }
+
+        .info-card {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .agence-info {
+            transition: all 0.3s ease;
+            border: 1px dashed #0d6efd;
+        }
+
+        /* Hover Effects */
+        .hover-effect {
+            transition: all 0.3s ease;
+        }
+
+        .hover-effect:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .hover-scale {
+            transition: transform 0.3s ease;
+        }
+
+        .hover-scale:hover {
+            transform: scale(1.05);
+        }
+
+        .hover-grow {
+            transition: transform 0.3s ease;
+        }
+
+        .hover-grow:hover {
+            transform: scale(1.1);
+        }
+
+        .hover-badge {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .hover-badge:hover {
+            transform: scale(1.1);
+            opacity: 0.9;
+        }
+
+        .hover-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .hover-icon:hover {
+            transform: scale(1.2);
+        }
+
+        .hover-pulse {
+            transition: transform 0.3s ease;
+        }
+
+        .hover-pulse:hover {
+            animation: pulse 1s infinite;
+        }
+
+        .hover-price:hover {
+            background: linear-gradient(to right, rgba(13, 110, 253, 0.1), transparent);
+        }
+
+        .text-hover-primary:hover {
+            color: #0d6efd !important;
+        }
+
+        .text-hover-dark:hover {
+            color: #212529 !important;
+        }
+
+        .img-hover-zoom {
+            transition: transform 0.5s ease;
+        }
+
+        .img-hover-zoom:hover {
+            transform: scale(1.05);
+        }
+
+        .image-hover-container {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-hover-overlay {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            width: 100%;
+            opacity: 0;
+            transition: .3s ease;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-hover-container:hover .image-hover-overlay {
+            opacity: 1;
+        }
+
+        .image-hover-text {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .hover-row:hover {
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+
+        /* Animation */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .action-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .action-buttons .btn {
+                width: 100%;
+            }
+        }
+    </style>
+
+    <script>
+        // Show image in modal
+        document.querySelector('.image-hover-container').addEventListener('click', function() {
+            const imgSrc = this.querySelector('img').src;
+            document.getElementById('modalImage').src = imgSrc;
+            const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+            modal.show();
+        });
+
+        // Initialize tooltips
+        document.addEventListener('DOMContentLoaded', function() {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+    {# Confirmation Modal #}
+    <div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow-lg">
+                <div class="modal-header border-danger bg-danger text-white">
+                    <h5 class="modal-title" id="deleteConfirmationModalLabel">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirmer la suppression
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-trash-alt fa-3x text-danger me-3"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5>Êtes-vous sûr de vouloir supprimer cette offre ?</h5>
+                            <p class="mb-0 text-muted">"{{ offre.titre }}" sera définitivement supprimée.</p>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Cette action est irréversible !
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary hover-scale" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Annuler
+                    </button>
+                    <button type="button" class="btn btn-danger hover-scale" id="confirmDeleteButton">
+                        <i class="fas fa-check me-2"></i>Confirmer la suppression
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function showDeleteConfirmation() {
+            const modal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'), {
+                keyboard: false,
+                backdrop: 'static'
+            });
+            modal.show();
+        }
+
+        document.getElementById('confirmDeleteButton').addEventListener('click', function() {
+            document.getElementById('deleteForm').submit();
+        });
+    </script>
+    <style>
+        /* Delete Modal Custom Styles */
+        #deleteConfirmationModal .modal-header {
+            border-radius: 0.5rem 0.5rem 0 0;
+            padding: 1.2rem;
+        }
+
+        #deleteConfirmationModal .modal-title {
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        #deleteConfirmationModal .modal-content {
+            border: 2px solid #dc3545;
+            border-radius: 0.5rem;
+        }
+
+        #deleteConfirmationModal .modal-footer {
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            background: #f8f9fa;
+        }
+
+        #deleteConfirmationModal .alert-warning {
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+        }
+    </style>
+{% endblock %}

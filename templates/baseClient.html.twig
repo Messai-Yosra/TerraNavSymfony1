@@ -32,144 +32,154 @@
     <link href="{{ asset('css/styleClient.css') }}" rel="stylesheet">
 </head>
 
-    <body>
-    {# In your base template or a separate macro file #}
-    {% macro is_active_route(current_route, target_route) %}
-        {% if current_route == target_route %}active{% endif %}
-    {% endmacro %}
+<body>
+{# In your base template or a separate macro file #}
+{% macro is_active_route(current_route, target_route) %}
+    {% if current_route == target_route %}active{% endif %}
+{% endmacro %}
 
-    <div class="bg-white p-0" style="width: 100vw; margin: 0; padding: 0;">
-        {% block header %}
-            <!-- Header Start -->
-            <div class="container-fluid bg-dark px-0 ">
-                <div class="row gx-0 nav p-lg-3">
-                    <div class="col-lg-3 bg-dark d-none d-lg-block ">
-                        <a href="{{ path('app_home') }}" class="navbar-brand w-100 h-100 m-0 p-0 d-flex align-items-center justify-content-center">
+<div class="bg-white p-0" style="width: 100vw; margin: 0; padding: 0;">
+    {% block header %}
+        <!-- Header Start -->
+        <div class="container-fluid bg-dark px-0 ">
+            <div class="row gx-0 nav p-lg-3">
+                <div class="col-lg-3 bg-dark d-none d-lg-block ">
+                    <a href="{{ path('app_home') }}" class="navbar-brand w-100 h-100 m-0 p-0 d-flex align-items-center justify-content-center">
+                        <h1 class="m-0 text-primary text-uppercase">TerraNav</h1>
+                    </a>
+                </div>
+                <div class="col-lg-9 d-flex justify-content-end">
+                    <nav class="navbar navbar-expand-lg bg-dark navbar-dark p-3 p-lg-0">
+                        <a href="{{ path('app_home') }}" class="navbar-brand d-block d-lg-none">
                             <h1 class="m-0 text-primary text-uppercase">TerraNav</h1>
                         </a>
-                    </div>
-                    <div class="col-lg-9 d-flex justify-content-end">
-                        <nav class="navbar navbar-expand-lg bg-dark navbar-dark p-3 p-lg-0">
-                            <a href="{{ path('app_home') }}" class="navbar-brand d-block d-lg-none">
-                                <h1 class="m-0 text-primary text-uppercase">TerraNav</h1>
-                            </a>
-                            <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" style="margin-right: 20px">
-                                <span class="navbar-toggler-icon"></span>
-                            </button>
-                            <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
-                                <div class="navbar-nav mr-auto py-0">
-                                    <a href="{{ path('app_home') }}"
-                                       class="nav-item nav-link {{ app.request.get('_route') == 'app_home' ? 'active' : '' }}">
-                                        Accueil
+                        <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" style="margin-right: 20px">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
+                            <div class="navbar-nav mr-auto py-0">
+                                <a href="{{ path('app_home') }}"
+                                   class="nav-item nav-link {{ app.request.get('_route') == 'app_home' ? 'active' : '' }}">
+                                    Accueil
+                                </a>
+                                <a href="{{ path('app_voyages') }}"
+                                   class="nav-item nav-link {{ app.request.get('_route') == 'app_voyages' ? 'active' : '' }}">
+                                    Voyages
+                                </a>
+                                <a href="{{ path('app_transports') }}"
+                                   class="nav-item nav-link {{ app.request.get('_route') == 'app_transports' ? 'active' : '' }}">
+                                    Transports
+                                </a>
+                                <a href="{{ path('app_hebergement_index') }}"
+                                   class="nav-item nav-link {{ app.request.get('_route') == 'app_hebergements' ? 'active' : '' }}">
+                                    Hebergements
+                                </a>
+                                <a href="{{ path('app_chat') }}"
+                                   class="nav-item nav-link {{ app.request.get('_route') == 'app_chat' ? 'active' : '' }}">
+                                    Chat
+                                </a>
+                                <a href="{{ path('app_panier') }}"
+                                   class="nav-item nav-link {{ app.request.get('_route') == 'app_panier' ? 'active' : '' }}">
+                                    Panier
+                                </a>
+                                <div class="nav-item dropdown">
+                                    <a href="#" class="nav-link dropdown-toggle {{ app.request.get('_route') in ['user_profile', 'app_historique'] ? 'active' : '' }}"
+                                       data-bs-toggle="dropdown">
+                                        Profile
                                     </a>
-                                    <a href="{{ path('app_voyages') }}"
-                                           class="nav-item nav-link {{ app.request.get('_route') == 'app_voyages' ? 'active' : '' }}">
-                                        Voyages
-                                    </a>
-                                    <a href="{{ path('app_transports') }}"
-                                       class="nav-item nav-link {{ app.request.get('_route') == 'app_transports' ? 'active' : '' }}">
-                                        Transports
-                                    </a>
-                                    <a href="{{ path('app_hebergement_index') }}"
-                                       class="nav-item nav-link {{ app.request.get('_route') == 'app_hebergements' ? 'active' : '' }}">
-                                        Hebergements
-                                    </a>
-                                    <a href="{{ path('app_chat') }}"
-                                       class="nav-item nav-link {{ app.request.get('_route') == 'app_chat' ? 'active' : '' }}">
-                                        Chat
-                                    </a>
-                                    <a href="{{ path('app_panier') }}"
-                                       class="nav-item nav-link {{ app.request.get('_route') == 'app_panier' ? 'active' : '' }}">
-                                        Panier
-                                    </a>
-                                    <div class="nav-item dropdown">
-                                        <a href="#" class="nav-link dropdown-toggle {{ app.request.get('_route') in ['app_profile', 'app_historique'] ? 'active' : '' }}"
-                                           data-bs-toggle="dropdown">
-                                            Profile
+                                    <div class="dropdown-menu rounded-0 m-0">
+                                        <a href="{{ path('user_profile') }}"
+                                           class="dropdown-item {{ app.request.get('_route') == 'user_profile' ? 'active' : '' }}">
+                                            <i class="fas fa-user-circle me-2"></i> Mon Profil
                                         </a>
-                                        <div class="dropdown-menu rounded-0 m-0">
-                                            <a href="{{ path('app_profile') }}"
-                                               class="dropdown-item {{ app.request.get('_route') == 'app_profile' ? 'active' : '' }}">
-                                                Paramètres
-                                            </a>
-                                            <a href="{{ path('app_historique') }}" class="dropdown-item {{ app.request.get('_route') == 'app_historique' ? 'active' : '' }}">Historique</a>
-                                            <a href="{{ path('admin_dashboard') }}" class="dropdown-item">Se déconnecter</a>
-                                        </div>
+                                        <a href="{{ path('app_historique') }}"
+                                           class="dropdown-item {{ app.request.get('_route') == 'app_historique' ? 'active' : '' }}">
+                                            <i class="fas fa-history me-2"></i> Historique
+                                        </a>
+                                        <a href="{{ path('app_reclamer') }}"
+                                           class="dropdown-item {{ app.request.get('_route') == 'app_reclamer' ? 'active' : '' }}">
+                                            <i class="fas fa-exclamation-circle me-2"></i> Reclamer
+                                        </a>
+                                        <div class="dropdown-divider"></div>
+                                        <a href="{{ path('app_logout') }}" class="dropdown-item">
+                                            <i class="fas fa-sign-out-alt me-2"></i> Se déconnecter
+                                        </a>
                                     </div>
                                 </div>
                             </div>
-                        </nav>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        <!-- Header End -->
+    {% endblock %}
+
+    {% block content %}
+    {% endblock %}
+
+    {% block footer %}
+        <!-- Footer Start -->
+        <div class="container-fluid bg-dark text-light footer wow" data-wow-delay="0.1s">
+            <div class="container pb-5">
+                <div class="row g-5">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="bg-primary rounded p-4">
+                            <a href="index.html"><h1 class="text-white text-uppercase mb-3">TerraNav</h1></a>
+                            <p class="text-white mb-0">
+                                Terranav, votre allié pour des voyages sans stress ! Que vous recherchiez un transport fiable, un hébergement confortable ou une aventure inoubliable!
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <h6 class="section-title text-start text-primary text-uppercase mb-4">Contact</h6>
+                        <p class="mb-2"><i class="fa fa-map-marker-alt me-3"></i>Av. Fethi Zouhir, Cebalat Ben Ammar 2083</p>
+                        <p class="mb-2"><i class="fa fa-phone-alt me-3"></i>+216 99 072 221</p>
+                        <p class="mb-2"><i class="fa fa-envelope me-3"></i>terranav3a11@gmail.com</p>
+                        <div class="d-flex pt-2">
+                            <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-twitter"></i></a>
+                            <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-facebook-f"></i></a>
+                            <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-youtube"></i></a>
+                            <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-linkedin-in"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-lg-5 col-md-12">
+
+                        <div class="col-md-6">
+                            <h6 class="section-title text-start text-primary text-uppercase mb-4">Company</h6>
+                            <a class="btn btn-link" href="">About Us</a>
+                            <a class="btn btn-link" href="">Contact Us</a>
+                            <a class="btn btn-link" href="">Privacy Policy</a>
+                            <a class="btn btn-link" href="">Terms & Condition</a>
+                            <a class="btn btn-link" href="">Support</a>
+                        </div>
+
+
                     </div>
                 </div>
             </div>
-            <!-- Header End -->
-        {% endblock %}
-
-        {% block content %}
-        {% endblock %}
-
-        {% block footer %}
-            <!-- Footer Start -->
-            <div class="container-fluid bg-dark text-light footer wow" data-wow-delay="0.1s">
-                <div class="container pb-5">
-                    <div class="row g-5">
-                        <div class="col-md-6 col-lg-4">
-                            <div class="bg-primary rounded p-4">
-                                <a href="index.html"><h1 class="text-white text-uppercase mb-3">TerraNav</h1></a>
-                                <p class="text-white mb-0">
-                                    Terranav, votre allié pour des voyages sans stress ! Que vous recherchiez un transport fiable, un hébergement confortable ou une aventure inoubliable!
-                                </p>
-                            </div>
-                        </div>
-                        <div class="col-md-6 col-lg-3">
-                            <h6 class="section-title text-start text-primary text-uppercase mb-4">Contact</h6>
-                            <p class="mb-2"><i class="fa fa-map-marker-alt me-3"></i>Av. Fethi Zouhir, Cebalat Ben Ammar 2083</p>
-                            <p class="mb-2"><i class="fa fa-phone-alt me-3"></i>+216 99 072 221</p>
-                            <p class="mb-2"><i class="fa fa-envelope me-3"></i>terranav3a11@gmail.com</p>
-                            <div class="d-flex pt-2">
-                                <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-twitter"></i></a>
-                                <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-facebook-f"></i></a>
-                                <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-youtube"></i></a>
-                                <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-linkedin-in"></i></a>
-                            </div>
-                        </div>
-                        <div class="col-lg-5 col-md-12">
-
-                                <div class="col-md-6">
-                                    <h6 class="section-title text-start text-primary text-uppercase mb-4">Company</h6>
-                                    <a class="btn btn-link" href="">About Us</a>
-                                    <a class="btn btn-link" href="">Contact Us</a>
-                                    <a class="btn btn-link" href="">Privacy Policy</a>
-                                    <a class="btn btn-link" href="">Terms & Condition</a>
-                                    <a class="btn btn-link" href="">Support</a>
-                                </div>
+        </div>
+        <!-- Footer End -->
 
 
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Footer End -->
+        <!-- Back to Top -->
+        <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
 
+        <!-- JavaScript Libraries -->
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="{{ asset('lib/wow/wow.min.js') }}"></script>
+        <script src="{{ asset('lib/easing/easing.min.js') }}"></script>
+        <script src="{{ asset('lib/waypoints/waypoints.min.js') }}"></script>
+        <script src="{{ asset('lib/counterup/counterup.min.js') }}"></script>
+        <script src="{{ asset('lib/owlcarousel/owl.carousel.min.js') }}"></script>
+        <script src="{{ asset('lib/tempusdominus/js/moment.min.js') }}"></script>
+        <script src="{{ asset('lib/tempusdominus/js/moment-timezone.min.js') }}"></script>
+        <script src="{{ asset('lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js') }}"></script>
 
-            <!-- Back to Top -->
-            <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
-
-            <!-- JavaScript Libraries -->
-            <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-            <script src="{{ asset('lib/wow/wow.min.js') }}"></script>
-            <script src="{{ asset('lib/easing/easing.min.js') }}"></script>
-            <script src="{{ asset('lib/waypoints/waypoints.min.js') }}"></script>
-            <script src="{{ asset('lib/counterup/counterup.min.js') }}"></script>
-            <script src="{{ asset('lib/owlcarousel/owl.carousel.min.js') }}"></script>
-            <script src="{{ asset('lib/tempusdominus/js/moment.min.js') }}"></script>
-            <script src="{{ asset('lib/tempusdominus/js/moment-timezone.min.js') }}"></script>
-            <script src="{{ asset('lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js') }}"></script>
-
-            <!-- Template Javascript -->
-            <script src="{{ asset('js/mainClient.js') }}"></script>
-        {% endblock %}
-    </div>
-    </body>
+        <!-- Template Javascript -->
+        <script src="{{ asset('js/mainClient.js') }}"></script>
+    {% endblock %}
+</div>
+</body>
 </html>

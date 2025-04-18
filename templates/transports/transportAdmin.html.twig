@@ -1,5 +1,84 @@
 {% extends "baseAdmin.html.twig" %}
 
-{% block titre %} Transports {% endblock %}
+{% block titre %}Transports{% endblock %}
 
-{% block content %} transports d'utilisateur 1 {% endblock %}
+{% block content %}
+    <link rel="stylesheet" href="{{ asset('css/transports/adminTransportList.css') }}"/>
+    
+    <div class="content-card">
+        <div class="card-header">
+            <h1><i class="fas fa-bus"></i> Gestion des transports</h1>
+        </div>
+        
+        <div class="card-body">
+            <div class="action-buttons">
+                {% if show_list_link is defined and show_list_link %}
+                    <a href="{{ path('admin_transports_list') }}" class="btn btn-primary">
+                        <i class="fas fa-list"></i> Voir la liste des transports
+                    </a>
+                {% endif %}
+                  <a href="{{ path('admin_transports_list') }}" class="btn btn-primary">
+                        <i class="fas fa-list"></i> Voir la liste des Transports
+                    </a>
+                 <a href="{{ path('admin_trajets_index') }}" class="btn btn-primary">
+                        <i class="fas fa-list"></i> Voir la liste des Trajets
+                    </a>
+            </div>
+            
+            {% if transports is defined and transports is not empty %}
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Type</th>
+                                <th>Prix</th>
+                                <th>Capacité</th>
+                                <th>Trajet</th>
+                                <th class="actions-column">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transport in transports %}
+                                <tr>
+                                    <td>{{ transport.nom }}</td>
+                                    <td>{{ transport.type }}</td>
+                                    <td>{{ transport.prix }}DTN</td>
+                                    <td>{{ transport.capacite }}</td>
+                                    <td>
+                                        {% if transport.id_trajet is not null %}
+                                            {{ transport.id_trajet.pointDepart }} - {{ transport.id_trajet.destination }}
+                                        {% else %}
+                                            <span class="text-muted">Aucun trajet associé</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="actions-column">
+                                        <div class="row-actions">
+                                            <a href="{{ path('admin_transport_edit', {'id': transport.id}) }}" class="btn-action btn-edit" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form method="post" action="{{ path('admin_transport_delete', {'id': transport.id}) }}" onsubmit="return confirm('Voulez-vous vraiment supprimer ce transport ?');">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ transport.id) }}">
+                                                <button type="submit" class="btn-action btn-delete" title="Supprimer">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-bus-alt empty-icon"></i>
+                    <p>Aucun transport disponible pour le moment.</p>
+                    <a href="{{ path('admin_transport_new') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Ajouter un transport
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

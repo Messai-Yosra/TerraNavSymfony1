@@ -1,0 +1,37 @@
+{% extends "baseAdmin.html.twig" %}
+
+{% block titre %} Modifier un transport {% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="{{ asset('css/transports/adminTransport.css') }}"/>
+    <div class="content-card">
+        <div class="card-header">
+            <h1><i class="fas fa-edit"></i> Modifier le transport</h1>
+            <div class="transport-name">{{ transport.nom }}</div>
+        </div>
+        
+        <div class="card-body">
+            {{ form_start(form, {'attr': {'class': 'styled-form'}}) }}
+                
+                <div class="form-grid">
+                    {% for field in form %}
+                        {% if field.vars.name != '_token' and field.vars.name != 'save' %}
+                            <div class="form-group">
+                                {{ form_label(field) }}
+                                {{ form_widget(field, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(field) }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                
+                <div class="form-actions">
+                    {{ form_widget(form.save, {'attr': {'class': 'btn btn-success'}}) }} {# Rendu du bouton save #}
+                    <a href="{{ path('admin_transports_list') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></iあなたの Retour à la liste
+                    </a>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% for trajet in trajets %}
+    <tr>
+        <td>{{ trajet.id }}</td>
+        <td>{{ trajet.pointDepart }}</td>
+        <td>{{ trajet.destination }}</td>
+        <td>{{ trajet.dateDepart|date('d/m/Y H:i') }}</td>
+        <td>{{ trajet.duree }} min</td>
+        <td>
+            <span class="badge badge-{{ trajet.disponibilite ? 'success' : 'secondary' }}">
+                {{ trajet.disponibilite ? 'Disponible' : 'Terminé' }}
+            </span>
+        </td>
+        <td>
+            {% if trajet.transports is not empty %}
+                <ul class="list-unstyled">
+                    {% for transport in trajet.transports %}
+                        <li>{{ transport.nom }} ({{ transport.type }})</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <span class="text-muted">Aucun transport</span>
+            {% endif %}
+        </td>
+        <td class="actions-column">
+            <div class="row-actions">
+                <a href="{{ path('admin_trajets_edit', {'id': trajet.id}) }}" 
+                   class="btn-action btn-edit" title="Modifier">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <form method="post" action="{{ path('admin_trajets_delete', {'id': trajet.id}) }}" 
+                      onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce trajet ?');">
+                    <input type="hidden" name="_method" value="POST">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ trajet.id) }}">
+                    <button class="btn btn-danger btn-sm">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </form>
+            </div>
+        </td>
+    </tr>
+{% else %}
+    <tr>
+        <td colspan="8" class="text-center">Aucun trajet trouvé</td>
+    </tr>
+{% endfor %}

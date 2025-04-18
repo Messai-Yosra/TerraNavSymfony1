@@ -1,0 +1,294 @@
+{% extends "baseClient.html.twig" %}
+{% block titre %} Réservation - {{ voyage.titre }} {% endblock %}
+{% block content %}
+    <!-- Page Header (unchanged) -->
+    <div class="container-fluid page-header mb-5 p-0"
+         style="background-image: url({{ asset('img/voyages/acceuil4.avif') }});">
+        <div class="container-fluid page-header-inner py-5">
+            <div class="container text-center pb-5">
+                <h1 class="display-3 text-white mb-3 animated slideInDown">Réservation pour {{ voyage.titre }}</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center text-uppercase">
+                        <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+                        <li class="breadcrumb-item"><a href="{{ path('app_voyage_show', {'id': voyage.id}) }}">Détails</a></li>
+                        <li class="breadcrumb-item text-white active" aria-current="page">Réservation</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Reservation Section - Modified layout -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-6 pe-lg-4">
+
+                    <!-- Reservation Form -->
+                    <div class="border rounded p-4 mb-4 hover-effect">
+                        <h3 class="text-primary mb-4">Votre réservation</h3>
+                        <form method="post" action="{{ path('app_voyage_reserver', {'id': voyage.id}) }}" id="reservationForm">
+                            <div class="mb-4">
+                                <label for="nbPlaces" class="form-label">Nombre de places à réserver</label>
+                                <input type="number"
+                                       class="form-control"
+                                       id="nbPlaces"
+                                       name="nbPlaces"
+                                       value="1"
+                                       required
+                                       oninput="updateTotalPrice(this.value)">
+                                <div class="form-text">Maximum {{ voyage.nbPlacesD }} places disponibles</div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">Prix total</label>
+                                <h4 id="totalPrice" class="text-primary">
+                                    {% if voyage.id_offre %}
+                                        {{ (voyage.prix * (1 - voyage.id_offre.reduction/100))|number_format(2) }} DT
+                                    {% else %}
+                                        {{ voyage.prix }} DT
+                                    {% endif %}
+                                </h4>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-hover py-3" id="submitBtn">
+                                    <i class="fas fa-ticket-alt me-2"></i>Confirmer la réservation
+                                </button>
+                                <a href="{{ path('app_voyage_show', {'id': voyage.id}) }}" class="btn btn-outline-primary btn-hover py-3">
+                                    <i class="fas fa-arrow-left me-2"></i>Retour aux détails
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                    <!-- Reservation Form -->
+
+                    <!-- Voyage Details Box -->
+                    <div class="border rounded p-4 hover-effect">
+                        <h3 class="text-primary mb-4">Détails du voyage</h3>
+                        <div class="d-flex align-items-center mb-4">
+                            <img src="{{ asset(voyage.transformImagePaths(voyage.pathImages)|split('*')[0]|trim) }}"
+                                 class="rounded me-3"
+                                 style="width: 120px; height: 80px; object-fit: cover;"
+                                 onerror="this.src='{{ asset('img/about-1.jpg') }}'"
+                                 alt="{{ voyage.titre }}">
+                            <div>
+                                <h5 class="mb-1">{{ voyage.titre }}</h5>
+                                <p class="mb-1"><i class="fas fa-map-marker-alt text-primary me-2"></i>{{ voyage.destination }}</p>
+                                <p class="mb-0"><i class="fas fa-calendar-alt text-primary me-2"></i>
+                                    Du {{ voyage.dateDepart|date('d M Y') }} au {{ voyage.dateRetour|date('d M Y') }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 hover-effect">
+                                    <h6 class="text-muted">Prix unitaire</h6>
+                                    <h4 class="text-primary">
+                                        {% if voyage.id_offre %}
+                                            <span class="text-decoration-line-through text-muted small me-2">{{ voyage.prix }} DT</span>
+                                            {{ (voyage.prix * (1 - voyage.id_offre.reduction/100))|number_format(2) }} DT
+                                        {% else %}
+                                            {{ voyage.prix }} DT
+                                        {% endif %}
+                                    </h4>
+                                    {% if voyage.id_offre %}
+                                        <span class="badge bg-danger">Économisez {{ (voyage.prix * voyage.id_offre.reduction/100)|number_format(2) }} DT</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 hover-effect">
+                                    <h6 class="text-muted">Places disponibles</h6>
+                                    <h4 class="text-primary">{{ voyage.nbPlacesD }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Summary -->
+                <div class="col-lg-6 ps-lg-4">
+                    <div class="border rounded p-4 mb-4 hover-effect">
+                        <h3 class="text-primary mb-4">Récapitulatif</h3>
+                        <div class="mb-4">
+                            <h5 class="mb-3">Informations sur le voyage</h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-plane-departure text-primary me-2"></i> Départ: {{ voyage.pointDepart }}</li>
+                                <li class="mb-2"><i class="fas fa-plane-arrival text-primary me-2"></i> Destination: {{ voyage.destination }}</li>
+                                <li class="mb-2"><i class="fas fa-calendar-day text-primary me-2"></i> Date de départ: {{ voyage.dateDepart|date('d M Y à H:i') }}</li>
+                                <li class="mb-2"><i class="fas fa-calendar-day text-primary me-2"></i> Date de retour: {{ voyage.dateRetour|date('d M Y à H:i') }}</li>
+                                <li class="mb-2"><i class="fas fa-clock text-primary me-2"></i> Durée:
+                                    {% set difference = date(voyage.dateRetour).diff(date(voyage.dateDepart)) %}
+                                    {{ difference.d }} jours, {{ difference.h }} heures
+                                </li>
+                                <li><i class="fas fa-bus text-primary me-2"></i> Transport: {{ voyage.type }}</li>
+                            </ul>
+                        </div>
+
+                        <div class="mb-4">
+                            <h5 class="mb-3">Agence organisatrice</h5>
+                            <div class="d-flex align-items-center">
+                                <img src="{{ asset(voyage.id_user.photo ? 'img/users/' ~ voyage.id_user.photo : 'img/voyages/user.avif') }}"
+                                     class="rounded-circle me-3"
+                                     style="width: 60px; height: 60px; object-fit: cover;"
+                                     onerror="this.src='{{ asset('img/voyages/user.avif') }}'"
+                                     alt="{{ voyage.id_user.nomagence }}">
+                                <div>
+                                    <h6 class="mb-1">{{ voyage.id_user.nomagence }}</h6>
+                                    <p class="mb-1 small"><i class="fas fa-phone text-primary me-2"></i>{{ voyage.id_user.numTel }}</p>
+                                    <p class="mb-0 small"><i class="fas fa-envelope text-primary me-2"></i>{{ voyage.id_user.email }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if voyage.id_offre %}
+                            <div class="border rounded p-3 bg-light hover-effect">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 class="mb-0">Offre spéciale</h5>
+                                    <span class="badge bg-danger">-{{ voyage.id_offre.reduction }}%</span>
+                                </div>
+                                <p class="mb-2">{{ voyage.id_offre.titre }}</p>
+                                <p class="small mb-0">Valable jusqu'au {{ voyage.id_offre.dateFin|date('d M Y') }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="border rounded p-4 hover-effect">
+                        <h3 class="text-primary mb-4">Conditions de réservation</h3>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Paiement sécurisé</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Annulation gratuite jusqu'à 7 jours avant le départ</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Assurance voyage incluse</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Modification possible sous réserve de disponibilité</li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i> Confirmation immédiate par email</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification : For reservation -->
+    <div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 11">
+        <div id="notificationToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body"></div>
+        </div>
+    </div>
+
+    <!-- JavaScript : For reservation-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+
+        document.getElementById('reservationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+
+            // Show loading state
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Traitement...';
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    body: new FormData(form)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Une erreur est survenue');
+                }
+
+                if (result.success) {
+                    showToast(result.message, true);
+                    // Update available places
+                    document.querySelector('.form-text').textContent =
+                        `Maximum ${result.remainingPlaces} places disponibles`;
+                    document.getElementById('nbPlaces').max = result.remainingPlaces;
+                } else {
+                    showToast(result.message, false);
+                }
+            } catch (error) {
+                showToast(error.message, false);
+            } finally {
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        function showToast(message, isSuccess = false) {
+            const toastEl = document.getElementById('notificationToast');
+            const toastBody = toastEl.querySelector('.toast-body');
+            const toastHeader = toastEl.querySelector('.toast-header');
+
+            // Set message and style
+            toastBody.textContent = message;
+            toastHeader.className = isSuccess
+                ? 'toast-header bg-success text-white'
+                : 'toast-header bg-danger text-white';
+
+            // Create toast instance if it doesn't exist
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        }
+
+        function updateTotalPrice(nbPlaces) {
+            const unitPrice = {% if voyage.id_offre %}{{ voyage.prix * (1 - voyage.id_offre.reduction/100) }}{% else %}{{ voyage.prix }}{% endif %};
+            const totalPrice = nbPlaces * unitPrice;
+            document.getElementById('totalPrice').textContent = totalPrice.toFixed(2) + ' DT';
+        }
+    </script>
+
+    <style>
+        /* Existing styles (unchanged) */
+        .hover-effect {
+            transition: all 0.3s ease;
+        }
+        .hover-effect:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .btn-hover {
+            transition: all 0.3s ease;
+        }
+        .btn-hover:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        input[type="number"] {
+            padding: 10px 15px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 1.1rem;
+        }
+        input[type="number"]:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        /* New spacing for side-by-side layout */
+        .pe-lg-4 {
+            padding-right: 1.5rem !important;
+        }
+        .ps-lg-4 {
+            padding-left: 1.5rem !important;
+        }
+        .g-4 > [class*="col-"] {
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+    </style>
+{% endblock %}

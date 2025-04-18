@@ -1,0 +1,403 @@
+{% extends "baseClient.html.twig" %}
+
+{% block title %}Nos Offres de Voyage{% endblock %}
+
+{% block content %}
+    <!-- Page Header Start -->
+    <link rel="stylesheet" href="{{ asset('css/voyages/offers.css') }}">
+    <div class="container-fluid page-header mb-5 p-0"
+         style="background-image: url({{ asset('img/voyages/acceuil2.avif') }}); background-position: center center; background-size: cover;">
+        <div class="container-fluid page-header-inner py-5">
+            <div class="container text-center pb-5">
+                <h1 class="display-3 text-white mb-3 animated slideInDown">Nos Offres Spéciales</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center text-uppercase">
+                        <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+                        <li class="breadcrumb-item text-white active" aria-current="page">Offres</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <!-- Page Header End -->
+
+    <!-- Booking Start -->
+    <div class="container-fluid booking pb-5 wow fadeIn" data-wow-delay="0.1s">
+        <div class="container">
+            <form id="filterForm" method="get" action="{{ path('app_offres') }}" class="auto-submit-form">
+                <div class="bg-white shadow" style="padding: 35px; border-radius: 8px;">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label for="dateDebut" class="form-label">Date de début</label>
+                            <input type="date" class="form-control" id="dateDebut" name="dateDebut"
+                                   value="{{ filterParams.dateDebut ?? '' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="dateFin" class="form-label">Date de fin</label>
+                            <input type="date" class="form-control" id="dateFin" name="dateFin"
+                                   value="{{ filterParams.dateFin ?? '' }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="minReduction" class="form-label">Réduction min (%)</label>
+                            <input type="number" class="form-control" id="minReduction" name="minReduction"
+                                   min="0" max="100" step="5" value="{{ filterParams.minReduction ?? '' }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="sort" class="form-label">Trier par</label>
+                            <select class="form-select" id="sort" name="sort">
+                                <option value="">Par défaut</option>
+                                <option value="alpha" {% if filterParams.sort == 'alpha' %}selected{% endif %}>Ordre alphabétique</option>
+                                <option value="reduction_asc" {% if filterParams.sort == 'reduction_asc' %}selected{% endif %}>Réduction croissante</option>
+                                <option value="reduction_desc" {% if filterParams.sort == 'reduction_desc' %}selected{% endif %}>Réduction décroissante</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end reset-button-container">
+                            <button type="button" class="btn btn-secondary w-100 py-2" onclick="resetFilters()">
+                                <i class="fas fa-undo me-2"></i>Réinitialiser
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Booking End -->
+
+    <!-- Search Bar -->
+    <div class="container mb-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8 position-relative">
+                <form method="get" action="{{ path('app_offres') }}" class="input-group shadow-lg" id="searchForm">
+                    <input type="text" class="form-control border-0 search-input" id="searchInput" name="search"
+                           placeholder="Rechercher une offre..." value="{{ searchTerm ?? '' }}" autocomplete="off">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search me-2"></i>Rechercher
+                    </button>
+                </form>
+                <!-- Liste des suggestions -->
+                <div id="searchSuggestions" class="list-group position-absolute w-100 d-none" style="z-index: 1000;"></div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Offres Section -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="text-center">
+                    <h6 class="section-title text-center text-primary text-uppercase">Nos Promotions</h6>
+                    <h1 class="mb-0">Découvrez nos <span class="text-primary text-uppercase">Offres Exceptionnelles</span></h1>
+                </div>
+                <a href="{{ path('app_voyages') }}" class="btn btn-outline-primary align-self-start">
+                    <i class="fas fa-arrow-left me-2"></i>Retour
+                </a>
+            </div>
+            <div class="row g-4 justify-content-center">
+                {% for offre in offres %}
+                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="{{ 0.1 + (loop.index0 * 0.2) }}s">
+                        <div class="offer-card rounded shadow overflow-hidden position-relative h-100">
+                            <div class="position-relative overflow-hidden">
+                                <img class="img-fluid w-100 offer-image"
+                                     src="{{ asset(offre.transformSingleImagePath(offre.imagePath) ?? 'img/default-offer.jpg') }}"
+                                     alt="{{ offre.titre }}">
+                                {% if offre.reduction %}
+                                    <div class="offer-badge position-absolute top-0 end-0 m-3">
+                                    <span class="badge bg-danger rounded-pill px-3 py-2">
+                                        <i class="fas fa-percentage me-1"></i>-{{ offre.reduction }}%
+                                    </span>
+                                    </div>
+                                {% endif %}
+                                <div class="offer-overlay"></div>
+                            </div>
+                            <div class="text-center p-4">
+                                <h5 class="fw-bold mb-3">{{ offre.titre }}</h5>
+
+                                <!-- Dates améliorées avec icônes -->
+                                <div class="offer-dates mb-3">
+                                    <div class="d-flex justify-content-center align-items-center mb-2">
+                                        <i class="fas fa-calendar-day text-primary me-2"></i>
+                                        <small class="text-muted">
+                                            Début: {{ offre.dateDebut|date('d/m/Y') }}
+                                        </small>
+                                    </div>
+                                    <div class="d-flex justify-content-center align-items-center">
+                                        <i class="fas fa-calendar-check text-primary me-2"></i>
+                                        <small class="text-muted">
+                                            Fin: {{ offre.dateFin|date('d/m/Y') }}
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <!-- Bouton avec hover -->
+                                <div class="d-flex justify-content-center mt-4">
+                                    <a href="{{ path('app_offre_details', {id: offre.id}) }}"
+                                       class="btn btn-outline-primary btn-offer-details">
+                                        <i class="fas fa-info-circle me-2"></i>Voir détails
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="col-12 text-center py-5">
+                        <div class="no-offers wow fadeIn" data-wow-delay="0.1s">
+                            <i class="fas fa-exclamation-circle fa-4x text-muted mb-4"></i>
+                            <h3 class="mb-3">Aucune offre disponible actuellement</h3>
+                            <p class="text-muted">Revenez plus tard pour découvrir nos nouvelles promotions</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Style additionnel -->
+    <style>
+        /* Styles pour les cartes d'offres */
+        .offer-card {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .offer-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .offer-image {
+            height: 200px;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .offer-card:hover .offer-image {
+            transform: scale(1.05);
+        }
+
+        .offer-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .offer-card:hover .offer-overlay {
+            opacity: 1;
+        }
+
+        .offer-badge {
+            transition: all 0.3s ease;
+        }
+
+        .offer-card:hover .offer-badge {
+            transform: scale(1.1);
+        }
+
+        .btn-offer-details {
+            transition: all 0.3s ease;
+            border-width: 2px;
+        }
+
+        .btn-offer-details:hover {
+            background-color: #0d6efd;
+            color: white !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+        }
+
+        .offer-dates {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 3px solid #0d6efd;
+        }
+    </style>
+    <style>
+        /* Styles existants... */
+
+        /* Ajouts pour les suggestions */
+        #searchSuggestions {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            z-index: 1000;
+            display: none; /* Caché par défaut */
+        }
+
+        #searchSuggestions.list-group {
+            position: absolute;
+            width: calc(100% - 2px);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        #searchSuggestions .list-group-item:first-child {
+            border-top: none;
+        }
+
+        #searchSuggestions .list-group-item:hover {
+            background-color: #f8f9fa;
+            padding-left: 1.5rem;
+        }
+        /* Dans la balise style */
+        .reset-button-container {
+            margin-top: 32px; /* Ajustez selon besoin */
+        }
+
+        /* Dans la balise style */
+        .search-input-container {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        #searchSuggestions {
+            top: 100%;
+            left: 0;
+            right: 0;
+        }
+
+        #searchSuggestions {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            z-index: 1000;
+        }
+
+        #searchSuggestions {
+            display: block !important; /* Force l'affichage pour debug */
+            opacity: 1 !important;
+            background: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        #searchSuggestions.list-group {
+            position: absolute;
+            width: calc(100% - 2px); /* Ajustement précis */
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1050; /* Plus élevé que les autres éléments */
+        }
+        #searchSuggestions .list-group-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #searchSuggestions .badge {
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        #searchSuggestions .badge {
+            margin-left: auto; /* Pousse le badge à droite */
+            padding: 0.35em 0.65em;
+        }
+    </style>
+
+    <script>
+        // Fonction debounce pour limiter les appels fréquents
+        const debounce = (func, delay) => {
+            let timeout;
+            return function() {
+                const context = this;
+                const args = arguments;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gestion du filtre dynamique
+            const filterForm = document.getElementById('filterForm');
+            if (filterForm) {
+                const formElements = filterForm.querySelectorAll('input, select');
+                formElements.forEach(element => {
+                    element.addEventListener('change', () => {
+                        filterForm.submit();
+                    });
+                });
+            }
+
+            // Gestion de la recherche avec suggestions
+            const searchInput = document.getElementById('searchInput');
+            const searchForm = document.getElementById('searchForm');
+            const suggestionsContainer = document.getElementById('searchSuggestions');
+
+            if (searchInput && searchForm) {
+                let currentRequest = null;
+
+                searchInput.addEventListener('input', debounce(async function() {
+                    const query = this.value.trim();
+
+                    // Annule la requête précédente si elle existe
+                    if (currentRequest) {
+                        currentRequest.abort();
+                    }
+
+                    if (query.length < 2) {
+                        suggestionsContainer.classList.add('d-none');
+                        return;
+                    }
+
+                    try {
+                        currentRequest = new AbortController();
+                        const signal = currentRequest.signal;
+
+                        const response = await fetch(`{{ path('app_offres_suggestions') }}?q=${encodeURIComponent(query)}`, {
+                            signal
+                        });
+
+                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                        const suggestions = await response.json();
+
+                        suggestionsContainer.innerHTML = suggestions.map(suggestion => `
+                            <a href="#" class="list-group-item list-group-item-action">
+                                ${suggestion.titre}
+                                ${suggestion.reduction ? `<span class="badge bg-danger ms-2">-${suggestion.reduction}%</span>` : ''}
+                            </a>
+                        `).join('');
+
+                        suggestionsContainer.classList.remove('d-none');
+                    } catch (error) {
+                        if (error.name !== 'AbortError') {
+                            suggestionsContainer.classList.add('d-none');
+                        }
+                    } finally {
+                        currentRequest = null;
+                    }
+                }, 300));
+
+                // Gestion du clic sur une suggestion
+                suggestionsContainer.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const target = e.target.closest('.list-group-item');
+                    if (target) {
+                        searchInput.value = target.textContent.split('-')[0].trim();
+                        suggestionsContainer.classList.add('d-none');
+                        searchForm.submit();
+                    }
+                });
+
+                // Masquer les suggestions au clic externe
+                document.addEventListener('click', (e) => {
+                    if (!searchInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+                        suggestionsContainer.classList.add('d-none');
+                    }
+                });
+            }
+        });
+
+        function resetFilters() {
+            window.location.href = "{{ path('app_offres') }}";
+        }
+    </script>
+    <!-- Offres Section End -->
+{% endblock %}

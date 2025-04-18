@@ -1,0 +1,406 @@
+{% extends "baseClient.html.twig" %}
+
+{% block title %}Vos Voyages{% endblock %}
+
+{% block content %}
+    <link href="{{ asset('css/voyages/Rayenk.css') }}" rel="stylesheet">
+
+    <!-- En-tête spécifique agence -->
+    <div class="container-fluid page-header mb-5 p-0" style="background-image: url({{ asset('img/voyages/acceuil1.avif') }});">
+        <div class="container-fluid page-header-inner py-5">
+            <div class="container text-center pb-5">
+                <h1 class="display-3 text-white mb-3 animated slideInDown">Gestion de vos voyages</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center text-uppercase">
+                        <li class="breadcrumb-item"><a href="{{ path('app_bienvenue_agence') }}">Tableau de bord</a></li>
+                        <li class="breadcrumb-item text-white active" aria-current="page">Vos voyages</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Filtres améliorés -->
+    <div class="container-fluid booking pb-5 wow fadeIn" data-wow-delay="0.1s">
+        <div class="container">
+            <div class="bg-white shadow" style="padding: 35px;">
+                <form id="filterForm" method="get" action="{{ path('app_voyages_agence') }}">
+                    <div class="row g-3">
+                        <div class="col-md-10">
+                            <div class="row g-3">
+                                <!-- Prix Minimum -->
+                                <div class="col-md-3">
+                                    <label for="minPriceSlider">Prix Minimum (DT)</label>
+                                    <input type="range" class="form-range" id="minPriceSlider"
+                                           min="0" max="10000" step="10"
+                                           value="{{ filterParams.minPrice ?? 0 }}">
+                                    <div class="d-flex justify-content-between">
+                                        <span id="minPriceValue">{{ filterParams.minPrice ?? 0 }} DT</span>
+                                    </div>
+                                    <input type="hidden" id="minPrice" name="minPrice"
+                                           value="{{ filterParams.minPrice ?? 0 }}">
+                                </div>
+
+                                <!-- Prix Maximum -->
+                                <div class="col-md-3">
+                                    <label for="maxPriceSlider">Prix Maximum (DT)</label>
+                                    <input type="range" class="form-range" id="maxPriceSlider"
+                                           min="0" max="10000" step="10"
+                                           value="{{ filterParams.maxPrice ?? 10000 }}">
+                                    <div class="d-flex justify-content-between">
+                                        <span id="maxPriceValue">{{ filterParams.maxPrice ?? 10000 }} DT</span>
+                                    </div>
+                                    <input type="hidden" id="maxPrice" name="maxPrice"
+                                           value="{{ filterParams.maxPrice ?? 10000 }}">
+                                </div>
+
+                                <!-- Nombre de places minimum -->
+                                <div class="col-md-2">
+                                    <label for="minPlaces">Places min</label>
+                                    <input type="number" id="minPlaces" name="minPlaces"
+                                           class="form-control" min="1"
+                                           value="{{ filterParams.minPlaces ?? '' }}"
+                                           placeholder="Places min">
+                                </div>
+
+                                <!-- Type de voyage -->
+                                <div class="col-md-2">
+                                    <label for="type">Type</label>
+                                    <select class="form-select" id="type" name="type">
+                                        <option value="all">Tous les types</option>
+                                        <option value="Avion" {% if filterParams.type == 'Avion' %}selected{% endif %}>Avion</option>
+                                        <option value="Bateau" {% if filterParams.type == 'Bateau' %}selected{% endif %}>Bateau</option>
+                                        <option value="Train" {% if filterParams.type == 'Train' %}selected{% endif %}>Train</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="sort" class="form-label">Trier par</label>
+                                    <select class="form-select" id="sort" name="sort">
+                                        <option value="">Par défaut</option>
+                                        <option value="alpha" {% if filterParams.sort == 'alpha' %}selected{% endif %}>Ordre alphabétique</option>
+                                        <option value="prix_asc" {% if filterParams.sort == 'prix_asc' %}selected{% endif %}>prix croissant</option>
+                                        <option value="prix_desc" {% if filterParams.sort == 'prix_desc' %}selected{% endif %}>prix décroissant</option>
+                                        <option value="remise_asc" {% if filterParams.sort == 'remise_asc' %}selected{% endif %}>remise croissante</option>
+                                        <option value="remise_desc" {% if filterParams.sort == 'remise_desc' %}selected{% endif %}>remise décroissante</option>
+                                        <option value="plus_proche" {% if filterParams.sort == 'plus_proche' %}selected{% endif %}>plus proche</option>
+                                    </select>
+                                </div>
+
+                                <!-- Voyages en solde -->
+                                <div class="col-md-4">
+                                    <div class="filter-group">
+                                        <label class="form-label fw-bold">Options</label>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="onSale" name="onSale"
+                                                   {% if filterParams.onSale %}checked{% endif %}>
+                                            <label class="form-check-label" for="onSale">Promotions seulement</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-2 d-flex flex-column gap-2">
+                            <button type="button" class="btn btn-secondary py-2" onclick="resetFilters()">
+                                <i class="fas fa-sync-alt me-2"></i>Réinitialiser
+                            </button>
+                            <button type="submit" class="btn btn-primary py-2">
+                                <i class="fas fa-filter me-2"></i>Filtrer
+                            </button>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barre de recherche -->
+    <div class="container mb-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <form method="get" action="{{ path('app_voyages_agence') }}" class="input-group shadow-lg">
+                    <input type="text" class="form-control border-0" name="search" placeholder="Rechercher un voyage..."
+                           value="{{ filterParams.search ?? '' }}">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search me-2"></i>Rechercher
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+    <!-- Barre d'actions agence -->
+    <div class="container-xxl py-3">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="ms-3">  <!-- Ajout de marge à gauche -->
+                    <h6 class="section-title text-start text-primary text-uppercase">Vos Destinations</h6>
+                    <h1 class="mb-0">Liste de vos <span class="text-primary text-uppercase">Voyages</span></h1>
+                </div>
+                <a href="{{ path('app_ajout_voyage') }}" class="btn btn-primary me-3">  <!-- Ajout de marge à droite -->
+                    <i class="fas fa-plus me-2"></i>Ajouter un voyage
+                </a>
+            </div>
+        </div>
+    </div>
+    <!-- Liste des voyages -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="row g-4">
+                {% for voyage in voyages %}
+                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.{{ loop.index }}s">
+                        <div class="room-item shadow rounded overflow-hidden h-100" style="min-width: 350px;">
+                            <!-- Carrousel des images (identique au client) -->
+                            <div class="position-relative">
+                                {% set images = voyage.transformImagePaths(voyage.pathImages)|split('***') %}
+                                <div id="voyageCarousel-{{ voyage.id }}" class="carousel slide" data-bs-ride="carousel">
+                                    <div class="carousel-inner">
+                                        {% for image in images %}
+                                            <div class="carousel-item {% if loop.first %}active{% endif %}">
+                                                <img class="img-fluid w-100"
+                                                     src="{{ asset(image|trim) }}"
+                                                     alt="{{ voyage.titre }}"
+                                                     style="height: 250px; object-fit: cover;"
+                                                     onerror="this.src='{{ asset('img/about-1.jpg') }}'">
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% if images|length > 1 %}
+                                        <button class="carousel-control-prev" type="button" data-bs-target="#voyageCarousel-{{ voyage.id }}" data-bs-slide="prev">
+                                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                            <span class="visually-hidden">Previous</span>
+                                        </button>
+                                        <button class="carousel-control-next" type="button" data-bs-target="#voyageCarousel-{{ voyage.id }}" data-bs-slide="next">
+                                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                            <span class="visually-hidden">Next</span>
+                                        </button>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Badge Solde -->
+                                {% if voyage.id_offre is not null and voyage.id_offre.reduction > 0 %}
+                                    <span class="position-absolute top-0 end-0 m-2 badge bg-danger rounded-pill">
+                                        <i class="fas fa-tag me-1"></i>SOLDE -{{ voyage.id_offre.reduction }}%
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Contenu de la carte -->
+                            <div class="p-4 mt-2">
+                                <div class="d-flex justify-content-between mb-3">
+                                    <h5 class="mb-0">{{ voyage.titre }}</h5>
+                                    <div class="ps-2">
+                                        <span class="badge bg-{{ voyage.nbPlacesD > 0 ? 'success' : 'danger' }}">
+                                            {{ voyage.nbPlacesD }} places
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Affichage des prix -->
+                                <div class="price-display mb-3">
+                                    {% if voyage.id_offre is not null %}
+                                        <span class="text-danger fw-bold fs-4">{{ (voyage.prix * (1 - voyage.id_offre.reduction/100))|number_format(2) }} DT</span>
+                                        <small class="text-decoration-line-through text-muted">{{ voyage.prix }} DT</small>
+                                    {% else %}
+                                        <span class="fw-bold fs-4">{{ voyage.prix }} DT</span>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Infos voyage -->
+                                <div class="d-flex flex-column gap-2 mb-3">
+                                    <div><i class="fa fa-map-marker-alt text-primary me-2"></i>{{ voyage.pointDepart }} → {{ voyage.destination }}</div>
+                                    <div><i class="fas fa-calendar-alt text-primary me-2"></i>{{ voyage.dateDepart|date('d/m/Y') }} - {{ voyage.dateRetour|date('d/m/Y') }}</div>
+                                    <div>
+                                        {% if voyage.type == 'Avion' %}
+                                            <i class="fas fa-plane text-primary me-2"></i>
+                                        {% elseif voyage.type == 'Train' %}
+                                            <i class="fas fa-train text-primary me-2"></i>
+                                        {% elseif voyage.type == 'Bateau' %}
+                                            <i class="fas fa-ship text-primary me-2"></i>
+                                        {% endif %}
+                                        <small>{{ voyage.type }}</small>
+                                    </div>
+                                </div>
+
+                                <!-- Boutons d'actions agence -->
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a href="{{ path('app_voyage_show_agence', {'id': voyage.id}) }}" class="btn btn-sm btn-outline-primary rounded-pill py-2 px-3">
+                                        <i class="fas fa-eye me-1"></i>Voir
+                                    </a>
+                                    <a href="{{ path('app_modifier_voyage', {'id': voyage.id}) }}" class="btn btn-sm btn-outline-warning rounded-pill py-2 px-3">
+                                        <i class="fas fa-edit me-1"></i>Modifier
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="col-12 text-center py-5">
+                        <div class="no-offers wow fadeIn" data-wow-delay="0.1s">
+                            <i class="fas fa-exclamation-circle fa-4x text-muted mb-4"></i>
+                            <h3 class="mb-3">Aucun voyage trouvé</h3>
+                            <p class="text-muted">Commencez par ajouter votre premier voyage</p>
+                            <a href="{{ path('app_ajout_voyage') }}" class="btn btn-primary mt-3">
+                                <i class="fas fa-plus me-2"></i>Ajouter un voyage
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts (identique au client) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const minPriceSlider = document.getElementById('minPriceSlider');
+            const maxPriceSlider = document.getElementById('maxPriceSlider');
+            const minPriceValue = document.getElementById('minPriceValue');
+            const maxPriceValue = document.getElementById('maxPriceValue');
+            const minPriceInput = document.getElementById('minPrice');
+            const maxPriceInput = document.getElementById('maxPrice');
+
+            // Min Price Slider Logic
+            minPriceSlider.addEventListener('input', function() {
+                const value = this.value;
+                minPriceValue.textContent = `${value} DT`;
+                minPriceInput.value = value;
+
+                // Ensure min price is not higher than max price
+                if (parseInt(value) > parseInt(maxPriceSlider.value)) {
+                    maxPriceSlider.value = value;
+                    maxPriceValue.textContent = `${value} DT`;
+                    maxPriceInput.value = value;
+                }
+            });
+
+            // Max Price Slider Logic
+            maxPriceSlider.addEventListener('input', function() {
+                const value = this.value;
+                maxPriceValue.textContent = `${value} DT`;
+                maxPriceInput.value = value;
+
+                // Ensure max price is not lower than min price
+                if (parseInt(value) < parseInt(minPriceSlider.value)) {
+                    minPriceSlider.value = value;
+                    minPriceValue.textContent = `${value} DT`;
+                    minPriceInput.value = value;
+                }
+            });
+        });
+
+        function resetFilters() {
+            // Réinitialiser les valeurs des filtres
+            document.getElementById('minPriceSlider').value = 0;
+            document.getElementById('maxPriceSlider').value = 10000;
+            document.getElementById('minPrice').value = 0;
+            document.getElementById('maxPrice').value = 10000;
+            document.getElementById('minPlaces').value = '';
+            document.getElementById('type').value = 'all';
+            document.getElementById('sort').selectedIndex = 0;
+            document.getElementById('onSale').checked = false;
+
+            // Soumettre le formulaire
+            document.getElementById('filterForm').submit();
+        }
+
+    </script>
+    <style>
+        /* Style général des cartes */
+        .room-item {
+            transition: all 0.3s ease;
+            border: none;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .room-item:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Style des boutons */
+        .btn-outline-primary {
+            border-color: #0d6efd;
+            color: #0d6efd;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        .btn-outline-warning {
+            border-color: #ffc107;
+            color: #ffc107;
+        }
+
+        .btn-outline-warning:hover {
+            background-color: #ffc107;
+            color: #212529;
+        }
+
+        /* Style du prix */
+        .price-display {
+            padding: 0.75rem;
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            border-left: 4px solid #0d6efd;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Style des badges */
+        .badge {
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        /* Style du carousel */
+        .carousel-control-prev,
+        .carousel-control-next {
+            background: rgba(0, 0, 0, 0.2);
+            width: 40px;
+            height: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-radius: 50%;
+        }
+
+        /* Style des filtres */
+        .filter-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-group label {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        /* Animation des éléments */
+        .wow {
+            visibility: visible !important;
+        }
+
+        /* Style pour "Aucun voyage trouvé" */
+        .no-offers {
+            padding: 3rem;
+            background: #f8f9fa;
+            border-radius: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .room-item {
+                margin-bottom: 2rem;
+            }
+
+            .filter-group {
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+{% endblock %}

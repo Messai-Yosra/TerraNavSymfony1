@@ -12,8 +12,19 @@ final class HomeController extends AbstractController
     #[Route('/', name: 'app_home')]
     public function index(): Response
     {
-        return $this->render('home/homeClient.html.twig', [
-            'controller_name' => 'HomeController',
-        ]);
+        // Si l'utilisateur n'est pas connecté, rediriger vers la page de login
+        if (!$this->getUser()) {
+            return $this->redirectToRoute('app_login');
+        }
+        
+        // Redirection directe vers le dashboard client sans condition
+        return $this->redirectToRoute('app_dashboardClient');
+    }
+    
+    #[Route('/home', name: 'app_home_client')]
+    public function homeClient(): Response
+    {
+        // Redirection directe vers le dashboard client
+        return $this->redirectToRoute('app_dashboardClient');
     }
 }

@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Validator\Constraints as Assert;
 use App\Entity\Utilisateur;
 use App\Entity\Voyage;
 
@@ -18,25 +19,58 @@ class Offre
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: "offres")]
     #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id', onDelete: 'CASCADE')]
+    #[Assert\NotNull(message: "L'utilisateur associé est obligatoire")]
     private Utilisateur $id_user;
 
-    #[ORM\Column(type: "string", length: 50, nullable: true)]
-    private ?string $titre;
+    #[ORM\Column(type: "string", length: 50)]
+    #[Assert\NotBlank(message: "Le titre de l'offre est obligatoire")]
+    #[Assert\Length(
+        min: 5,
+        max: 50,
+        minMessage: "Le titre doit faire au moins {{ limit }} caractères",
+        maxMessage: "Le titre ne peut pas dépasser {{ limit }} caractères"
+    )]
+    private string $titre;
 
-    #[ORM\Column(type: "text", nullable: true)]
-    private ?string $description;
+    #[ORM\Column(type: "text")]
+    #[Assert\NotBlank(message: "La description est obligatoire")]
+    #[Assert\Length(
+        min: 20,
+        minMessage: "La description doit faire au moins {{ limit }} caractères"
+    )]
+    private string $description ;
 
-    #[ORM\Column(type: "float", nullable: true)]
-    private ?float $reduction;
+    #[ORM\Column(type: "float")]
+    #[Assert\NotBlank(message: "La réduction est obligatoire")]
+    #[Assert\Type(
+        type: "float",
+        message: "La réduction doit être un nombre valide"
+    )]
+    #[Assert\Range(
+        min: 0,
+        max: 100,
+        notInRangeMessage: "La réduction doit être entre {{ min }}% et {{ max }}%"
+    )]
+    private ?float $reduction = null; // Rend la propriété nullable
 
-    #[ORM\Column(name: "dateDebut", type: "datetime", nullable: true)]
-    private ?\DateTimeInterface $dateDebut;
+    #[ORM\Column(name: "dateDebut", type: "datetime")]
+    #[Assert\NotBlank(message: "La date de début est obligatoire")]
+    #[Assert\GreaterThanOrEqual(
+        "today",
+        message: "La date de début doit être aujourd'hui ou dans le futur"
+    )]
+    private ?\DateTimeInterface $dateDebut = null; // Initialisation à null
 
-    #[ORM\Column(name: "dateFin", type: "datetime", nullable: true)]
-    private ?\DateTimeInterface $dateFin;
+    #[ORM\Column(name: "dateFin", type: "datetime")]
+    #[Assert\NotBlank(message: "La date de fin est obligatoire")]
+    #[Assert\Expression(
+        "this.getDateFin() !== null && this.getDateDebut() !== null && this.getDateFin() > this.getDateDebut()",
+        message: "La date de fin doit être après la date de début"
+    )]
+    private ?\DateTimeInterface $dateFin = null; // Initialisation à null
 
     #[ORM\Column(name: "imagePath", type: "string", length: 255, nullable: true)]
-    private ?string $imagePath;
+    private ?string $imagePath = null;
 
     #[ORM\OneToMany(mappedBy: "id_offre", targetEntity: Voyage::class)]
     private Collection $voyages;
@@ -46,6 +80,7 @@ class Offre
         $this->voyages = new ArrayCollection();
     }
 
+    // Les getters et setters restent identiques à ce que vous aviez déjà
     public function getId(): int
     {
         return $this->id;
@@ -68,23 +103,23 @@ class Offre
         return $this;
     }
 
-    public function getTitre(): ?string
+    public function getTitre(): string
     {
         return $this->titre;
     }
 
-    public function setTitre(?string $titre): self
+    public function setTitre(string $titre): self
     {
         $this->titre = $titre;
         return $this;
     }
 
-    public function getDescription(): ?string
+    public function getDescription(): string
     {
         return $this->description;
     }
 
-    public function setDescription(?string $description): self
+    public function setDescription(string $description): self
     {
         $this->description = $description;
         return $this;
@@ -101,7 +136,7 @@ class Offre
         return $this;
     }
 
-    public function getDateDebut(): ?\DateTimeInterface
+    public function getDateDebut(): \DateTimeInterface
     {
         return $this->dateDebut;
     }
@@ -156,5 +191,22 @@ class Offre
             }
         }
         return $this;
+    }
+
+    public function transformSingleImagePath(string $absolutePath): string
+    {
+        return str_replace(
+            [
+                'C:\TerraNavSymfony1\public\\',
+                'C:/TerraNavSymfony1/public/',
+                '\\'
+            ],
+            [
+                '',
+                '',
+                '/'
+            ],
+            $absolutePath
+        );
     }
 }

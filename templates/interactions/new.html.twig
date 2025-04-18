@@ -1,0 +1,120 @@
+{% extends "baseClient.html.twig" %}
+{% block titre %}Ajouter un nouveau post{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="{{ asset('css/styleClient.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/interactions/interactions.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <style>
+        .is-invalid {
+            border-color: #dc3545 !important;
+        }
+        .invalid-feedback {
+            color: #dc3545;
+            font-size: 0.875em;
+        }
+    </style>
+
+    <div class="form-container">
+        <h1>📝 Ajouter un nouveau post</h1>
+
+        <div class="card">
+            {{ form_start(form, {'attr': {'id': 'postForm', 'novalidate': 'novalidate'}}) }}
+            
+            <div class="form-group mb-3">
+                {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}
+                <div class="invalid-feedback description-error"></div>
+                {% if form.description.vars.errors is not empty %}
+                    <div class="alert alert-danger">
+                        {{ form_errors(form.description) }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group mb-3">
+                {{ form_label(form.image, 'Image', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.image, {'attr': {'class': 'form-control'}}) }}
+                {% if form.image.vars.errors is not empty %}
+                    <div class="alert alert-danger">
+                        {{ form_errors(form.image) }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-plus-circle"></i> Ajouter
+            </button>
+            {{ form_end(form) }}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('postForm');
+        const descriptionInput = form.querySelector('#{{ form.description.vars.id }}');
+
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            
+            let isValid = true;
+            
+            // Reset error state
+            descriptionInput.classList.remove('is-invalid');
+            document.querySelector('.description-error').textContent = '';
+
+            // Validate description
+            const descriptionValue = descriptionInput.value.trim();
+            
+            // Check not blank
+            if (!descriptionValue) {
+                isValid = false;
+                descriptionInput.classList.add('is-invalid');
+                document.querySelector('.description-error').textContent = 'La description du post ne doit pas être vide.';
+            } 
+            // Check minimum length
+            else if (descriptionValue.length < 10) {
+                isValid = false;
+                descriptionInput.classList.add('is-invalid');
+                document.querySelector('.description-error').textContent = 'La description du post doit contenir au moins 10 caractères.';
+            }
+            // Check contains at least one letter
+            else if (!/[a-zA-Z]/.test(descriptionValue)) {
+                isValid = false;
+                descriptionInput.classList.add('is-invalid');
+                document.querySelector('.description-error').textContent = 'La description du post doit contenir au moins une lettre.';
+            }
+
+            if (isValid) {
+                Swal.fire({
+                    position: "top-end",
+                    icon: "success",
+                    title: "Votre post a été ajouté avec succès !",
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    form.submit();
+                });
+            } else {
+                Swal.fire({
+                    position: "top-end",
+                    icon: "error",
+                    title: "Erreur de validation",
+                    text: "Veuillez corriger les erreurs dans la description",
+                    showConfirmButton: true
+                });
+            }
+        });
+
+        // Clear validation when user starts typing
+        descriptionInput.addEventListener('input', function() {
+            if (this.value.trim()) {
+                this.classList.remove('is-invalid');
+                document.querySelector('.description-error').textContent = '';
+            }
+        });
+    });
+    </script>
+{% endblock %}

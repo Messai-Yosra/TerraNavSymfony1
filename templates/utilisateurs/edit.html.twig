@@ -1,0 +1,439 @@
+{% extends 'baseAdmin.html.twig' %}
+
+{% block titre %}Modifier Utilisateur{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        :root {
+            --primary-color: #4F46E5;
+            --primary-light: #818CF8;
+            --primary-dark: #3730A3;
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+            --danger-color: #EF4444;
+            --dark-color: #1F2937;
+            --light-color: #F9FAFB;
+            --gray-color: #6B7280;
+            --gray-light: #E5E7EB;
+            --transition: all 0.3s ease;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Reset et base */
+        body {
+            background-color: #f3f4f6;
+        }
+
+        /* Layout */
+        .dashboard-container {
+            display: flex;
+        }
+
+        .content-wrapper {
+            flex: 1;
+            padding: 1.5rem;
+            transition: var(--transition);
+        }
+
+        /* Sidebar moderne */
+        .modern-sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, var(--primary-dark), var(--primary-color));
+            min-height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            color: white;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            transition: var(--transition);
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h3 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-header h3 i {
+            margin-right: 0.75rem;
+            font-size: 1.75rem;
+        }
+
+        .sidebar-components {
+            padding: 1.5rem 0;
+        }
+
+        .sidebar-item {
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+            text-decoration: none;
+            transition: var(--transition);
+            border-left: 4px solid transparent;
+        }
+
+        .sidebar-item i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .sidebar-item:hover, .sidebar-item.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-left-color: white;
+        }
+
+        .sidebar-item.active {
+            background-color: rgba(255, 255, 255, 0.15);
+            font-weight: 600;
+        }
+
+        /* Header et Breadcrumb */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin: 0;
+        }
+
+        .breadcrumb {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+            background-color: transparent;
+            display: flex;
+            align-items: center;
+        }
+
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.875rem;
+            color: var(--gray-color);
+        }
+
+        .breadcrumb-item a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .breadcrumb-item a:hover {
+            color: var(--primary-dark);
+        }
+
+        .breadcrumb-item + .breadcrumb-item::before {
+            content: "›";
+            padding: 0 0.5rem;
+            color: var(--gray-color);
+            font-size: 1.1rem;
+            line-height: 1;
+        }
+
+        .breadcrumb-item.active {
+            color: var(--gray-color);
+            font-weight: 400;
+        }
+
+        /* Carte principale */
+        .edit-card {
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .edit-card-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 1.5rem 2rem;
+            position: relative;
+        }
+
+        .edit-card-header h2 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.5rem;
+        }
+
+        .edit-card-header p {
+            margin: 0.5rem 0 0;
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+
+        .user-avatar {
+            position: absolute;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 60px;
+            height: 60px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            color: var(--primary-color);
+            box-shadow: var(--shadow);
+        }
+
+        .edit-card-body {
+            padding: 2rem;
+        }
+
+        /* Formulaire */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+
+        .form-control-wrapper {
+            position: relative;
+        }
+
+        .form-control-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-color);
+            pointer-events: none;
+        }
+
+        .modern-form-control {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 1px solid var(--gray-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            line-height: 1.5;
+            transition: var(--transition);
+        }
+
+        .modern-form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+            outline: none;
+        }
+
+        .modern-form-select {
+            background-position: right 1rem center;
+            padding-right: 3rem;
+            background-size: 16px;
+        }
+
+        /* Boutons */
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn-modern {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            cursor: pointer;
+            border: none;
+            box-shadow: var(--shadow-sm);
+            font-size: 0.95rem;
+        }
+
+        .btn-modern i {
+            margin-right: 0.5rem;
+        }
+
+        .btn-primary-modern {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary-modern:hover {
+            background-color: var(--primary-dark);
+            box-shadow: var(--shadow);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary-modern {
+            background-color: white;
+            color: var(--dark-color);
+            border: 1px solid var(--gray-light);
+        }
+
+        .btn-secondary-modern:hover {
+            background-color: var(--gray-light);
+            transform: translateY(-1px);
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .modern-sidebar {
+                width: 250px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .row {
+                flex-direction: column;
+            }
+            .col-md-6 {
+                width: 100%;
+            }
+            .user-avatar {
+                display: none;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block sidebar %}
+    <div class="modern-sidebar">
+        <div class="sidebar-header">
+            <h3>
+                <i class="fas fa-compass"></i>
+                Terra Nav
+            </h3>
+        </div>
+        
+        <div class="sidebar-components">
+            <a href="{{ path('admin_dashboard') }}" class="sidebar-item active">
+                <i class="fas fa-tachometer-alt"></i>
+                Dashboard
+            </a>
+            <!-- Seul le lien Dashboard est affiché -->
+        </div>
+    </div>
+{% endblock %}
+
+{% block breadcrumb %}
+    <div class="page-header">
+        <h1 class="page-title">Modifier l'utilisateur</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{{ path('admin_dashboard') }}">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                </li>
+                <li class="breadcrumb-item active">Modifier l'utilisateur</li>
+            </ol>
+        </nav>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="content-wrapper" style="margin-left: 280px;">
+        {{ block('breadcrumb') }}
+        
+        <div class="edit-card">
+            <div class="edit-card-header">
+                <h2>Modification du profil utilisateur</h2>
+                <p>Mettez à jour les informations de l'utilisateur</p>
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+            
+            <div class="edit-card-body">
+                {{ form_start(form) }}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">{{ form_label(form.prenom) }}</label>
+                                <div class="form-control-wrapper">
+                                    <i class="fas fa-user form-control-icon"></i>
+                                    {{ form_widget(form.prenom, {'attr': {'class': 'modern-form-control', 'placeholder': 'Prénom de l\'utilisateur'}}) }}
+                                </div>
+                                {{ form_errors(form.prenom) }}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">{{ form_label(form.nom) }}</label>
+                                <div class="form-control-wrapper">
+                                    <i class="fas fa-user form-control-icon"></i>
+                                    {{ form_widget(form.nom, {'attr': {'class': 'modern-form-control', 'placeholder': 'Nom de l\'utilisateur'}}) }}
+                                </div>
+                                {{ form_errors(form.nom) }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">{{ form_label(form.email) }}</label>
+                                <div class="form-control-wrapper">
+                                    <i class="fas fa-envelope form-control-icon"></i>
+                                    {{ form_widget(form.email, {'attr': {'class': 'modern-form-control', 'placeholder': 'Adresse email de l\'utilisateur'}}) }}
+                                </div>
+                                {{ form_errors(form.email) }}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">{{ form_label(form.role) }}</label>
+                                <div class="form-control-wrapper">
+                                    <i class="fas fa-shield-alt form-control-icon"></i>
+                                    {{ form_widget(form.role, {'attr': {'class': 'modern-form-control modern-form-select'}}) }}
+                                </div>
+                                {{ form_errors(form.role) }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <a href="{{ path('admin_dashboard') }}" class="btn-modern btn-secondary-modern">
+                            <i class="fas fa-arrow-left"></i> Retour
+                        </a>
+                        <button type="submit" class="btn-modern btn-primary-modern">
+                            <i class="fas fa-save"></i> Enregistrer
+                        </button>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,362 @@
+{% extends "baseClient.html.twig" %}
+
+{% block title %}Proposer une Offre{% endblock %}
+
+{% block content %}
+    <!-- Page Header Start -->
+    <div class="container-fluid page-header mb-5 p-0" style="background-image: url({{ asset('img/voyages/1.avif') }});">
+        <div class="container-fluid page-header-inner py-5">
+            <div class="container text-center pb-5">
+                <h1 class="display-3 text-white mb-3 animated slideInDown">Créer une nouvelle offre</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center text-uppercase">
+                        <li class="breadcrumb-item"><a href="#">Accueil</a></li>
+                        <li class="breadcrumb-item text-white active" aria-current="page">Nouvelle Offre</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <!-- Page Header End -->
+
+    <!-- Offre Form Start -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+                <h6 class="section-title text-center text-primary text-uppercase">Formulaire d'offre</h6>
+                <h1 class="mb-5">Créer une <span class="text-primary text-uppercase">Nouvelle Offre</span></h1>
+            </div>
+            <form id="offreForm" action="{{ path('app_ajout_offre') }}" method="POST" enctype="multipart/form-data">
+                <div class="row g-5">
+                    <div class="col-lg-6">
+                        <!-- Première série d'images -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-6 text-end">
+                                <img class="img-fluid rounded w-75 wow zoomIn hover-zoom" data-wow-delay="0.1s"
+                                     src="{{ asset('img/voyages/ajout1.avif') }}" style="margin-top: 25%;">
+                            </div>
+                            <div class="col-6 text-start">
+                                <img class="img-fluid rounded w-100 wow zoomIn hover-zoom" data-wow-delay="0.3s"
+                                     src="{{ asset('img/voyages/ajout2.avif') }}">
+                            </div>
+                            <div class="col-6 text-end">
+                                <img class="img-fluid rounded w-50 wow zoomIn hover-zoom" data-wow-delay="0.5s"
+                                     src="{{ asset('img/voyages/ajout3.avif') }}">
+                            </div>
+                            <div class="col-6 text-start">
+                                <img class="img-fluid rounded w-75 wow zoomIn hover-zoom" data-wow-delay="0.7s"
+                                     src="{{ asset('img/voyages/ajout4.avif') }}">
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-6 text-end">
+                                <img class="img-fluid rounded w-75 wow zoomIn hover-zoom" data-wow-delay="0.1s"
+                                     src="{{ asset('img/voyages/ajout5.avif') }}" style="margin-top: 25%;">
+                            </div>
+                            <div class="col-6 text-start">
+                                <img class="img-fluid rounded w-100 wow zoomIn hover-zoom" data-wow-delay="0.3s"
+                                     src="{{ asset('img/voyages/ajout2.avif') }}">
+                            </div>
+                            <div class="col-6 text-end">
+                                <img class="img-fluid rounded w-50 wow zoomIn hover-zoom" data-wow-delay="0.5s"
+                                     src="{{ asset('img/voyages/ajout7.avif') }}">
+                            </div>
+                            <div class="col-6 text-start">
+                                <img class="img-fluid rounded w-75 wow zoomIn hover-zoom" data-wow-delay="0.7s"
+                                     src="{{ asset('img/voyages/ajout8.avif') }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="wow fadeInUp" data-wow-delay="0.2s">
+                            <!-- Section Informations de base -->
+                            <div class="card mb-4 border-primary hover-effect">
+                                <div class="card-header bg-primary text-white">
+                                    <i class="fas fa-info-circle me-2"></i>Informations de l'offre
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <!-- Titre -->
+                                        <div class="col-12">
+                                            <div class="form-floating {% if errors.titre is defined %}has-error{% endif %}">
+                                                <input type="text" class="form-control {% if errors.titre is defined %}is-invalid{% endif %}"
+                                                       id="titre" name="titre" placeholder="Titre de l'offre" value="{{ form_data.titre|default('') }}">
+                                                <label for="titre"><i class="fas fa-heading me-2 text-primary"></i>Titre de l'offre</label>
+                                                {% if errors.titre is defined %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ errors.titre }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <!-- Réduction -->
+                                        <div class="col-md-6">
+                                            <div class="form-floating {% if errors.reduction is defined %}has-error{% endif %}">
+                                                <input type="number" class="form-control {% if errors.reduction is defined %}is-invalid{% endif %}"
+                                                       id="reduction" name="reduction" value="{{ form_data.reduction|default('') }}" step="0.5"
+                                                       placeholder="Réduction" > <!-- Ajout de required -->
+                                                <label for="reduction"><i class="fas fa-percent me-2 text-primary"></i>Réduction (%)</label>
+                                                {% if errors.reduction is defined %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ errors.reduction }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section Période de validité -->
+                            <div class="card mb-4 border-primary hover-effect">
+                                <div class="card-header bg-primary text-white">
+                                    <i class="far fa-calendar-alt me-2"></i>Période de validité
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <!-- Date de début -->
+                                        <div class="col-md-6">
+                                            <div class="form-floating {% if errors.dateDebut is defined %}has-error{% endif %}">
+                                                <input type="datetime-local" class="form-control {% if errors.dateDebut is defined %}is-invalid{% endif %}"
+                                                       id="dateDebut" name="dateDebut" value="{{ form_data.dateDebut|default('') }}">
+                                                <label for="dateDebut"><i class="fas fa-hourglass-start me-2 text-primary"></i>Date de début</label>
+                                                {% if errors.dateDebut is defined %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ errors.dateDebut }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <!-- Date de fin -->
+                                        <div class="col-md-6">
+                                            <div class="form-floating {% if errors.dateFin is defined %}has-error{% endif %}">
+                                                <input type="datetime-local" class="form-control {% if errors.dateFin is defined %}is-invalid{% endif %}"
+                                                       id="dateFin" name="dateFin" value="{{ form_data.dateFin|default('') }}">
+                                                <label for="dateFin"><i class="fas fa-hourglass-end me-2 text-primary"></i>Date de fin</label>
+                                                {% if errors.dateFin is defined %}
+                                                    <div class="invalid-feedback d-block">
+                                                        {{ errors.dateFin }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section Description -->
+                            <div class="card mb-4 border-primary hover-effect">
+                                <div class="card-header bg-primary text-white">
+                                    <i class="fas fa-align-left me-2"></i>Description
+                                </div>
+                                <div class="card-body">
+                                    <!-- Image -->
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="image" class="form-label"><i class="fas fa-image me-2 text-primary"></i>Image de l'offre</label>
+                                            <input type="file" class="form-control hover-file-input" id="image"
+                                                   name="image" accept="image/*" >
+                                            <div id="imagePreview" class="mt-2"></div>
+                                        </div>
+                                    </div>
+                                    <!-- Description -->
+                                    <div class="form-group {% if errors.description is defined %}has-error{% endif %}">
+                                        <label for="description"><i class="fas fa-info-circle me-2 text-primary"></i>Description détaillée</label>
+                                        <input class="form-control {% if errors.description is defined %}is-invalid{% endif %}"
+                                                  placeholder="Description détaillée" id="description"
+                                                  name="description" value="{{ form_data.description|default('') }}" style="height: 100px"  >
+                                        {% if errors.description is defined %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ errors.description }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Boutons -->
+                            <div class="row g-3 mt-2">
+                                <div class="col-6">
+                                    <button class="btn btn-primary w-100 py-3 btn-hover" type="submit">
+                                        <i class="fas fa-plus-circle me-2"></i>Créer l'offre
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <a href="{{ path('app_offres_agence') }}" class="btn btn-secondary w-100 py-3 btn-hover" id="cancelBtn">
+                                        <i class="fas fa-times-circle me-2"></i>Annuler
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Offre Form End -->
+
+    <style>
+        /* Effets de hover */
+        .hover-effect {
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .hover-effect:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .hover-zoom {
+            transition: transform 0.3s ease;
+        }
+
+        .hover-zoom:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-hover {
+            transition: all 0.3s ease;
+        }
+
+        .btn-hover:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Style pour les cartes */
+        .card-header {
+            font-weight: 600;
+        }
+
+        /* Style pour les inputs file */
+        .hover-file-input:hover {
+            border-color: #0d6efd;
+            background-color: #f8f9fa;
+        }
+
+        /* Style pour les labels avec icônes */
+        .form-floating label i {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Animation pour les champs */
+        .form-control {
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        /* Ajustement des marges */
+        .col-lg-6:first-child {
+            padding-left: 2rem;
+        }
+
+        .col-lg-6:last-child {
+            padding-right: 2rem;
+        }
+
+        /* Preview image */
+        #imagePreview img {
+            max-width: 100px;
+            max-height: 100px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 5px;
+        }
+
+        /* Style des messages d'erreur */
+        .invalid-feedback {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: block;
+        }
+
+        /* Style des champs invalides */
+        .is-invalid {
+            border-color: #dc3545 !important;
+        }
+
+        .is-invalid:focus {
+            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
+        }
+
+        /* Positionnement des messages d'erreur */
+        .form-floating {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        /* Espacement supplémentaire pour les champs avec erreur */
+        .has-error {
+            margin-bottom: 1.5rem;
+        }
+    </style>
+
+    <!-- Modal de confirmation -->
+    <div class="modal fade" id="confirmCancelModal" tabindex="-1" aria-labelledby="confirmCancelModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="confirmCancelModalLabel"><i class="fas fa-exclamation-triangle me-2"></i>Confirmation</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Êtes-vous sûr de vouloir annuler la création de cette offre ?<br>
+                    <small class="text-muted">Toutes les informations non enregistrées seront perdues.</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-hover" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Annuler
+                    </button>
+                    <button type="button" class="btn btn-primary btn-hover" id="confirmCancelBtn">
+                        <i class="fas fa-check me-2"></i>Confirmer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Ajouts de style pour la modale */
+        .modal-content {
+            border: 2px solid #0d6efd;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(13, 110, 253, 0.3);
+        }
+
+        .modal-header {
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 13px 13px 0 0;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Gestion du bouton Annuler avec modale Bootstrap
+            const cancelBtn = document.getElementById('cancelBtn');
+            const confirmCancelModal = new bootstrap.Modal(document.getElementById('confirmCancelModal'));
+
+            cancelBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                confirmCancelModal.show();
+            });
+
+            // Confirmation de l'annulation
+            document.getElementById('confirmCancelBtn').addEventListener('click', function () {
+                window.location.href = cancelBtn.href;
+            });
+        });
+    </script>
+{% endblock %}

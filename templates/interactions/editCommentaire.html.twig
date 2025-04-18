@@ -1,0 +1,44 @@
+{% extends 'baseClient.html.twig' %}
+
+{% block titre %}Modifier un commentaire{% endblock %}
+
+{% block content %}
+<link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
+<link href="{{ asset('css/styleClient.css') }}" rel="stylesheet">
+
+<div class="container mt-4">
+    <h2 class="mb-4">✏️ Modifier votre commentaire</h2>
+
+    <!-- Section Post associé -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title">Post associé :</h4>
+            <p class="card-text"><strong>{{ commentaire.id_Post.description }}</strong></p>
+            {% if commentaire.id_Post.image %}
+                <img src="{{ asset('img/' ~ commentaire.id_Post.image) }}" alt="Image du post" class="img-fluid rounded">
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Formulaire de modification -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {{ form_start(form, {'attr': {'id': 'editCommentForm', 'novalidate': 'novalidate'}}) }}
+                <div class="mb-3">
+                    {{ form_label(form.contenu, 'Modifier votre commentaire :', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.contenu, {'attr': {'class': 'form-control', 'placeholder': 'Écrivez votre commentaire ici...'}}) }}
+                    {% if form.contenu.vars.errors is not empty %}
+                        <div class="alert alert-danger mt-2">
+                            {{ form_errors(form.contenu) }}
+                        </div>
+                    {% endif %}
+                </div>
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> Enregistrer les modifications
+                </button>
+            {{ form_end(form) }}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

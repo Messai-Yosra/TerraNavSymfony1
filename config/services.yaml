@@ -5,9 +5,10 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     chambre_images_directory: '%kernel.project_dir%/public/ChambreImages'
-
-
-    
+    profile_photos_directory: '%kernel.project_dir%/public/uploads/profile'
+    uploads_directory: '%kernel.project_dir%/public/img'
+    env(STRIPE_PUBLIC_KEY): ~
+    env(STRIPE_SECRET_KEY): ~
 services:
     # default configuration for services in *this* file
     _defaults:
@@ -28,3 +29,23 @@ services:
     App\Service\hebergements\FileUploader:
         arguments:
             $targetDirectory: '%chambre_images_directory%'
+
+    # Ajoutez explicitement le service de login success handler
+    App\Security\LoginSuccessHandler:
+        arguments:
+            $urlGenerator: '@router'
+            $tokenStorage: '@security.token_storage'
+
+    App\Service\utilisateurs\LoginHistoryLogger:
+        arguments:
+            $requestStack: '@request_stack'
+            $params: '@parameter_bag'
+            $serializer: '@serializer'
+
+    App\EventListener\LoginListener:
+        arguments:
+            $loginLogger: '@App\Service\utilisateurs\LoginHistoryLogger'
+        tags:
+            - { name: kernel.event_subscriber }
+
+
