@@ -1,15 +1,179 @@
 document.addEventListener('DOMContentLoaded', function() {
+
     // Initialize all modals
     const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
     const detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'));
     const editModal = new bootstrap.Modal(document.getElementById('editReservationModal'));
     const confirmEditModal = new bootstrap.Modal(document.getElementById('confirmEditModal'));
-    const paymentModal = new bootstrap.Modal(document.getElementById('paymentConfirmationModal'));
+    const stripePaymentModal = new bootstrap.Modal(document.getElementById('stripePaymentModal'));
+
 
     const deleteForm = document.getElementById('deleteForm');
-    const paymentForm = document.getElementById('paymentForm');
     const proceedToPaymentBtn = document.getElementById('proceedToPayment');
     let pendingFormData = null;
+    let stripe, cardElement;
+
+    // Payment button handler - make sure this exists
+    proceedToPaymentBtn.addEventListener('click', () => {
+        stripePaymentModal.show();
+    });
+    // Initialize Stripe
+    function initializeStripe(publicKey) {
+        stripe = Stripe(publicKey);
+        const elements = stripe.elements();
+
+        const style = {
+            base: {
+                color: '#32325d',
+                fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+                fontSmoothing: 'antialiased',
+                fontSize: '16px',
+                '::placeholder': {
+                    color: '#aab7c4'
+                }
+            },
+            invalid: {
+                color: '#fa755a',
+                iconColor: '#fa755a'
+            }
+        };
+
+        cardElement = elements.create('card', {style: style});
+    }
+
+    // Setup Stripe payment modal
+    function setupStripePaymentModal() {
+        stripePaymentModal._element.addEventListener('shown.bs.modal', function() {
+            if (cardElement && !document.getElementById('card-element').children.length) {
+                cardElement.mount('#card-element');
+            }
+        });
+
+        stripePaymentModal._element.addEventListener('hidden.bs.modal', function() {
+            if (cardElement) {
+                cardElement.unmount();
+            }
+            document.getElementById('card-errors').textContent = '';
+            document.getElementById('submitPayment').disabled = false;
+            document.getElementById('paymentProcessing').style.display = 'none';
+            document.getElementById('paymentFormContainer').style.display = 'block';
+        });
+
+        document.getElementById('submitPayment').addEventListener('click', handlePaymentSubmission);
+    }
+
+    // Handle payment submission
+    // Modified version of your handlePaymentSubmission function
+    async function handlePaymentSubmission() {
+        const submitButton = document.getElementById('submitPayment');
+        const paymentProcessing = document.getElementById('paymentProcessing');
+        const paymentFormContainer = document.getElementById('paymentFormContainer');
+        const cardErrors = document.getElementById('card-errors');
+        const paymentForm = document.getElementById('paymentForm');
+        const panierId = paymentForm.action.split('/').pop();
+
+        // Reset error state
+        cardErrors.textContent = '';
+        submitButton.disabled = true;
+        paymentFormContainer.style.display = 'none';
+        paymentProcessing.style.display = 'block';
+
+        try {
+            // 1. Get payment CSRF token
+            const paymentCsrfToken = document.querySelector('#paymentForm input[name="_token"]').value;
+
+            // 2. Create Payment Intent
+            const paymentResponse = await fetch(paymentForm.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({ '_token': paymentCsrfToken })
+            });
+
+            if (!paymentResponse.ok) {
+                throw new Error(`HTTP error! status: ${paymentResponse.status}`);
+            }
+
+            const paymentData = await paymentResponse.json();
+            console.log('Payment Intent:', paymentData);
+
+            // 3. Process Stripe Payment
+            const { error, paymentIntent } = await stripe.confirmCardPayment(
+                paymentData.clientSecret,
+                {
+                    payment_method: {
+                        card: cardElement,
+                        billing_details: {
+                            name: 'Customer Name',
+                            email: 'customer@example.com'
+                        }
+                    }
+                }
+            );
+
+            if (error) throw error;
+            if (paymentIntent.status !== 'succeeded') {
+                throw new Error('Payment processing failed');
+            }
+
+            // 4. Confirm Panier - Fixed method with additional debugging
+            const confirmResponse = await fetch(`/panier/confirm/success/${panierId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'include', // Try 'include' instead of 'same-origin'
+                body: JSON.stringify({
+                    _token: paymentData.confirmToken
+                })
+            });
+
+// Debug response
+            console.log('Confirmation status:', confirmResponse.status);
+            console.log('Confirmation headers:', Object.fromEntries(confirmResponse.headers.entries()));
+
+// Get the full response text for debugging
+            const responseText = await confirmResponse.text();
+            console.log('Response body:', responseText);
+
+// Try to parse as JSON if possible
+            let responseData;
+            try {
+                responseData = JSON.parse(responseText);
+                console.log('Parsed JSON response:', responseData);
+            } catch (e) {
+                console.log('Not JSON, using text');
+                responseData = { message: responseText };
+            }
+
+            if (!confirmResponse.ok) {
+                throw new Error(responseData.message || 'Confirmation failed');
+            }
+
+            // 5. Handle success
+            showNotification('Payment successful! Redirecting...', 'success');
+            setTimeout(() => window.location.href = paymentData.redirectUrl, 1500);
+
+        } catch (error) {
+            console.error('Payment Error:', error);
+            cardErrors.textContent = error.message || 'Payment processing failed';
+            submitButton.disabled = false;
+            paymentProcessing.style.display = 'none';
+            paymentFormContainer.style.display = 'block';
+        }
+    }
+
+    // Initialize Stripe with the public key from the data attribute
+    const stripePublicKey = document.getElementById('proceedToPayment')?.getAttribute('data-stripe-public-key');
+    if (stripePublicKey) {
+        initializeStripe(stripePublicKey);
+        setupStripePaymentModal();
+    }
 
     // Toggle sections
     document.querySelectorAll('.toggle-reservations').forEach(button => {
@@ -349,56 +513,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .finally(() => {
                 saveButton.disabled = false;
                 saveButton.textContent = 'Enregistrer';
-            });
-    });
-
-    // Payment button handler
-    proceedToPaymentBtn.addEventListener('click', () => {
-        paymentModal.show();
-    });
-
-    // Payment form submission
-    paymentForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const formData = new FormData(this);
-        const url = this.action;
-        const confirmBtn = this.querySelector('#confirmPaymentButton');
-        const originalText = confirmBtn.innerHTML;
-
-        // Show loading state
-        confirmBtn.disabled = true;
-        confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Traitement...';
-
-        fetch(url, {
-            method: 'POST',
-            body: formData
-        })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw new Error(err.message || 'Payment failed'); });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    paymentModal.hide();
-                    showNotification(`Paiement confirmé! ${data.count} réservations mises à jour`, 'success');
-
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
-                } else {
-                    throw new Error(data.message || 'Payment confirmation failed');
-                }
-            })
-            .catch(error => {
-                console.error('Payment error:', error);
-                showNotification(`Erreur de paiement: ${error.message}`, 'error');
-            })
-            .finally(() => {
-                confirmBtn.disabled = false;
-                confirmBtn.innerHTML = originalText;
             });
     });
 

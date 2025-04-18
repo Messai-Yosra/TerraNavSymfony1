@@ -5,15 +5,24 @@ namespace App\Controller\reservations;
 use App\Repository\Reservation\ReservationRepository;
 use App\Repository\Reservation\PanierRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class HistoriqueController extends AbstractController
 {
     #[Route('/HistoriqueClient', name: 'app_historique')]
-    public function index(ReservationRepository $reservationRepository, PanierRepository $panierRepository): Response
+    public function index(ReservationRepository $reservationRepository, PanierRepository $panierRepository, Security $security): Response
     {
-        $userId = 252; // Static user ID - replace with actual user when auth is implemented
+        // Get the currently logged-in user
+        $user = $security->getUser();
+
+        if (!$user) {
+            // Handle case where user is not logged in (redirect to login or show error)
+            return $this->redirectToRoute('app_login');
+        }
+
+        $userId = $user->getId(); // Static user ID - replace with actual user when auth is implemented
 
         // Get all validated paniers for this user
         $paniers = $panierRepository->createQueryBuilder('p')

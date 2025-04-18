@@ -8,19 +8,34 @@ use App\Repository\Reservation\PanierRepository;
 use App\Repository\Reservation\ReservationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Stripe\Stripe;
+use Stripe\Checkout\Session;
+use Stripe\PaymentIntent;
+
+
 
 final class PanierController extends AbstractController
 {
     #[Route('/PanierClient', name: 'app_panier')]
-    public function index(ReservationRepository $reservationRepository, PanierRepository $panierRepository): Response
+    public function index(ReservationRepository $reservationRepository, PanierRepository $panierRepository,Security $security): Response
     {
-        $userId = 252; // ID utilisateur statique - vous pourriez vouloir l'obtenir du contexte de sécurité
+        // Get the currently logged-in user
+        $user = $security->getUser();
+
+        if (!$user) {
+            // Handle case where user is not logged in (redirect to login or show error)
+            return $this->redirectToRoute('app_login');
+        }
+
+        $userId = $user->getId();
         $panier = $panierRepository->findByUser($userId);
 
         if (!$panier) {
@@ -44,7 +59,8 @@ final class PanierController extends AbstractController
         return $this->render('reservations/panierClient.html.twig', [
             'reservations' => $groupedReservations,
             'total' => $total,
-            'panierId' => $panierId
+            'panierId' => $panierId,
+            'stripe_public_key' => $_ENV['STRIPE_PUBLIC_KEY'] // Add this line
         ]);
     }
 
@@ -214,7 +230,7 @@ final class PanierController extends AbstractController
                     'date' => $reservation->getdate_reservation() ? $reservation->getdate_reservation()->format('Y-m-d') : null,
                     'status' => $reservation->getEtat(),
                     'nb_places' => $type === 'Voyage' ? $nbPlaces : null,
-                    'nb_jours' => $type === 'Chambre' ? $nbJours : null
+                    'nb_jours' => $type === 'Chambre' ? $nbJours : null,
                 ]
             ]);
 
@@ -236,16 +252,15 @@ final class PanierController extends AbstractController
         int $panierId,
         Request $request,
         ReservationRepository $reservationRepository,
-        PanierRepository $panierRepository,
-        EntityManagerInterface $entityManager
-    ): JsonResponse
-    {
+        UrlGeneratorInterface $urlGenerator
+    ): JsonResponse {
         if (!$this->isCsrfTokenValid('confirm-panier', $request->request->get('_token'))) {
             return new JsonResponse(['success' => false, 'message' => 'Jeton CSRF invalide'], 403);
         }
 
         try {
-            // Trouver toutes les réservations PENDING pour ce panier
+            Stripe::setApiKey($_ENV['STRIPE_SECRET_KEY']);
+
             $reservations = $reservationRepository->findBy([
                 'id_panier' => $panierId,
                 'Etat' => 'PENDING'
@@ -255,31 +270,110 @@ final class PanierController extends AbstractController
                 return new JsonResponse(['success' => false, 'message' => 'Aucune réservation en attente trouvée'], 404);
             }
 
-            // Mettre à jour le statut de chaque réservation
-            $count = 0;
-            foreach ($reservations as $reservation) {
-                $reservation->setEtat('CONFIRMED');
-                $count++;
-            }
-            $entityManager->flush();
+            $totalAmount = array_reduce($reservations, fn($sum, $r) => $sum + $r->getPrix(), 0) * 100;
 
-            // Valider le panier (définit date_validation et prix_total = 0)
-            $panier = $panierRepository->find($panierId);
-            $panier->setDateValidation(new \DateTime());
-            $panier->setPrixTotal(0);
-            $entityManager->flush();
+            $paymentIntent = PaymentIntent::create([
+                'amount' => $totalAmount,
+                'currency' => 'eur',
+                'payment_method_types' => ['card'],
+                'metadata' => ['panier_id' => $panierId]
+            ]);
+
+            // Generate a new CSRF token for the confirmation step
+            $confirmToken = $this->container->get('security.csrf.token_manager')->getToken('confirm-panier-success')->getValue();
 
             return new JsonResponse([
                 'success' => true,
-                'message' => 'Paiement confirmé et réservations mises à jour',
-                'count' => $count,
-                'newTotal' => 0
+                'clientSecret' => $paymentIntent->client_secret,
+                'panierId' => $panierId,
+                'confirmToken' => $confirmToken, // Send the new token to the client
+                'redirectUrl' => $urlGenerator->generate('app_panier', [], UrlGeneratorInterface::ABSOLUTE_URL)
             ]);
 
         } catch (\Exception $e) {
             return new JsonResponse([
                 'success' => false,
-                'message' => 'Erreur lors de la confirmation du paiement: ' . $e->getMessage()
+                'message' => 'Erreur lors de la création du paiement: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    #[Route('/panier/confirm/success/{panierId}', name: 'app_panier_confirm_success', methods: ['POST', 'OPTIONS'])]
+    public function confirmSuccess(
+        int $panierId,
+        Request $request,
+        ReservationRepository $reservationRepository,
+        PanierRepository $panierRepository,
+        EntityManagerInterface $entityManager,
+        Security $security,  // Add security service
+        LoggerInterface $logger  // Add this for debugging
+    ): JsonResponse {
+        // Log incoming request details
+        $logger->info('Confirmation request received', [
+            'panierId' => $panierId,
+            'method' => $request->getMethod(),
+            'content' => $request->getContent(),
+            'headers' => $request->headers->all(),
+            'isAuthenticated' => $security->getUser() ? 'yes' : 'no'
+        ]);
+
+        // Handle OPTIONS preflight request
+        if ($request->isMethod('OPTIONS')) {
+            return new JsonResponse([], 204, [
+                'Access-Control-Allow-Origin' => '*',
+                'Access-Control-Allow-Methods' => 'POST, OPTIONS',
+                'Access-Control-Allow-Headers' => 'Content-Type, X-Requested-With, Authorization',
+            ]);
+        }
+
+        // Check authentication first - but with detailed error
+        $user = $security->getUser();
+        if (!$user) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Authentication required - User not logged in'
+            ], 401);
+        }
+
+        // Check if the user has access to this panier - with detailed error
+        $panier = $panierRepository->find($panierId);
+        if (!$panier) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Panier not found'
+            ], 404);
+        }
+
+        try {
+            // Get request content (either as JSON or regular form data)
+            $data = json_decode($request->getContent(), true) ?? $request->request->all();
+
+            // Process reservations without requiring CSRF token for API calls
+            $reservations = $reservationRepository->findBy([
+                'id_panier' => $panierId,
+                'Etat' => 'PENDING'
+            ]);
+
+            foreach ($reservations as $reservation) {
+                $reservation->setEtat('CONFIRMED');
+            }
+
+            // Update panier
+            $panier->setDateValidation(new \DateTime());
+            $panier->setPrixTotal(0); // Or calculate confirmed total
+
+            $entityManager->flush();
+
+            return new JsonResponse([
+                'success' => true,
+                'message' => 'Reservations confirmed successfully',
+                'count' => count($reservations)
+            ]);
+
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
             ], 500);
         }
     }

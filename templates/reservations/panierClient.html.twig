@@ -27,27 +27,40 @@
     </div>
 
     <!-- Payment Confirmation Modal -->
-    <div class="modal fade" id="paymentConfirmationModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+    <!-- Stripe Payment Modal -->
+    <div class="modal fade" id="stripePaymentModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="paymentModalLabel">Confirmer le paiement</h5>
+                    <h5 class="modal-title">Paiement sécurisé</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Êtes-vous sûr de vouloir procéder au paiement pour un total de <strong>{{ total }} TND</strong> ?</p>
-                    <p>Toutes vos réservations seront confirmées.</p>
+                    <div id="paymentProcessing" style="display: none;">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-3">Traitement de votre paiement...</p>
+                        </div>
+                    </div>
+                    <div id="paymentFormContainer">
+                        <p>Total à payer: <strong>{{ total }} TND</strong></p>
+                        <div id="card-element" class="mb-3"></div>
+                        <div id="card-errors" role="alert" class="text-danger mb-3"></div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                     <form id="paymentForm" method="post" action="{{ path('app_panier_confirm', {'panierId': panierId}) }}">
-                        <input type="hidden" name="_token" value="{{ csrf_token('confirm-panier') }}">
-                        <button type="submit" class="btn btn-success" id="confirmPaymentButton">Confirmer le paiement</button>
+                        <input type="hidden" name="_token" id="paymentCsrfToken" value="{{ csrf_token('confirm-panier') }}">
+                        <button type="button" id="submitPayment" class="btn btn-success">Payer maintenant</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
+
 
     <!-- Edit Confirmation Modal -->
     <div class="modal fade" id="confirmEditModal" tabindex="-1" aria-labelledby="confirmEditModalLabel" aria-hidden="true">
@@ -197,6 +210,13 @@
                 <h6 class="section-title text-center text-primary text-uppercase">Votre Panier</h6>
                 <h1 class="mb-5">Vos <span class="text-primary text-uppercase">Réservations</span></h1>
             </div>
+
+            {% for message in app.flashes('success') %}
+                <div class="alert alert-success alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
 
             {% for message in app.flashes('success') %}
                 <div class="alert alert-success">{{ message }}</div>
@@ -557,7 +577,11 @@
                         </div>
                         <div class="text-center mt-4">
                             <a class="btn btn-primary py-3 px-5 me-3" href="{{ path('app_home') }}">Continuer vos achats</a>
-                            <button class="btn btn-success py-3 px-5" id="proceedToPayment">Procéder au paiement</button>
+                            <button class="btn btn-success py-3 px-5"
+                                    id="proceedToPayment"
+                                    data-stripe-public-key="{{ app.request.server.get('STRIPE_PUBLIC_KEY') }}">
+                                Procéder au paiement
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -565,5 +589,7 @@
         </div>
     </div>
 
-    <script src="{{ asset('js/reservations/panierClient.js') }}"></script>
+        <script src="https://js.stripe.com/v3/"></script>
+        <script src="{{ asset('js/reservations/panierClient.js') }}"></script>
+
 {% endblock %}

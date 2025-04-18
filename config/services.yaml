@@ -6,6 +6,8 @@
 parameters:
     profile_photos_directory: '%kernel.project_dir%/public/uploads/profile'
     uploads_directory: '%kernel.project_dir%/public/img'
+    env(STRIPE_PUBLIC_KEY): ~
+    env(STRIPE_SECRET_KEY): ~
 
 services:
     # default configuration for services in *this* file

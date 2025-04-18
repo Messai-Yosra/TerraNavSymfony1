@@ -112,7 +112,8 @@ security:
         - { path: ^/panier/confirm/[ 0-9 ]+, roles: PUBLIC_ACCESS }
         - { path: ^/HistoriqueClient, roles: PUBLIC_ACCESS }
         - { path: ^/ReservationAdmin, roles: PUBLIC_ACCESS }
-
+        - { path: ^//panier/confirm/success/[ 0-9 ]+, roles: PUBLIC_ACCESS }
+        - { path: ^/panier/confirm/success, roles: ROLE_USER }
 
 
         # Routes Gestion interactions

@@ -11,6 +11,7 @@ use App\Repository\Voyage\OffreRepository;
 use App\Repository\Voyage\VoyageRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -81,14 +82,22 @@ final class VoyageClientController extends AbstractController
         PanierRepository $panierRepo,
         ReservationRepository $reservationRepo,
         EntityManagerInterface $em,
-        ValidatorInterface $validator
+        ValidatorInterface $validator,
+        Security $security
     ): Response {
         if ($request->isMethod('POST')) {
             $isAjax = $request->isXmlHttpRequest();
             $nbPlaces = $request->request->getInt('nbPlaces', 1);
 
-            // Get or create panier for user ID 1
-            $userId = 252;
+            // Get the currently logged-in user
+            $user = $security->getUser();
+
+            if (!$user) {
+                // Handle case where user is not logged in (redirect to login or show error)
+                return $this->redirectToRoute('app_login');
+            }
+
+            $userId = $user->getId();
             $panier = $panierRepo->findByUser($userId) ?? $panierRepo->createPanierForUser($userId);
 
             $price = $voyage->getId_offre() ?
