@@ -1,0 +1,185 @@
+{% extends "baseClient.html.twig" %}
+
+{% block title %}Sélectionner les destinataires - Voyage{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    <div class="container-fluid page-header mb-5 p-0"
+         style="background-image: url({{ asset('img/voyages/1.avif') }});">
+        <div class="container-fluid page-header-inner py-5">
+            <div class="container text-center pb-5">
+                <h1 class="display-3 text-white mb-3 animated slideInDown">Sélectionner les destinataires</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center text-uppercase">
+                        <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+                        <li class="breadcrumb-item"><a href="{{ path('app_voyages_agence') }}">Mes voyages</a></li>
+                        <li class="breadcrumb-item text-white active" aria-current="page">Sélectionner destinataires</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenu Principal -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+                <h6 class="section-title text-center text-primary text-uppercase">Notification</h6>
+                <h1 class="mb-5">Voyage vers <span class="text-primary text-uppercase">{{ voyage.destination }}</span></h1>
+            </div>
+
+            <div class="row g-4 justify-content-center">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <form action="{{ path('app_send_notifications_voyage') }}" method="POST" id="notificationForm">
+                                <input type="hidden" name="voyage_id" value="{{ voyage.id }}">
+                                
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>
+                                                    <div class="form-check">
+                                                        <input type="checkbox" class="form-check-input" id="selectAll">
+                                                        <label class="form-check-label" for="selectAll">Tout sélectionner</label>
+                                                    </div>
+                                                </th>
+                                                <th>Nom</th>
+                                                <th>Prénom</th>
+                                                <th>Email</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for user in users %}
+                                            <tr class="hover-row">
+                                                <td>
+                                                    <div class="form-check">
+                                                        <input type="checkbox" class="form-check-input user-checkbox" 
+                                                               name="selected_users[]" 
+                                                               value="{{ user.id }}" 
+                                                               id="user-{{ user.id }}">
+                                                    </div>
+                                                </td>
+                                                <td>{{ user.nom }}</td>
+                                                <td>{{ user.prenom }}</td>
+                                                <td>{{ user.email }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="text-center mt-4">
+                                    <button type="submit" class="btn btn-primary py-3 px-5 me-3">
+                                        <i class="fas fa-paper-plane me-2"></i>Envoyer les notifications
+                                    </button>
+                                    <a href="{{ path('app_voyages_agence') }}" class="btn btn-secondary py-3 px-5">
+                                        <i class="fas fa-arrow-left me-2"></i>Retour
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Effets Hover */
+        .table-hover tbody tr:hover {
+            background-color: rgba(13, 110, 253, 0.05);
+            cursor: pointer;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+        }
+        
+        .hover-row:hover {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn {
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Animation des lignes */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        tbody tr {
+            animation: fadeIn 0.3s ease forwards;
+            opacity: 0;
+        }
+
+        tbody tr:nth-child(1) { animation-delay: 0.1s; }
+        tbody tr:nth-child(2) { animation-delay: 0.2s; }
+        tbody tr:nth-child(3) { animation-delay: 0.3s; }
+        /* Ajoutez plus si nécessaire */
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sélection/désélection globale
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const userCheckboxes = document.querySelectorAll('.user-checkbox');
+            
+            selectAllCheckbox.addEventListener('change', function() {
+                userCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+            });
+
+            // Vérification qu'au moins un utilisateur est sélectionné
+            const form = document.getElementById('notificationForm');
+            form.addEventListener('submit', function(e) {
+                const checkedBoxes = document.querySelectorAll('.user-checkbox:checked');
+                if (checkedBoxes.length === 0) {
+                    e.preventDefault();
+                    alert('Veuillez sélectionner au moins un destinataire.');
+                }
+            });
+
+            // Mise à jour de "Tout sélectionner"
+            userCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const allChecked = [...userCheckboxes].every(cb => cb.checked);
+                    selectAllCheckbox.checked = allChecked;
+                    selectAllCheckbox.indeterminate = !allChecked && 
+                        [...userCheckboxes].some(cb => cb.checked);
+                });
+            });
+
+            // Sélection par clic sur la ligne
+            document.querySelectorAll('tbody tr').forEach(row => {
+                row.addEventListener('click', function(e) {
+                    // Ne pas déclencher si on clique sur la checkbox
+                    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'LABEL') {
+                        const checkbox = this.querySelector('.user-checkbox');
+                        checkbox.checked = !checkbox.checked;
+                        checkbox.dispatchEvent(new Event('change'));
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

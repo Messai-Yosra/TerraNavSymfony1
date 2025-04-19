@@ -1,46 +1,103 @@
-{# templates/emails/nouveau_voyage.html.twig #}
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Nouveau voyage disponible</title>
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #f8f9fa; padding: 20px; text-align: center; }
-        .content { padding: 20px; }
-        .voyage-image { max-width: 100%; height: auto; margin: 10px 0; }
-        .button {
-            display: inline-block; padding: 10px 20px; background-color: #0d6efd;
-            color: white; text-decoration: none; border-radius: 5px; margin-top: 15px;
+        /* Mêmes styles que nouvelle_offre.html.twig */
+        /* Ajoutez ces styles spécifiques pour la galerie d'images */
+        .image-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
         }
-        .footer { margin-top: 20px; text-align: center; font-size: 12px; color: #777; }
+        
+        .image-gallery img {
+            width: 200px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        
+        .voyage-details {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .detail-item {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .detail-item i {
+            margin-right: 10px;
+            color: #0d6efd;
+        }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1>Nouveau voyage disponible !</h1>
+    <div class="container">
+        <div class="header">
+            <h1>Nouveau voyage disponible !</h1>
+        </div>
+        
+        <div class="content">
+            <h2 class="greeting">Bonjour {{ user.prenom }},</h2>
+            
+            <p>Un nouveau voyage exceptionnel vient d'être publié :</p>
+            
+            <div class="voyage-card">
+                <div class="voyage-header">
+                    <h3>{{ voyage.titre }}</h3>
+                </div>
+                <div class="voyage-body">
+                    <div class="voyage-description">
+                        {{ voyage.description }}
+                    </div>
+                    
+                    <div class="voyage-details">
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Destination : {{ voyage.destination }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Du {{ voyage.dateDepart|date('d/m/Y') }} au {{ voyage.dateRetour|date('d/m/Y') }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-users"></i>
+                            <span>{{ voyage.nbPlacesD }} places disponibles</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <span>Prix : {{ voyage.prix }} DT</span>
+                        </div>
+                    </div>
+
+                    {% if voyage.id_offre %}
+                    <div class="badge badge-danger">
+                        <strong>RÉDUCTION : -{{ voyage.id_offre.reduction }}%</strong>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="attachment-notice">
+                <i class="fas fa-images"></i>
+                <p>📎 Les images détaillées de ce voyage sont disponibles en pièces jointes.</p>
+            </div>
+            
+            <a href="{{ absolute_url(path('app_voyages_agence')) }}" class="cta-button">
+                Découvrir ce voyage sur notre site
+            </a>
+        </div>
+        
+        <div class="footer">
+            <img src="cid:logo" alt="Logo TerraNava" class="footer-logo">
+            <p>Cordialement,<br>L'équipe TerraNava</p>
+        </div>
     </div>
-
-    <div class="content">
-        <h2>{{ voyage.titre }}</h2>
-        <p><strong>Destination:</strong> {{ voyage.destination }}</p>
-        <p><strong>Départ:</strong> {{ voyage.pointDepart }}</p>
-        <p><strong>Date de départ:</strong> {{ voyage.dateDepart|date('d/m/Y H:i') }}</p>
-        <p><strong>Prix:</strong> {{ voyage.prix }} DT</p>
-
-        <p>{{ voyage.description }}</p>
-
-        <a href="{{ absolute_url(path('app_voyage_details', {'id': voyage.id})) }}" class="button">
-            Voir les détails du voyage
-        </a>
-    </div>
-
-    <div class="footer">
-        <p>Cet email vous a été envoyé parce que vous êtes inscrit sur notre plateforme.</p>
-        <p>© {{ "now"|date("Y") }} TerraNav. Tous droits réservés.</p>
-    </div>
-</div>
 </body>
 </html>

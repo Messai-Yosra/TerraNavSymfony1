@@ -6,6 +6,8 @@ use App\Entity\Offre;
 use App\Entity\Voyage;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\NonUniqueResultException;
 
 class VoyageRepository extends ServiceEntityRepository
 {
@@ -267,4 +269,49 @@ class VoyageRepository extends ServiceEntityRepository
 
         return $result->fetchAllAssociative();
     }
+
+
+    public function findVoyageIdByAttributes(Voyage $voyage): ?int
+{
+    // Validation des données requises
+    $titre = $voyage->getTitre();
+    $dateDepart = $voyage->getDateDepart();
+    
+    if (empty($titre) || $dateDepart === null) {
+        return null;
+    }
+
+    try {
+        $qb = $this->createQueryBuilder('v');
+        
+        // Construction dynamique de la requête
+        $qb->select('v.id')
+           ->where('v.titre = :titre')
+           ->andWhere('v.dateDepart = :dateDepart')
+           ->setParameter('titre', $titre)
+           ->setParameter('dateDepart', $dateDepart)
+           ->setMaxResults(1);
+
+        // Ajout des critères optionnels pour plus de précision
+        if ($voyage->getDestination()) {
+            $qb->andWhere('v.destination = :destination')
+               ->setParameter('destination', $voyage->getDestination());
+        }
+
+        if ($voyage->getPrix()) {
+            $qb->andWhere('v.prix = :prix')
+               ->setParameter('prix', $voyage->getPrix());
+        }
+
+        $query = $qb->getQuery();
+
+        return $query->getSingleScalarResult();
+
+    } catch (NoResultException $e) {
+        return null; // Aucun résultat trouvé
+    } catch (NonUniqueResultException $e) {
+        // Log l'erreur si plusieurs résultats (normalement impossible avec setMaxResults(1))
+        return null;
+    }
+}
 }

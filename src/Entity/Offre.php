@@ -209,4 +209,15 @@ class Offre
             $absolutePath
         );
     }
+
+    public function getTransformedImagePath(): string
+    {
+        if (!$this->imagePath) {
+            return '';
+        }
+    
+        return $this->transformSingleImagePath($this->imagePath);
+    }
+
+    
 }

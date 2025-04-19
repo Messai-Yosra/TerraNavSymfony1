@@ -58,7 +58,7 @@
                         <div class="card-body p-0">
                             <div class="image-hover-container">
                                 <img class="img-fluid rounded-top img-hover-zoom"
-                                     src="{{ asset(offre.transformSingleImagePath(offre.imagePath) ?? 'img/default-offer.jpg') }}"
+                                     src="{{ absolute_url(offre.transformSingleImagePath(offre.imagePath)) }}"
                                      style="height: 400px; width: 100%; object-fit: cover;"
                                      alt="Image de l'offre {{ offre.titre }}"
                                      onerror="this.src='{{ asset('img/about-1.jpg') }}'">
