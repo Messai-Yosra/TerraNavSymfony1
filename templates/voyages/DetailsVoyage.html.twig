@@ -136,13 +136,42 @@
                             </div>
                         </div>
 
-                        <!-- Prix -->
+                        <!-- Prix avec Conversion - Version avec drapeaux -->
                         <div class="col-sm-4 wow fadeIn" data-wow-delay="0.6s">
                             <div class="border rounded p-1 h-100 hover-effect">
-                                <div class="border rounded text-center p-4 h-100">
-                                    <i class="fas fa-money-bill-wave fa-2x text-primary mb-2"></i>
-                                    <h3 class="h5 mb-1">{{ voyage.prix }} DT</h3>
-                                    <p class="mb-0 text-muted">Prix par personne</p>
+                                <div class="border rounded text-center p-4 h-100 d-flex flex-column">
+                                    <!-- Prix principal -->
+                                    <div class="mb-3">
+                                        <i class="fas fa-money-bill-wave fa-2x text-primary mb-2"></i>
+                                        <h3 class="h5 mb-1">{{ voyage.prix }} DT</h3>
+                                        <p class="mb-0 text-muted">Prix par personne</p>
+                                    </div>
+
+                                    <!-- Séparateur visuel -->
+                                    <hr class="my-2 w-50 mx-auto">
+
+                                    <!-- Conversion de devise avec drapeaux -->
+                                    <!-- Conversion de devise avec drapeaux -->
+                                    <div class="mt-auto">
+                                        <div class="mb-2">
+                                            <label for="currencySelect" class="small text-muted">Convertir en :</label>
+                                        </div>
+                                        <select id="currencySelect" class="form-select form-select-sm border-primary">
+                                            <option value="EUR" data-icon="{{ asset('img/eu.png') }}">Euro (EUR)</option>
+                                            <option value="USD" data-icon="{{ asset('img/us.png') }}">Dollar US (USD)</option>
+                                            <option value="DZD" data-icon="{{ asset('img/dz.png') }}">Dinar Algérien (DZD)</option>
+                                            <option value="RUB" data-icon="{{ asset('img/ru.png') }}">Rouble Russe (RUB)</option>
+                                            <option value="GBP" data-icon="{{ asset('img/uk.png') }}">Livre Sterling (GBP)</option>
+                                        </select>
+                                        <div class="converted-price mt-2 small">
+                                                <span id="convertedAmount" class="text-muted">
+                                                    Sélectionnez une devise
+                                                </span>
+                                        </div>
+                                        <p class="conversion-note mt-1 mb-0">
+                                            <small><i class="fas fa-info-circle"></i> Taux en temps réel</small>
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -252,35 +281,44 @@
                         </ul>
                     </div>
                 </div>
-                <!-- Section Activités (à placer où vous souhaitez l'afficher) -->
+                <!-- Section Activités -->
                 <div class="mt-4">
                     <button id="generateActivities" class="btn btn-info py-3 px-5 btn-hover">
                         <i class="fas fa-lightbulb me-2"></i>Activités populaires
                     </button>
 
-                    <div id="activitiesContainer" class="mt-3 p-4 bg-light rounded d-none">
-                        <!-- En-tête avec bouton de copie -->
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h4 class="mb-0">
-                                <i class="fas fa-map-marked-alt text-primary me-2"></i>
-                                Activités à {{ voyage.destination }}
-                            </h4>
-                            <button id="copyActivities" class="btn btn-sm btn-outline-secondary" title="Copier les activités">
-                                <i class="fas fa-copy me-1"></i>Copier
-                            </button>
-                        </div>
-
-                        <!-- Contenu des activités (rempli dynamiquement) -->
-                        <div id="activitiesContent" class="activities-content bg-white p-3 rounded">
-                            <!-- État initial - vide ou avec message d'attente -->
-                            <p class="text-center text-muted mb-0">
-                                Cliquez sur le bouton pour générer les activités populaires...
-                            </p>
-                        </div>
-
-                        <!-- Pied de section -->
-                        <div class="text-end small text-muted mt-2">
-                            <i class="fas fa-info-circle"></i> Suggestions générées par intelligence artificielle
+                    <!-- Modal pour afficher les activités -->
+                    <div class="modal fade" id="activitiesModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">
+                                        <i class="fas fa-map-marked-alt text-primary me-2"></i>
+                                        Activités à {{ voyage.destination }}
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div id="activitiesContent" class="row">
+                                        <!-- Contenu chargé dynamiquement -->
+                                        <div class="text-center py-5">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Chargement...</span>
+                                            </div>
+                                            <p class="mt-3">Chargement des activités...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <small class="text-muted me-auto">
+                                        <i class="fas fa-info-circle"></i> Suggestions générées par IA
+                                    </small>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="copyActivities">
+                                        <i class="fas fa-copy me-1"></i>Copier
+                                    </button>
+                                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Fermer</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -549,6 +587,255 @@
                 height: 100px;
             }
         }
+        /* Style pour le sélecteur de devise */
+        /* Ajoutez ceci à votre section style */
+        .converted-price {
+            font-size: 0.9rem;
+            padding: 4px 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .conversion-note {
+            font-size: 0.7rem;
+            color: #6c757d;
+        }
+
+        /* Amélioration du select */
+        .form-select-sm {
+            padding: 0.25rem 1.5rem 0.25rem 0.5rem;
+            background-position: right 0.3rem center;
+        }
+
+        .border-primary {
+            border-color: #0d6efd !important;
+        }
+        .form-select option {
+            padding: 5px 10px;
+            background-repeat: no-repeat;
+            background-position: left center;
+            padding-left: 25px;
+        }
+
+        /* Style pour le prix converti avec drapeau */
+        .converted-price {
+            font-size: 0.9rem;
+            padding: 4px 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .converted-price span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .conversion-note {
+            font-size: 0.7rem;
+            color: #6c757d;
+        }
+
+        .select-with-flags {
+            position: relative;
+        }
+
+        .select-with-flags option {
+            padding-left: 30px;
+            background-repeat: no-repeat;
+            background-position: left center;
+            background-size: 20px;
+        }
+
+        #convertedAmount img {
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+
+        .fa-spinner {
+            margin-right: 5px;
+        }
+
+        /* Styles pour le modal des activités */
+        #activitiesModal .modal-content {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #activitiesModal .card {
+            transition: transform 0.3s ease;
+            border-radius: 8px;
+        }
+
+        #activitiesModal .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        #activitiesModal .card-img-top {
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
     </style>
+
+
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const currencySelect = document.getElementById('currencySelect');
+                const convertedAmount = document.getElementById('convertedAmount');
+                const originalPrice = {{ voyage.prix }};
+                const loadingText = '<i class="fas fa-spinner fa-spin"></i> Conversion en cours...';
+
+                currencySelect.addEventListener('change', async function() {
+                    const targetCurrency = this.value;
+                    convertedAmount.innerHTML = loadingText;
+
+                    try {
+                        const response = await fetch('/convert', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: JSON.stringify({
+                                amount: originalPrice,
+                                from: 'TND',
+                                to: targetCurrency
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            const flagIcon = this.options[this.selectedIndex].getAttribute('data-icon');
+                            const currencySymbol = getCurrencySymbol(targetCurrency);
+                            convertedAmount.innerHTML = `
+                    <img src="${flagIcon}" alt="${targetCurrency}" width="20" class="me-1">
+                     ${data.convertedAmount.toFixed(2)} ${currencySymbol}
+                `;
+                        } else {
+                            convertedAmount.textContent = 'Erreur de conversion';
+                        }
+                    } catch (error) {
+                        console.error('Erreur:', error);
+                        convertedAmount.textContent = 'Service temporairement indisponible';
+                    }
+                });
+
+                function getCurrencySymbol(currency) {
+                    const symbols = {
+                        'EUR': '€',
+                        'USD': '$',
+                        'DZD': 'DA',
+                        'RUB': '₽',
+                        'GBP': '£'
+                    };
+                    return symbols[currency] || '';
+                }
+            });
+        </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const generateBtn = document.getElementById('generateActivities');
+            const activitiesModal = new bootstrap.Modal(document.getElementById('activitiesModal'));
+            const activitiesContent = document.getElementById('activitiesContent');
+            const copyBtn = document.getElementById('copyActivities');
+
+            generateBtn.addEventListener('click', async function() {
+                activitiesModal.show();
+                activitiesContent.innerHTML = `
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Chargement...</span>
+                </div>
+                <p class="mt-3">Chargement des activités...</p>
+            </div>`;
+
+                try {
+                    const response = await fetch(`/get-activities/{{ voyage.destination|escape('js') }}`);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        let html = '';
+
+                        if (data.activities && data.activities.length > 0) {
+                            data.activities.forEach(activity => {
+                                html += `
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100 border-0 shadow-sm">
+                                ${activity.image ? `
+                                <img src="${activity.image}"
+                                     class="card-img-top"
+                                     alt="${activity.name}"
+                                     style="height: 150px; object-fit: cover;"
+                                     onerror="this.src='https://via.placeholder.com/300x200?text=Activité'">
+                                ` : `
+                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                                     style="height: 150px;">
+                                    <i class="fas fa-map-marker-alt fa-3x text-muted"></i>
+                                </div>
+                                `}
+                                <div class="card-body">
+                                    <h5 class="card-title">${activity.name}</h5>
+                                    <p class="card-text text-muted">${activity.description}</p>
+                                </div>
+                            </div>
+                        </div>`;
+                            });
+                        } else {
+                            html = `
+                    <div class="col-12 text-center py-4">
+                        <i class="fas fa-info-circle fa-3x text-info mb-3"></i>
+                        <p>Aucune activité trouvée pour cette destination</p>
+                    </div>`;
+                        }
+
+                        activitiesContent.innerHTML = html;
+                    } else {
+                        activitiesContent.innerHTML = `
+                <div class="col-12 text-center py-4">
+                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                    <p>${data.error || 'Erreur lors du chargement des activités'}</p>
+                    <button class="btn btn-sm btn-outline-primary" onclick="window.location.reload()">
+                        <i class="fas fa-sync-alt me-1"></i> Réessayer
+                    </button>
+                </div>`;
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    activitiesContent.innerHTML = `
+            <div class="col-12 text-center py-4">
+                <i class="fas fa-unplug fa-3x text-danger mb-3"></i>
+                <p>Problème de connexion au service: ${error.message}</p>
+            </div>`;
+                }
+            });
+
+            copyBtn.addEventListener('click', function() {
+                const activitiesText = Array.from(document.querySelectorAll('#activitiesContent .card-title'))
+                    .map(el => el.textContent)
+                    .join('\n- ');
+
+                navigator.clipboard.writeText(`Activités recommandées :\n- ${activitiesText}`)
+                    .then(() => {
+                        const originalText = copyBtn.innerHTML;
+                        copyBtn.innerHTML = '<i class="fas fa-check me-1"></i>Copié!';
+                        setTimeout(() => {
+                            copyBtn.innerHTML = originalText;
+                        }, 2000);
+                    });
+            });
+        });
+    </script>
+
 
 {% endblock %}

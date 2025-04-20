@@ -6,6 +6,7 @@ namespace App\Controller\voyages;
 use App\Entity\Voyage;
 use App\Repository\Voyage\OffreRepository;
 use App\Repository\Voyage\VoyageRepository;
+use App\Service\WeatherService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -49,16 +50,7 @@ final class VoyageClientController extends AbstractController
         ]);
     }
 
-    #[Route('/voyage/{id}', name: 'app_voyage_show')]
-    public function show(Voyage $voyage, VoyageRepository $voyageRepository): Response
-    {
-        $similarVoyages = $voyageRepository->findSimilarVoyages($voyage);
 
-        return $this->render('voyages/DetailsVoyage.html.twig', [
-            'voyage' => $voyage,
-            'similarVoyages' => $similarVoyages,
-        ]);
-    }
     #[Route('/Reservervoyage/{id}', name: 'app_voyage_reserver')]
     public function Reserver(Voyage $voyage): Response
     {
@@ -150,6 +142,30 @@ final class VoyageClientController extends AbstractController
             'voyage' => $voyage
         ]);
     }*/
+
+
+    #[Route('/voyage/weather/{destination}', name: 'app_voyage_weather')]
+    public function getWeather(string $destination, WeatherService $weatherService): JsonResponse
+    {
+        try {
+            $weatherData = $weatherService->getWeatherForDestination($destination);
+
+            if (!$weatherData) {
+                return $this->json([
+                    'error' => 'weather_data_unavailable',
+                    'message' => 'Données météo non disponibles pour cette destination'
+                ], 404);
+            }
+
+            return $this->json($weatherData);
+        } catch (\Exception $e) {
+            return $this->json([
+                'error' => 'api_error',
+                'message' => 'Erreur technique lors de la récupération des données météo',
+                'details' => $e->getMessage() // En dev seulement
+            ], 500);
+        }
+    }
 
 
 
