@@ -72,7 +72,7 @@ class Transport
     #[Assert\NotBlank(message: "Le contact est requis")]
     #[Assert\Length(
         min: 5,
-        max: 20,
+        max: 15,
         minMessage: "Le contact doit contenir au moins {{ limit }} caractères",
         maxMessage: "Le contact ne peut pas dépasser {{ limit }} caractères"
     )]

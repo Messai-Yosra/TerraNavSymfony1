@@ -25,44 +25,44 @@
             {% endfor %}
             <div class="row g-4">
                 <div class="col-12">
-                    <!-- Search Form -->
-                    <form action="{{ path('client_trajets_list') }}" method="get" class="mb-4">
-                        <div class="input-group">
-                            <input type="text" name="search" class="form-control" placeholder="Rechercher un trajet..." value="{{ searchTerm|default('') }}">
-                            <button type="submit" class="btn btn-primary">Rechercher</button>
-                        </div>
-                    </form>
+                    <!-- Search Input -->
+                    <div class="input-group mb-4">
+                        <input type="text" id="search-input" class="form-control" placeholder="Rechercher un trajet par point de départ..." value="{{ searchTerm|default('') }}">
+                    </div>
                 </div>
-                {% if trajets|length > 0 %}
-                    {% for trajet in trajets %}
-                        <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.{{ loop.index * 0.1 }}s">
-                            <div class="service-item rounded h-100">
-                                <div class="service-icon bg-transparent border rounded p-1">
-                                    <div class="w-100 h-100 border rounded d-flex align-items-center justify-content-center">
-                                        <i class="fa fa-route fa-2x text-primary"></i>
+                <!-- Trajet List Container -->
+                <div id="trajet-list" class="row g-4" aria-live="polite">
+                    {% if trajets|length > 0 %}
+                        {% for trajet in trajets %}
+                            <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.{{ loop.index * 0.1 }}s">
+                                <div class="service-item rounded h-100">
+                                    <div class="service-icon bg-transparent border rounded p-1">
+                                        <div class="w-100 h-100 border rounded d-flex align-items-center justify-content-center">
+                                            <i class="fa fa-route fa-2x text-primary"></i>
+                                        </div>
                                     </div>
-                                </div>
-                                <h5 class="mb-3">{{ trajet.pointDepart }} → {{ trajet.destination }}</h5>
-                                <p class="text-body mb-0">
-                                    Date de départ: {{ trajet.dateDepart|date('d/m/Y H:i') }}<br>
-                                    Durée: {{ trajet.duree }} minutes<br>
-                                    Disponibilité: {{ trajet.disponibilite ? 'Oui' : 'Non' }}
-                                </p>
-                                <div class="service-hover-content">
-                                    <p class="text-white">{{ trajet.description|default('Aucune description disponible.')|length > 100 ? trajet.description|slice(0, 100) ~ '...' : trajet.description }}</p>
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <a href="{{ path('client_trajet_edit', {'id': trajet.id}) }}" class="btn btn-light rounded-pill">Modifier <i class="fa fa-edit ms-2"></i></a>
-                                        <button class="btn btn-danger rounded-pill delete-btn" data-id="{{ trajet.id }}" data-token="{{ csrf_token('delete' ~ trajet.id) }}">Supprimer <i class="fa fa-trash ms-2"></i></button>
+                                    <h5 class="mb-3">{{ trajet.pointDepart }} → {{ trajet.destination }}</h5>
+                                    <p class="text-body mb-0">
+                                        Date de départ: {{ trajet.dateDepart|date('d/m/Y H:i') }}<br>
+                                        Durée: {{ trajet.duree }} minutes<br>
+                                        Disponibilité: {{ trajet.disponibilite ? 'Oui' : 'Non' }}
+                                    </p>
+                                    <div class="service-hover-content">
+                                        <p class="text-white">{{ trajet.description|default('Aucune description disponible.')|length > 100 ? trajet.description|slice(0, 100) ~ '...' : trajet.description }}</p>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <a href="{{ path('client_trajet_edit', {'id': trajet.id}) }}" class="btn btn-light rounded-pill">Modifier <i class="fa fa-edit ms-2"></i></a>
+                                            <button class="btn btn-danger rounded-pill delete-btn" data-id="{{ trajet.id }}" data-token="{{ csrf_token('delete' ~ trajet.id) }}">Supprimer <i class="fa fa-trash ms-2"></i></button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="col-12 text-center">
+                            <p class="text-muted">Aucun trajet trouvé. <a href="{{ path('client_trajet_new') }}">Ajoutez-en un maintenant !</a></p>
                         </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="col-12 text-center">
-                        <p class="text-muted">Aucun trajet trouvé. <a href="{{ path('client_trajet_new') }}">Ajoutez-en un maintenant !</a></p>
-                    </div>
-                {% endif %}
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
@@ -146,63 +146,155 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Delete trajet
-            document.querySelectorAll('.delete-btn').forEach(button => {
-                button.addEventListener('click', async function () {
-                    const trajetId = this.getAttribute('data-id');
-                    const token = this.getAttribute('data-token');
+            // Dynamic search
+            const searchInput = document.getElementById('search-input');
+            const trajetList = document.getElementById('trajet-list');
 
-                    const result = await Swal.fire({
-                        title: 'Êtes-vous sûr ?',
-                        text: 'Voulez-vous vraiment supprimer ce trajet ?',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#dc3545',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'Oui, supprimer',
-                        cancelButtonText: 'Annuler'
+            // Debounce function to limit AJAX requests
+            function debounce(func, wait) {
+                let timeout;
+                return function (...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+
+            // Function to generate trajet HTML
+            function generateTrajetHTML(trajet, index) {
+                // Ensure trajet.id is valid
+                if (!trajet.id || isNaN(trajet.id)) {
+                    console.error('Invalid trajet ID:', trajet);
+                    return '';
+                }
+
+                const description = trajet.description || 'Aucune description disponible.';
+                const shortDescription = description.length > 100 ? description.slice(0, 100) + '...' : description;
+
+                // Use template literal for safer string construction
+                const editUrl = `{{ path('client_trajet_edit', {'id': 'ID'}) }}`.replace('ID', trajet.id);
+
+                return `
+                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.${index * 0.1}s">
+                        <div class="service-item rounded h-100">
+                            <div class="service-icon bg-transparent border rounded p-1">
+                                <div class="w-100 h-100 border rounded d-flex align-items-center justify-content-center">
+                                    <i class="fa fa-route fa-2x text-primary"></i>
+                                </div>
+                            </div>
+                            <h5 class="mb-3">${trajet.pointDepart} → ${trajet.destination}</h5>
+                            <p class="text-body mb-0">
+                                Date de départ: ${trajet.dateDepart}<br>
+                                Durée: ${trajet.duree} minutes<br>
+                                Disponibilité: ${trajet.disponibilite ? 'Oui' : 'Non'}
+                            </p>
+                            <div class="service-hover-content">
+                                <p class="text-white">${shortDescription}</p>
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a href="${editUrl}" class="btn btn-light rounded-pill">Modifier <i class="fa fa-edit ms-2"></i></a>
+                                    <button class="btn btn-danger rounded-pill delete-btn" data-id="${trajet.id}" data-token="${trajet.csrfToken}">Supprimer <i class="fa fa-trash ms-2"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Search handler
+            searchInput.addEventListener('input', debounce(async function () {
+                const searchTerm = this.value.trim();
+
+                try {
+                    const response = await fetch(`{{ path('client_trajets_list') }}?search=${encodeURIComponent(searchTerm)}`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
                     });
 
-                    if (result.isConfirmed) {
-                        try {
-                            const response = await fetch(`{{ path('client_trajet_delete', {'id': 'ID'}) }}`.replace('ID', trajetId), {
-                                method: 'POST',
-                                headers: {
-                                    'X-Requested-With': 'XMLHttpRequest',
-                                    'Content-Type': 'application/x-www-form-urlencoded',
-                                },
-                                body: `_token=${encodeURIComponent(token)}`
-                            });
+                    const data = await response.json();
 
-                            const data = await response.json();
+                    // Log the response for debugging
+                    console.log('AJAX Response:', data);
 
-                            if (data.success) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Supprimé !',
-                                    text: data.message,
-                                    showConfirmButton: false,
-                                    timer: 1500
-                                }).then(() => {
-                                    window.location.reload();
+                    // Update the trajet list
+                    trajetList.innerHTML = data.trajets && data.trajets.length > 0 ?
+                        data.trajets.map((trajet, index) => generateTrajetHTML(trajet, index)).join('') :
+                        '<div class="col-12 text-center"><p class="text-muted">Aucun trajet trouvé. <a href="{{ path('client_trajet_new') }}">Ajoutez-en un maintenant !</a></p></div>';
+
+                    // Re-attach delete button listeners
+                    attachDeleteButtonListeners();
+                } catch (error) {
+                    console.error('Error fetching trajet list:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erreur',
+                        text: 'Une erreur est survenue lors de la recherche.',
+                    });
+                }
+            }, 300));
+
+            // Function to attach delete button listeners
+            function attachDeleteButtonListeners() {
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', async function () {
+                        const trajetId = this.getAttribute('data-id');
+                        const token = this.getAttribute('data-token');
+
+                        const result = await Swal.fire({
+                            title: 'Êtes-vous sûr ?',
+                            text: 'Voulez-vous vraiment supprimer ce trajet ?',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#dc3545',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: 'Oui, supprimer',
+                            cancelButtonText: 'Annuler'
+                        });
+
+                        if (result.isConfirmed) {
+                            try {
+                                const response = await fetch(`{{ path('client_trajet_delete', {'id': 'ID'}) }}`.replace('ID', trajetId), {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Content-Type': 'application/x-www-form-urlencoded',
+                                    },
+                                    body: `_token=${encodeURIComponent(token)}`
                                 });
-                            } else {
+
+                                const data = await response.json();
+
+                                if (data.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Supprimé !',
+                                        text: data.message,
+                                        showConfirmButton: false,
+                                        timer: 1500
+                                    }).then(() => {
+                                        // Refresh the list after deletion
+                                        searchInput.dispatchEvent(new Event('input'));
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Erreur',
+                                        text: data.message || 'Impossible de supprimer le trajet.',
+                                    });
+                                }
+                            } catch (error) {
                                 Swal.fire({
                                     icon: 'error',
                                     title: 'Erreur',
-                                    text: data.message || 'Impossible de supprimer le trajet.',
+                                    text: 'Une erreur est survenue lors de la suppression.',
                                 });
                             }
-                        } catch (error) {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Erreur',
-                                text: 'Une erreur est survenue lors de la suppression.',
-                            });
                         }
-                    }
+                    });
                 });
-            });
+            }
+
+            // Initial attachment of delete button listeners
+            attachDeleteButtonListeners();
 
             // Flash messages
             {% for message in app.flashes('success') %}

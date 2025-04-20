@@ -6,253 +6,322 @@
     <link rel="stylesheet" href="{{ asset('css/transports/ClientTransport.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<div class="transport-booking-container">
-    <!-- Hero Section -->
-    <section class="hero-section">
-    <div class="hero-content" >
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 
-        <h1>Voyagez en toute sérénité</h1>
-        <p>Trouvez et réservez le transport parfait pour votre prochain voyage</p>
-    </div>
-</section>
+    <div class="transport-booking-container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1>Voyagez en toute sérénité</h1>
+                <p>Trouvez et réservez le transport parfait pour votre prochain voyage</p>
+            </div>
+        </section>
 
-    <!-- Search Form -->
-    <div class="search-container">
-       <form action="{{ path('app_transport_search') }}" method="get" class="search-form">
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="departure"><i class="fas fa-map-marker-alt"></i> Départ</label>
-                    <input type="text" id="departure" name="departure" placeholder="Ville ou gare de départ" required>
+        <!-- Search Form -->
+        <div class="search-container">
+            {{ form_start(form, {'attr': {'class': 'search-form', 'novalidate': 'novalidate'}}) }}
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="form_departure"><i class="fas fa-map-marker-alt"></i> Départ</label>
+                        {{ form_widget(form.departure, {
+                            'attr': {
+                                'class': 'form-control' ~ (form.departure.vars.errors|length ? ' is-invalid' : ''),
+                                'id': 'form_departure',
+                                'autocomplete': 'off'
+                            }
+                        }) }}
+                        {% if form.departure.vars.errors|length %}
+                            <div class="invalid-feedback">
+                                {% for error in form.departure.vars.errors %}
+                                    {{ error.message }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div id="form_departure-suggestions" class="suggestions-container"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="form_destination"><i class="fas fa-map-marker"></i> Destination</label>
+                        {{ form_widget(form.destination, {
+                            'attr': {
+                                'class': 'form-control' ~ (form.destination.vars.errors|length ? ' is-invalid' : ''),
+                                'id': 'form_destination',
+                                'autocomplete': 'off'
+                            }
+                        }) }}
+                        {% if form.destination.vars.errors|length %}
+                            <div class="invalid-feedback">
+                                {% for error in form.destination.vars.errors %}
+                                    {{ error.message }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div id="form_destination-suggestions" class="suggestions-container"></div>
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="destination"><i class="fas fa-map-marker"></i> Destination</label>
-                    <input type="text" id="destination" name="destination" placeholder="Ville ou gare d'arrivée" required>
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="date"><i class="fas fa-calendar"></i> Date</label>
-                    <input type="date" id="date" name="date" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="form_date"><i class="fas fa-calendar"></i> Date</label>
+                        {{ form_widget(form.date, {
+                            'attr': {
+                                'class': 'form-control' ~ (form.date.vars.errors|length ? ' is-invalid' : '')
+                            }
+                        }) }}
+                        {% if form.date.vars.errors|length %}
+                            <div class="invalid-feedback">
+                                {% for error in form.date.vars.errors %}
+                                    {{ error.message }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="form_passagers"><i class="fas fa-users"></i> Passagers</label>
+                        {{ form_widget(form.passagers, {
+                            'attr': {
+                                'class': 'form-control' ~ (form.passagers.vars.errors|length ? ' is-invalid' : '')
+                            }
+                        }) }}
+                        {% if form.passagers.vars.errors|length %}
+                            <div class="invalid-feedback">
+                                {% for error in form.passagers.vars.errors %}
+                                    {{ error.message }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="passengers"><i class="fas fa-users"></i> Passagers</label>
-                    <select id="passengers" name="passengers">
-                        <option value="1">1 passager</option>
-                        <option value="2">2 passagers</option>
-                        <option value="3">3 passagers</option>
-                        <option value="4">4 passagers</option>
-                        <option value="5">5 passagers</option>
-                        <option value="6">6 passagers</option>
-                    </select>
-                </div>
-            </div>
-            
-            <button type="submit" class="search-button">
-                <i class="fas fa-search"></i> Rechercher
-            </button>
-        </form>
-    </div>
-
-    <!-- Why Choose Us Section -->
-    <section class="why-us-section">
-        <h2>Pourquoi nous choisir ?</h2>
-        <div class="benefits-grid">
-            <div class="benefit-card">
-                <i class="fas fa-bolt"></i>
-                <h3>Réservation instantanée</h3>
-                <p>Confirmations immédiates et e-billets disponibles en quelques clics</p>
-            </div>
-            
-            <div class="benefit-card">
-                <i class="fas fa-tag"></i>
-                <h3>Prix garantis</h3>
-                <p>Les meilleurs tarifs sans frais cachés ni suppléments</p>
-            </div>
-            
-            <div class="benefit-card">
-                <i class="fas fa-shield-alt"></i>
-                <h3>Assurance incluse</h3>
-                <p>Voyagez l'esprit tranquille avec notre assurance comprise</p>
-            </div>
-            
-            <div class="benefit-card">
-                <i class="fas fa-headset"></i>
-                <h3>Support 24/7</h3>
-                <p>Notre équipe est à votre disposition à tout moment</p>
-            </div>
+                <button type="submit" class="search-button">
+                    <i class="fas fa-search"></i> Rechercher
+                </button>
+            {{ form_end(form) }}
         </div>
-    </section>
 
-    <!-- Popular Routes -->
-    <section class="popular-routes">
-        <h2>Destinations populaires</h2>
-        <div class="routes-grid">
-            <div class="route-card">
-                <img src="{{ asset('img/paris.jpg') }}" alt="Paris">
-                <div class="route-info">
-                    <h3>Paris</h3>
-                    <p>À partir de 25DTN</p>
-                    <a href="#" class="btn-view">Voir les options</a>
+        <!-- Popular Routes -->
+        <section class="popular-routes">
+            <h2>Destinations populaires</h2>
+            <div class="routes-grid">
+                <div class="route-card">
+                    <img src="{{ asset('img/paris.jpg') }}" alt="Paris">
+                    <div class="route-info">
+                        <h3>Paris</h3>
+                        <p>À partir de 25DTN</p>
+                        <a href="#" class="btn-view">Voir les options</a>
+                    </div>
+                </div>
+                
+                <div class="route-card">
+                    <img src="{{ asset('img/egypte.jpg') }}" alt="Egypte">
+                    <div class="route-info">
+                        <h3>Egypte</h3>
+                        <p>À partir de 35DTN</p>
+                        <a href="#" class="btn-view">Voir les options</a>
+                    </div>
+                </div>
+                
+                <div class="route-card">
+                    <img src="{{ asset('img/espagne.jpg') }}" alt="Espagne">
+                    <div class="route-info">
+                        <h3>Espagne</h3>
+                        <p>À partir de 40DTN</p>
+                        <a href="#" class="btn-view">Voir les options</a>
+                    </div>
+                </div>
+                
+                <div class="route-card">
+                    <img src="{{ asset('img/japon.jpg') }}" alt="Japon">
+                    <div class="route-info">
+                        <h3>Japon</h3>
+                        <p>À partir de 38DTN</p>
+                        <a href="#" class="btn-view">Voir les options</a>
+                    </div>
+                </div>
+                
+                <div class="route-card">
+                    <img src="{{ asset('img/tunis.jpg') }}" alt="Tunis">
+                    <div class="route-info">
+                        <h3>Tunis</h3>
+                        <p>À partir de 45DTN</p>
+                        <a href="#" class="btn-view">Voir les options</a>
+                    </div>
+                </div>
+                
+                <div class="route-card">
+                    <img src="{{ asset('img/bresil.jpg') }}" alt="Bresil">
+                    <div class="route-info">
+                        <h3>Bresil</h3>
+                        <p>À partir de 132DTN</p>
+                        <a href="#" class="btn-view">Voir les options</a>
+                    </div>
                 </div>
             </div>
-            
-            <div class="route-card">
-                <img src="{{ asset('img/egypte.jpg') }}" alt="Egypte">
-                <div class="route-info">
-                    <h3>Egypte</h3>
-                    <p>À partir de 35DTN</p>
-                    <a href="#" class="btn-view">Voir les options</a>
-                </div>
-            </div>
-            
-            <div class="route-card">
-                <img src="{{ asset('img/espagne.jpg') }}" alt="Espagne">
-                <div class="route-info">
-                    <h3>Espagne</h3>
-                    <p>À partir de 40DTN</p>
-                    <a href="#" class="btn-view">Voir les options</a>
-                </div>
-            </div>
-            
-            <div class="route-card">
-                <img src="{{ asset('img/japon.jpg') }}" alt="Japon">
-                <div class="route-info">
-                    <h3>Japon</h3>
-                    <p>À partir de 38DTN</p>
-                    <a href="#" class="btn-view">Voir les options</a>
-                </div>
-            </div>
-            
-            <div class="route-card">
-                <img src="{{ asset('img/tunis.jpg') }}" alt="Tunis">
-                <div class="route-info">
-                    <h3>Tunis</h3>
-                    <p>À partir de 45DTN</p>
-                    <a href="#" class="btn-view">Voir les options</a>
-                </div>
-            </div>
-            
-            <div class="route-card">
-                <img src="{{ asset('img/bresil.jpg') }}" alt="Bresil">
-                <div class="route-info">
-                    <h3>Bresil</h3>
-                    <p>À partir de 132DTN</p>
-                    <a href="#" class="btn-view">Voir les options</a>
-                </div>
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Transport Types -->
-    <section class="transport-types">
-        <h2>Types de transport disponibles</h2>
-        <div class="types-grid">
-            <div class="type-card">
-                <i class="fas fa-bus"></i>
-                <h3>Bus</h3>
-                <p>Confortable et économique pour tous vos trajets</p>
-            </div>
-            
-            <div class="type-card">
-                <i class="fas fa-train"></i>
-                <h3>Train</h3>
-                <p>Rapide et pratique, idéal pour les longues distances</p>
-            </div>
-            
-            <div class="type-card">
-                <i class="fas fa-shuttle-van"></i>
-                <h3>Navette</h3>
-                <p>Service direct et sans arrêts pour plus de commodité</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Testimonials -->
-    <section class="testimonials">
-        <h2>Ce que nos clients disent</h2>
-        <div class="testimonial-slider">
-            <div class="testimonial-item">
-                <div class="testimonial-content">
-                    "Service impeccable ! J'ai pu réserver mon billet de train en quelques minutes. L'interface est intuitive et le processus est très simple. Je recommande vivement."
+        <!-- Transport Types -->
+        <section class="transport-types">
+            <h2>Types de transport disponibles</h2>
+            <div class="types-grid">
+                <div class="type-card">
+                    <i class="fas fa-bus"></i>
+                    <h3>Bus</h3>
+                    <p>Confortable et économique pour tous vos trajets</p>
                 </div>
-                <div class="testimonial-author">
-                    <img src="{{ asset('images/transport/testimonial1.jpg') }}" alt="Sophie Martin" class="author-img">
-                    <div class="author-info">
-                        <h4>Sophie Martin</h4>
-                        <p>Paris</p>
-                        <div class="rating">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
+                
+                <div class="type-card">
+                    <i class="fas fa-train"></i>
+                    <h3>Train</h3>
+                    <p>Rapide et pratique, idéal pour les longues distances</p>
+                </div>
+                
+                <div class="type-card">
+                    <i class="fas fa-shuttle-van"></i>
+                    <h3>Navette</h3>
+                    <p>Service direct et sans arrêts pour plus de commodité</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials -->
+        <section class="testimonials">
+            <h2>Ce que nos clients disent</h2>
+            <div class="testimonial-slider">
+                <div class="testimonial-item">
+                    <div class="testimonial-content">
+                        "Service impeccable ! J'ai pu réserver mon billet de train en quelques minutes. L'interface est intuitive et le processus est très simple. Je recommande vivement."
+                    </div>
+                    <div class="testimonial-author">
+                        <img src="{{ asset('images/transport/testimonial1.jpg') }}" alt="Sophie Martin" class="author-img">
+                        <div class="author-info">
+                            <h4>Sophie Martin</h4>
+                            <p>Paris</p>
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- More testimonials would be added here and controlled by JS -->
-        </div>
-    </section>
-    
-    <!-- CTA Section -->
-    <section class="cta-section">
-        <div class="cta-content">
-            <h2>Prêt à voyager ?</h2>
-            <p>Réservez dès maintenant et profitez de nos offres exclusives pour votre prochain trajet</p>
-            <div class="cta-buttons">
-                <a href="#" class="btn-primary">Réserver maintenant</a>
-                <a href="#" class="btn-secondary">Voir toutes les destinations</a>
+        </section>
+        
+        <!-- CTA Section -->
+        <section class="cta-section">
+            <div class="cta-content">
+                <h2>Prêt à voyager ?</h2>
+                <p>Réservez dès maintenant et profitez de nos offres exclusives pour votre prochain trajet</p>
+                <div class="cta-buttons">
+                    <a href="#" class="btn-primary">Réserver maintenant</a>
+                    <a href="#" class="btn-secondary">Voir toutes les destinations</a>
+                </div>
             </div>
-        </div>
-    </section>
-</div>
+        </section>
+    </div>
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"></script>
+    
     <script>
-        // Set minimum date to today
-        document.getElementById('date').min = new Date().toISOString().split('T')[0];
-        
-        // Auto-complete for departure/destination (to be implemented)
-        
-        // Testimonial slider functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            // Here you would add testimonial slider functionality
-            // This is a placeholder for where you'd implement a carousel
-            
-            // Add subtle animations on scroll
-            const animateOnScroll = function() {
-                const elements = document.querySelectorAll('.benefit-card, .route-card, .type-card, .testimonial-item');
-                
-                elements.forEach(element => {
-                    const elementPosition = element.getBoundingClientRect().top;
-                    const windowHeight = window.innerHeight;
-                    
-                    if (elementPosition < windowHeight - 100) {
-                        element.style.opacity = '1';
-                        element.style.transform = 'translateY(0)';
-                    }
-                });
-            };
-            
-            // Set initial state for animation elements
-            const elementsToAnimate = document.querySelectorAll('.benefit-card, .route-card, .type-card, .testimonial-item');
-            elementsToAnimate.forEach(element => {
-                element.style.opacity = '0';
-                element.style.transform = 'translateY(20px)';
-                element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        $(function() {
+            // Configuration de l'autocomplétion avec jQuery UI
+            $("#form_departure, #form_destination").autocomplete({
+                source: function(request, response) {
+                    $.ajax({
+                        url: "{{ path('app_suggest_cities') }}",
+                        dataType: "json",
+                        data: {
+                            q: request.term
+                        },
+                        success: function(data) {
+                            response(data.map(function(item) {
+                                return {
+                                    label: item.name,
+                                    value: item.name,
+                                    coordinates: item.coordinates
+                                };
+                            }));
+                        }
+                    });
+                },
+                minLength: 2,
+                select: function(event, ui) {
+                    // Stocker les coordonnées si nécessaire
+                    console.log("Coordonnées sélectionnées:", ui.item.coordinates);
+                }
             });
-            
-            // Run once on load
-            animateOnScroll();
-            
-            // Add scroll event listener
-            window.addEventListener('scroll', animateOnScroll);
+
+            // Validation de la date (aujourd'hui ou future)
+            $("#form_date").attr("min", new Date().toISOString().split("T")[0]);
+
+            // Gestion de la soumission du formulaire
+            $(".search-form").on("submit", function(e) {
+                e.preventDefault();
+                
+                // Validation supplémentaire si nécessaire
+                const departure = $("#form_departure").val();
+                const destination = $("#form_destination").val();
+                
+                if (!departure || !destination) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Champs manquants',
+                        text: 'Veuillez saisir une ville de départ et une destination'
+                    });
+                    return;
+                }
+                
+                // Soumission du formulaire
+                this.submit();
+            });
         });
     </script>
+
+    <style>
+        /* Styles pour l'autocomplétion */
+        .ui-autocomplete {
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+        
+        .ui-menu-item {
+            padding: 8px 15px;
+            font-family: 'Poppins', sans-serif;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        
+        .ui-menu-item:last-child {
+            border-bottom: none;
+        }
+        
+        .ui-state-active {
+            background-color: #f5f5f5;
+            border-color: #ddd;
+            color: #333;
+        }
+        
+        /* Positionnement des suggestions */
+        .form-group {
+            position: relative;
+        }
+        
+        .ui-autocomplete {
+            position: absolute;
+            width: 100%;
+            z-index: 1000;
+        }
+    </style>
 {% endblock %}

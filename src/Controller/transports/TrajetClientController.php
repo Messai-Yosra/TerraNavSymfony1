@@ -26,20 +26,41 @@ final class TrajetClientController extends AbstractController
         return $this->render('trajets/client_index.html.twig');
     }
 
-    #[Route('/trajets/liste', name: 'client_trajets_list')]
+    #[Route('/trajets/liste', name: 'client_trajets_list', methods: ['GET'])]
     public function list(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $searchTerm = $request->query->get('search');
+        $searchTerm = $request->query->get('search', '');
+        $isAjax = $request->isXmlHttpRequest();
 
         $queryBuilder = $entityManager->getRepository(Trajet::class)
             ->createQueryBuilder('t');
 
         if ($searchTerm) {
-            $queryBuilder->where('t.pointDepart LIKE :searchTerm OR t.destination LIKE :searchTerm')
-                         ->setParameter('searchTerm', '%'.$searchTerm.'%');
+            $queryBuilder->where('t.pointDepart LIKE :searchTerm')
+                         ->setParameter('searchTerm', '%' . $searchTerm . '%');
         }
 
         $trajets = $queryBuilder->getQuery()->getResult();
+
+        if ($isAjax) {
+            $trajetData = array_map(function ($trajet) {
+                return [
+                    'id' => $trajet->getId(),
+                    'pointDepart' => $trajet->getPointDepart(),
+                    'destination' => $trajet->getDestination(),
+                    'dateDepart' => $trajet->getDateDepart()->format('d/m/Y H:i'),
+                    'duree' => $trajet->getDuree(),
+                    'disponibilite' => $trajet->getDisponibilite(),
+                    'description' => $trajet->getDescription(),
+                    'csrfToken' => $this->container->get('security.csrf.token_manager')->getToken('delete' . $trajet->getId())->getValue(),
+                ];
+            }, $trajets);
+
+            return new JsonResponse([
+                'trajets' => $trajetData,
+                'searchTerm' => $searchTerm,
+            ]);
+        }
 
         return $this->render('transports/client_trajets_list.html.twig', [
             'trajets' => $trajets,
