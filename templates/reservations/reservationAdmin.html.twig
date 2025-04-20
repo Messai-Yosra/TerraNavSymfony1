@@ -250,9 +250,9 @@
 
                         userData.reservations.forEach(reservation => {
                             const iconClass =
-                                reservation.type === 'voyage' ? 'fa-suitcase-rolling' :
+                                reservation.type === 'voyage' ? 'fa-plane' :
                                     reservation.type === 'chambre' ? 'fa-hotel' :
-                                        reservation.type === 'transport' ? 'fa-plane' : 'fa-calendar-check';
+                                        reservation.type === 'transport' ? 'fa-car-side' : 'fa-calendar-check';
 
                             const statusClass = reservation.status === 'Confirmée' ? 'confirmed' : 'pending';
 
