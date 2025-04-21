@@ -159,9 +159,22 @@
                                         <select id="currencySelect" class="form-select form-select-sm border-primary">
                                             <option value="EUR" data-icon="{{ asset('img/eu.png') }}">Euro (EUR)</option>
                                             <option value="USD" data-icon="{{ asset('img/us.png') }}">Dollar US (USD)</option>
-                                            <option value="DZD" data-icon="{{ asset('img/dz.png') }}">Dinar Algérien (DZD)</option>
-                                            <option value="RUB" data-icon="{{ asset('img/ru.png') }}">Rouble Russe (RUB)</option>
                                             <option value="GBP" data-icon="{{ asset('img/uk.png') }}">Livre Sterling (GBP)</option>
+                                            <option value="JPY" data-icon="{{ asset('img/jp.png') }}">Yen Japonais (JPY)</option>
+                                            <option value="CAD" data-icon="{{ asset('img/ca.png') }}">Dollar Canadien (CAD)</option>
+                                            <option value="AUD" data-icon="{{ asset('img/au.png') }}">Dollar Australien (AUD)</option>
+                                            <option value="CHF" data-icon="{{ asset('img/ch.png') }}">Franc Suisse (CHF)</option>
+                                            <option value="CNY" data-icon="{{ asset('img/cn.png') }}">Yuan Chinois (CNY)</option>
+                                            <option value="SEK" data-icon="{{ asset('img/se.png') }}">Couronne Suédoise (SEK)</option>
+                                            <option value="NZD" data-icon="{{ asset('img/nz.png') }}">Dollar Néo-Zélandais (NZD)</option>
+                                            <option value="DZD" data-icon="{{ asset('img/dz.png') }}">Dinar Algérien (DZD)</option>
+                                            <option value="MAD" data-icon="{{ asset('img/ma.png') }}">Dirham Marocain (MAD)</option>
+                                            <option value="RUB" data-icon="{{ asset('img/ru.png') }}">Rouble Russe (RUB)</option>
+                                            <option value="TRY" data-icon="{{ asset('img/tr.png') }}">Livre Turque (TRY)</option>
+                                            <option value="BRL" data-icon="{{ asset('img/br.png') }}">Real Brésilien (BRL)</option>
+                                            <option value="INR" data-icon="{{ asset('img/in.png') }}">Roupie Indienne (INR)</option>
+                                            <option value="SAR" data-icon="{{ asset('img/rs.png') }}">Riyal Saoudien (SAR)</option>
+                                            <option value="ILS" data-icon="{{ asset('img/ps.png') }}">Livre Palestinienne (ILS)</option>
                                         </select>
                                         <div class="converted-price mt-2 small">
                                                 <span id="convertedAmount" class="text-muted">
@@ -729,11 +742,24 @@
                 const symbols = {
                     'EUR': '€',
                     'USD': '$',
+                    'GBP': '£',
+                    'JPY': '¥',
+                    'CAD': 'CA$',
+                    'AUD': 'AU$',
+                    'CHF': 'CHF',
+                    'CNY': 'CN¥',
+                    'SEK': 'kr',
+                    'NZD': 'NZ$',
                     'DZD': 'DA',
+                    'MAD': 'DH',
                     'RUB': '₽',
-                    'GBP': '£'
+                    'TRY': '₺',
+                    'BRL': 'R$',
+                    'INR': '₹',
+                    'SAR': 'هللة',
+                    'ILS': '₪'
                 };
-                return symbols[currency] || '';
+                return symbols[currency] || currency; // Retourne le code devise si symbole non trouvé
             }
         });
     </script>
