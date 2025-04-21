@@ -108,6 +108,7 @@ security:
         - { path: ^/voyage/weather/[a-zA-Z-]+$, roles: PUBLIC_ACCESS }
         - { path: ^/convert, roles: PUBLIC_ACCESS }
         - { path: ^/get-activities/[a-zA-Z-]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/search-amadeus, roles: PUBLIC_ACCESS }
 
 
         # Routes Gestion réservations

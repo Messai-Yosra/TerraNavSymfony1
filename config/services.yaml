@@ -9,6 +9,8 @@ parameters:
     uploads_directory: '%kernel.project_dir%/public/img'
     env(STRIPE_PUBLIC_KEY): ~
     env(STRIPE_SECRET_KEY): ~
+    amadeus.api.key: '%env(AMADEUS_API_KEY)%'
+    amadeus.api.secret: '%env(AMADEUS_API_SECRET)%'
 services:
     # default configuration for services in *this* file
     _defaults:
@@ -23,6 +25,10 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+    App\Service\AmadeusService:
+        arguments:
+            $amadeusApiKey: '%amadeus.api.key%'
+            $amadeusApiSecret: '%amadeus.api.secret%'
     App\Service\WeatherService:
         arguments:
             $weatherApiKey: '%env(WEATHERSTACK_API_KEY)%'

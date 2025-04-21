@@ -9,6 +9,7 @@ use App\Repository\Reservation\PanierRepository;
 use App\Repository\Reservation\ReservationRepository;
 use App\Repository\Voyage\OffreRepository;
 use App\Repository\Voyage\VoyageRepository;
+use App\Service\AmadeusService;
 use App\Service\WeatherService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -85,7 +86,7 @@ final class VoyageClientController extends AbstractController
             $user = $security->getUser();
 
             if (!$user) {
-                // Handle case where user is not logged in (redirect to login or show error)
+
                 return $this->redirectToRoute('app_login');
             }
 
@@ -172,5 +173,56 @@ final class VoyageClientController extends AbstractController
             ], 500);
         }
     }
+    // src/Controller/VoyageClientController.php
+
+    #[Route('/search-amadeus', name: 'app_search_amadeus', methods: ['GET'])]
+    public function searchAmadeus(
+        Request $request,
+        AmadeusService $amadeusService
+    ): JsonResponse {
+        $searchTerm = trim($request->query->get('search', ''));
+
+        if (empty($searchTerm)) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Veuillez saisir une destination'
+            ], 400);
+        }
+
+        try {
+            // 1. D'abord on cherche les aéroports correspondant à la destination
+            $airports = $amadeusService->searchAirports($searchTerm);
+
+            // 2. Si on trouve des aéroports, on cherche des vols pour chacun
+            $allResults = [];
+            foreach ($airports as $airport) {
+                $results = $amadeusService->searchFlights([
+                    'originLocationCode' => 'TUN', // Départ de Tunis
+                    'destinationLocationCode' => $airport['iataCode'],
+                    'departureDate' => date('Y-m-d', strtotime('+1 week')),
+                    'adults' => 1,
+                    'max' => 3 // Limite par aéroport
+                ]);
+
+                if (!empty($results['data'])) {
+                    $allResults = array_merge($allResults, $results['data']);
+                }
+            }
+
+            return $this->json([
+                'success' => true,
+                'results' => $allResults
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Erreur lors de la recherche : ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+
+
 
 }

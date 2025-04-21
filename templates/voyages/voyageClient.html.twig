@@ -259,6 +259,19 @@
                             <i class="fas fa-exclamation-circle fa-4x text-muted mb-4"></i>
                             <h3 class="mb-3">Aucun voyage disponible actuellement</h3>
                             <p class="text-muted">Revenez plus tard pour découvrir nos nouvelles destinations</p>
+
+                            {# Bouton de recherche Amadeus #}
+                            <button id="searchAmadeusBtn" class="btn btn-primary mt-3">
+                                <i class="fas fa-search me-2"></i>Voir les suggestions de notre partenaire
+                            </button>
+
+                            {# Container pour les résultats #}
+                            <div id="amadeusResultsContainer" class="mt-4" style="display: none;">
+                                <h4 class="mb-3">Suggestions de notre partenaire</h4>
+                                <div class="row g-4 justify-content-center" id="amadeusResults">
+                                    <!-- Les résultats seront insérés ici par JavaScript -->
+                                </div>
+                            </div>
                         </div>
                     </div>
                 {% endfor %}
@@ -546,6 +559,62 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
+        /* Dans ta section style */
+        .card {
+            transition: all 0.3s ease;
+            border: none;
+            border-radius: 10px;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            margin-bottom: 1.2rem;
+            color: #333;
+        }
+
+        /* Styles spécifiques pour les cartes Amadeus */
+        #amadeusResultsContainer {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .flight-info {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+
+        .flight-info p {
+            margin-bottom: 8px;
+        }
+
+        .price {
+            color: #0d6efd;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .room-item {
+                min-width: auto !important;
+            }
+        }
+
     </style>
     <script>
         // Fonction debounce pour limiter les appels fréquents
@@ -770,4 +839,173 @@
             });
         });
     </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchAmadeusBtn = document.getElementById('searchAmadeusBtn');
+
+            if (searchAmadeusBtn) {
+                searchAmadeusBtn.addEventListener('click', async function() {
+                    const searchTerm = '{{ searchTerm ?? '' }}';
+
+                    // Afficher loading
+                    searchAmadeusBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Recherche en cours...';
+                    searchAmadeusBtn.disabled = true;
+
+                    try {
+                        const response = await fetch(`{{ path('app_search_amadeus') }}?search=${encodeURIComponent(searchTerm)}`);
+                        const data = await response.json();
+
+                        if (data.success) {
+                            if (data.results.length > 0) {
+                                displayAmadeusResults(data.results);
+                            } else {
+                                alert('Aucun vol trouvé vers cette destination');
+                            }
+                        } else {
+                            alert(data.message);
+                        }
+                    } catch (error) {
+                        console.error(error);
+                        alert('Erreur technique');
+                    } finally {
+                        searchAmadeusBtn.innerHTML = '<i class="fas fa-search me-2"></i>Voir les suggestions de notre partenaire';
+                        searchAmadeusBtn.disabled = false;
+                    }
+                });
+            }
+
+            function displayAmadeusResults(flights) {
+                const container = document.getElementById('amadeusResultsContainer');
+                const resultsDiv = document.getElementById('amadeusResults');
+
+                // Clear previous results and button if any
+                resultsDiv.innerHTML = '';
+                const existingBtn = document.querySelector('.amadeus-redirect-btn');
+                if (existingBtn) existingBtn.remove();
+
+                // Generate flight cards
+                resultsDiv.innerHTML = flights.map(flight => {
+                    const defaultImageUrl = "{{ asset('img/amadeus-default.jpg') }}";
+                    const departureDate = new Date(flight.itineraries[0].segments[0].departure.at);
+                    const arrivalDate = new Date(flight.itineraries[0].segments.slice(-1)[0].arrival.at);
+                    const duration = flight.itineraries[0].duration.replace(/PT|H|M/g, ' ').trim();
+
+                    return `
+                <div class="col-lg-4 col-md-6 wow fadeInUp">
+                    <div class="room-item shadow rounded overflow-hidden h-100">
+                        <div class="position-relative">
+                            <img class="img-fluid w-100"
+                                 src="${defaultImageUrl}"
+                                 alt="Vol ${flight.itineraries[0].segments[0].departure.iataCode} à ${flight.itineraries[0].segments[0].arrival.iataCode}"
+                                 style="height: 200px; object-fit: cover;">
+                        </div>
+
+                        <div class="p-4">
+                            <div class="d-flex justify-content-between mb-3">
+                                <h5 class="mb-0">
+                                    ${flight.itineraries[0].segments[0].departure.iataCode} →
+                                    ${flight.itineraries[0].segments[0].arrival.iataCode}
+                                </h5>
+                                <div class="ps-2">
+                                    ${'<small class="fa fa-star text-primary"></small>'.repeat(5)}
+                                </div>
+                            </div>
+
+                            <div class="price-display mb-3">
+                                <span class="fw-bold fs-4 text-primary">${flight.price.total} ${flight.price.currency}</span>
+                            </div>
+
+                            <div class="d-flex flex-column gap-2 mb-3">
+                                <div>
+                                    <i class="fas fa-plane-departure text-primary me-2"></i>
+                                    <small>Départ: ${departureDate.toLocaleString()}</small>
+                                </div>
+                                <div>
+                                    <i class="fas fa-plane-arrival text-primary me-2"></i>
+                                    <small>Arrivée: ${arrivalDate.toLocaleString()}</small>
+                                </div>
+                                <div>
+                                    <i class="fas fa-clock text-primary me-2"></i>
+                                    <small>Durée: ${duration}</small>
+                                </div>
+                                <div>
+                                    <i class="fas fa-plane text-primary me-2"></i>
+                                    <small>Compagnie: ${flight.itineraries[0].segments[0].carrierCode}</small>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <button class="btn btn-sm btn-outline-primary rounded-pill py-2 px-4"
+                                   onclick="showFlightDetails('${flight.id}')">
+                                    <i class="fas fa-info-circle me-2"></i>Détails
+                                </button>
+                                <button class="btn btn-sm btn-primary rounded-pill py-2 px-4"
+                                   onclick="bookFlight('${flight.id}')">
+                                    <i class="fas fa-ticket-alt me-2"></i>Réserver
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+                }).join('');
+
+                // Add redirect button after all flights
+                const redirectButton = document.createElement('div');
+                redirectButton.className = 'text-center mt-4 mb-5 amadeus-redirect-btn';
+                redirectButton.innerHTML = `
+                <a href="https://www.amadeus.com/fr"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="btn btn-primary btn-lg"
+                   style="padding: 12px 30px; font-weight: 600;">
+                    <i class="fas fa-external-link-alt me-2"></i>
+                    Explorer toutes les offres sur Amadeus
+                </a>
+                <p class="text-muted mt-2">Vous serez redirigé vers le site officiel d'Amadeus</p>
+            `;
+                container.appendChild(redirectButton);
+
+                container.style.display = 'block';
+
+                // Animation pour l'apparition des résultats
+                const cards = document.querySelectorAll('#amadeusResults .wow');
+                cards.forEach((card, index) => {
+                    card.style.animationDelay = `${0.1 * index}s`;
+                });
+            }
+
+            // Placeholder functions for flight actions
+            window.showFlightDetails = function(flightId) {
+                alert('Détails du vol: ' + flightId + '\n(Fonctionnalité à implémenter)');
+            };
+
+            window.bookFlight = function(flightId) {
+                alert('Réservation du vol: ' + flightId + '\n(Fonctionnalité à implémenter)');
+            };
+        });
+    </script>
+
+    <style>
+        /* Style supplémentaire pour le bouton Amadeus */
+        .amadeus-redirect-btn .btn {
+            transition: all 0.3s ease;
+            background-color: #0033a0;
+            border-color: #0033a0;
+        }
+
+        .amadeus-redirect-btn .btn:hover {
+            background-color: #00257a;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 51, 160, 0.3);
+        }
+
+        .amadeus-redirect-btn .btn i {
+            transition: transform 0.3s ease;
+        }
+
+        .amadeus-redirect-btn .btn:hover i {
+            transform: translateX(3px);
+        }
+    </style>
 {% endblock %}
