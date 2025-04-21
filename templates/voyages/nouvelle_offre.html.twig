@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        /* Base Styles */
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+            padding: 30px 20px;
+            text-align: center;
+            color: white;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        
+        /* Content */
+        .content {
+            padding: 25px;
+        }
+        
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #495057;
+        }
+        
+        /* Offer Card */
+        .offer-card {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .offer-header {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .offer-header h3 {
+            margin: 0;
+            color: #212529;
+            font-size: 22px;
+            font-weight: 600;
+        }
+        
+        .offer-body {
+            padding: 20px;
+        }
+        
+        .offer-description {
+            color: #6c757d;
+            margin-bottom: 20px;
+            font-size: 15px;
+        }
+        
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .badge-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        /* Dates */
+        .dates {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #0d6efd;
+        }
+        
+        .dates i {
+            font-size: 20px;
+            color: #0d6efd;
+            margin-right: 15px;
+        }
+        
+        .dates-text {
+            flex: 1;
+        }
+        
+        .dates-text h4 {
+            margin: 0 0 5px 0;
+            font-size: 16px;
+            color: #212529;
+        }
+        
+        .dates-text p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        /* Attachment */
+        .attachment-notice {
+            background-color: #e9ecef;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .attachment-notice i {
+            margin-right: 10px;
+            font-size: 18px;
+            color: #6c757d;
+        }
+        
+        /* CTA Button */
+        .cta-button {
+            display: block;
+            background-color: #0d6efd;
+            color: white !important;
+            text-align: center;
+            padding: 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 25px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .cta-button:hover {
+            background-color: #0b5ed7;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            font-size: 13px;
+            color: #6c757d;
+        }
+        
+        .footer-logo {
+            width: 150px;
+            height: auto;
+            margin: 15px auto;
+            display: block;
+        }
+        
+        .social-icons {
+            margin: 15px 0;
+        }
+        
+        .social-icons a {
+            display: inline-block;
+            margin: 0 8px;
+            color: #6c757d;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        .social-icons a:hover {
+            color: #0d6efd;
+            transform: translateY(-3px);
+        }
+        
+        /* Responsive */
+        @media only screen and (max-width: 600px) {
+            .container {
+                border-radius: 0;
+            }
+            
+            .header {
+                padding: 25px 15px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .content {
+                padding: 20px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Nouvelle offre disponible !</h1>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <h2 class="greeting">Bonjour {{ user.prenom }},</h2>
+            
+            <p>Nous sommes ravis de vous présenter notre nouvelle offre exclusive, spécialement conçue pour vous !</p>
+            
+            <!-- Offer Card -->
+            <div class="offer-card">
+                <div class="offer-header">
+                    <h3>{{ offre.titre }}</h3>
+                </div>
+                <div class="offer-body">
+                    <div class="offer-description">
+                        {{ offre.description }}
+                    </div>
+                    
+                    <div class="badge badge-danger">
+                        <strong>RÉDUCTION EXCEPTIONNELLE : -{{ offre.reduction }}%</strong>
+                    </div>
+                    
+                    <!-- Dates -->
+                    <div class="dates">
+                        <i class="fas fa-calendar-alt"></i>
+                        <div class="dates-text">
+                            <h4>Période de validité</h4>
+                            <p>Du {{ offre.dateDebut|date('d/m/Y') }} au {{ offre.dateFin|date('d/m/Y') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Attachment Notice -->
+            <div class="attachment-notice">
+                <i class="fas fa-paperclip"></i>
+                <p>📎 L'image détaillée de cette offre est disponible en pièce jointe.</p>
+            </div>
+            
+            <!-- CTA Button -->
+            <a href="{{ absolute_url(path('app_offres_agence')) }}" class="cta-button">
+                Découvrir cette offre sur notre site
+            </a>
+            
+            <p>Ne manquez pas cette opportunité unique ! Cette offre est valable pour une durée limitée.</p>
+            
+            <p>Pour toute question, n'hésitez pas à répondre à cet email.</p>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <img src="cid:logo" alt="Logo TerraNava" class="footer-logo">
+            
+            <div class="social-icons">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+            
+            <p>Cordialement,<br>L'équipe TerraNava</p>
+            
+            <p style="font-size: 12px; color: #adb5bd; margin-top: 15px;">
+                Cet email vous a été envoyé car vous êtes inscrit à notre newsletter.
+            </p>
+            
+            <p style="font-size: 11px; color: #adb5bd; margin-top: 10px;">
+                © {{ "now"|date('Y') }} TerraNava. Tous droits réservés.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

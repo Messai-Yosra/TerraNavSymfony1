@@ -23,6 +23,14 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+    App\Service\WeatherService:
+        arguments:
+            $weatherApiKey: '%env(WEATHERSTACK_API_KEY)%'
+        autowire: true
+        autoconfigure: true
+    App\Service\OpenAiService:
+        arguments:
+            $apiKey: '%env(OPENAI_API_KEY)%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

@@ -103,6 +103,11 @@ security:
         - { path: ^/AjoutVoyage, roles: PUBLIC_ACCESS }
         - { path: ^/confirmationAjout, roles: PUBLIC_ACCESS }
         - { path: ^/publierVoyage, roles: PUBLIC_ACCESS }
+        - { path: ^/offre/select-users/[ 0-9 ]+, roles: PUBLIC_ACCESS }
+        - { path: ^/offre/send-notifications, roles: PUBLIC_ACCESS }
+        - { path: ^/voyage/weather/[a-zA-Z-]+$, roles: PUBLIC_ACCESS }
+        - { path: ^/convert, roles: PUBLIC_ACCESS }
+        - { path: ^/get-activities/[a-zA-Z-]+$, roles: PUBLIC_ACCESS }
 
 
         # Routes Gestion réservations

@@ -9,6 +9,7 @@ use App\Repository\Reservation\PanierRepository;
 use App\Repository\Reservation\ReservationRepository;
 use App\Repository\Voyage\OffreRepository;
 use App\Repository\Voyage\VoyageRepository;
+use App\Service\WeatherService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -55,16 +56,7 @@ final class VoyageClientController extends AbstractController
         ]);
     }
 
-    #[Route('/voyage/{id}', name: 'app_voyage_show')]
-    public function show(Voyage $voyage, VoyageRepository $voyageRepository): Response
-    {
-        $similarVoyages = $voyageRepository->findSimilarVoyages($voyage);
 
-        return $this->render('voyages/DetailsVoyage.html.twig', [
-            'voyage' => $voyage,
-            'similarVoyages' => $similarVoyages,
-        ]);
-    }
 
     #[Route('/voyages/suggestions', name: 'app_voyages_suggestions')]
     public function suggestions(Request $request, VoyageRepository $voyageRepository): JsonResponse
@@ -157,6 +149,28 @@ final class VoyageClientController extends AbstractController
         return $this->render('voyages/ReserverVoyage.html.twig', [
             'voyage' => $voyage
         ]);
+    }
+    #[Route('/voyage/weather/{destination}', name: 'app_voyage_weather')]
+    public function getWeather(string $destination, WeatherService $weatherService): JsonResponse
+    {
+        try {
+            $weatherData = $weatherService->getWeatherForDestination($destination);
+
+            if (!$weatherData) {
+                return $this->json([
+                    'error' => 'weather_data_unavailable',
+                    'message' => 'Données météo non disponibles pour cette destination'
+                ], 404);
+            }
+
+            return $this->json($weatherData);
+        } catch (\Exception $e) {
+            return $this->json([
+                'error' => 'api_error',
+                'message' => 'Erreur technique lors de la récupération des données météo',
+                'details' => $e->getMessage() // En dev seulement
+            ], 500);
+        }
     }
 
 }
