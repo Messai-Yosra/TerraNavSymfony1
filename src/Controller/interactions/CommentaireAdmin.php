@@ -13,7 +13,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 
 #[Route('/admin/commentaires')]
-#[IsGranted('ROLE_ADMIN')]
 class CommentaireAdmin extends AbstractController
 {
     private $entityManager;

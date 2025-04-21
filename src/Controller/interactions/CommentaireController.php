@@ -24,7 +24,7 @@ class CommentaireController extends AbstractController
         }
 
         // Récupérer l'utilisateur avec l'ID 1 (s'il existe)
-        $user = $entityManager->getRepository(Utilisateur::class)->find(1);
+        $user = $this->getUser();
 
         if (!$user) {
             throw $this->createNotFoundException('Utilisateur avec l\'ID 1 non trouvé');

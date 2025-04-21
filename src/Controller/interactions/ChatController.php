@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\Post;
 use App\Entity\Utilisateur;
+use App\Entity\Reaction;
 use App\Form\AddPostFormType;
 use App\Repository\PostRepository;
 final class ChatController extends AbstractController
@@ -39,9 +40,9 @@ final class ChatController extends AbstractController
                 $post->setImage($filename);
             }
     
-            $user = $this->entityManager->getRepository(Utilisateur::class)->find(1);
+            $user = $this->getUser(); // Récupérer l'utilisateur connecté
             if (!$user) {
-                throw $this->createNotFoundException('Utilisateur avec ID 1 non trouvé.');
+                throw $this->createNotFoundException('Utilisateur non trouvé.');
             }
             $post->setId_user($user);
     
@@ -69,34 +70,6 @@ public function index(): Response
         'posts' => $posts, 
     ]);
 }
-#[Route('/post/{id}/like', name: 'app_post_like', methods: ['POST'])]
-public function likePost(Post $post): JsonResponse
-{
-    // Example logic for liking a post
-    $user = $this->getUser();
-    if (!$user) {
-        return new JsonResponse(['success' => false, 'message' => 'User not authenticated'], 403);
-    }
-
-    // Toggle like logic (e.g., add/remove like)
-    $liked = false; // Replace with actual logic to check if the user already liked the post
-    if ($liked) {
-        // Remove like
-        $post->removeLike($user);
-    } else {
-        // Add like
-        $post->addLike($user);
-    }
-
-    // Save changes
-    $this->getDoctrine()->getManager()->flush();
-
-    return new JsonResponse([
-        'success' => true,
-        'newLikeCount' => $post->getLikes()->count(), // Replace with actual like count logic
-    ]);
-}
-
 
 #[Route('/{id}/edit', name: 'app_post_edit')]
 public function editPost(int $id, Request $request): Response
@@ -161,4 +134,50 @@ public function editPost(int $id, Request $request): Response
             'post' => $post,
         ]);
     }
+
+
+#[Route('/post/{id}/like', name: 'app_post_like', methods: ['POST'])]
+public function toggleLike(int $id, Request $request, EntityManagerInterface $entityManager): JsonResponse
+{
+    $post = $entityManager->getRepository(Post::class)->find($id);
+    
+    if (!$post) {
+        return $this->json(['success' => false, 'message' => 'Post non trouvé'], 404);
+    }
+    
+    $user = $this->getUser();
+    if (!$user) {
+        return $this->json(['success' => false, 'message' => 'Utilisateur non connecté'], 401);
+    }
+    
+    // Vérifier si l'utilisateur a déjà aimé ce post
+    $reactionRepo = $entityManager->getRepository(Reaction::class);
+    $existingReaction = $reactionRepo->findByUserAndPost($user, $post);
+    
+    if ($existingReaction) {
+        // Si une réaction existe déjà, on la supprime (unlike)
+        $entityManager->remove($existingReaction);
+        $liked = false;
+        $newCount = $post->getNbReactions() - 1;
+    } else {
+        // Sinon on ajoute une nouvelle réaction (like)
+        $reaction = new Reaction();
+        $reaction->setIdUser($user);
+        $reaction->setIdPost($post);
+        
+        $entityManager->persist($reaction);
+        $liked = true;
+        $newCount = $post->getNbReactions() + 1;
+    }
+    
+    // Mettre à jour le compteur de réactions
+    $post->setNbReactions($newCount);
+    $entityManager->flush();
+    
+    return $this->json([
+        'success' => true,
+        'liked' => $liked,
+        'count' => $newCount
+    ]);
+}
 }

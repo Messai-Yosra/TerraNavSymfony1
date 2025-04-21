@@ -23,30 +23,112 @@
         <div class="card-body">
             <h4 class="card-title">Commentaires</h4>
             {% if post.commentaires is not empty %}
-                <ul class="list-group list-group-flush">
+                <div class="comments-section">
                     {% for commentaire in post.commentaires %}
-                        <li class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>{{ commentaire.id_User.nom }}</strong>
-                                    <p class="mb-1">Contenu : {{ commentaire.contenu }}</p>
-                                    <small class="text-muted">Date : {{ commentaire.date ? commentaire.date|date('d/m/Y H:i') : 'Non défini' }}</small>
+                        <div class="comment-item d-flex mb-3">
+                            <!-- Image de profil -->
+                            <div class="comment-avatar me-2">
+                                <img src="{{ commentaire.id_User.photo ? asset('uploads/profile/' ~ commentaire.id_User.photo) : asset('img/default-avatar.jpg') }}" 
+                                     class="rounded-circle" 
+                                     width="40" 
+                                     height="40"
+                                     alt="{{ commentaire.id_User.nom }} profile">
+                            </div>
+                            
+                            <!-- Contenu du commentaire -->
+                            <div class="comment-content flex-grow-1">
+                                <div class="comment-bubble p-2 rounded">
+                                    <div class="comment-header">
+                                        <strong>{{ commentaire.id_User.nom }}</strong>
+                                    </div>
+                                    <div class="comment-text">
+                                        {{ commentaire.contenu }}
+                                    </div>
                                 </div>
-                                <div>
-                                    <form action="{{ path('app_commentaire_delete', {'id': commentaire.id}) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce commentaire ?')" class="d-inline">
-                                        <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
-                                    </form>
-                                    <a href="{{ path('app_commentaire_edit', {'id': commentaire.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
+                                
+                                <!-- Actions du commentaire -->
+                                <div class="comment-actions d-flex align-items-center mt-1">
+                                    <small class="text-muted me-3">{{ commentaire.date ? commentaire.date|date('d/m/Y H:i') : 'Non défini' }}</small>
+                                    
+                                    <!-- Boutons d'action seulement pour le créateur du commentaire -->
+                                    {% if app.user and app.user.id == commentaire.id_User.id %}
+                                        <div class="ms-auto">
+                                            <a href="{{ path('app_commentaire_edit', {'id': commentaire.id}) }}" class="btn btn-sm btn-link text-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form action="{{ path('app_commentaire_delete', {'id': commentaire.id}) }}" method="POST" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-link text-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    {% endif %}
                                 </div>
                             </div>
-                        </li>
+                        </div>
                     {% endfor %}
-                </ul>
+                </div>
             {% else %}
                 <p class="text-muted">Aucun commentaire pour ce post.</p>
             {% endif %}
         </div>
     </div>
+
+    <!-- Ajout de CSS pour le style Facebook -->
+    <style>
+        .comments-section {
+            margin-top: 15px;
+        }
+        
+        .comment-item {
+            margin-bottom: 15px;
+        }
+        
+        .comment-bubble {
+            background-color: #f0f2f5;
+            border-radius: 18px;
+            position: relative;
+            max-width: 100%;
+        }
+        
+        .comment-header {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .comment-text {
+            font-size: 0.95rem;
+            word-break: break-word;
+        }
+        
+        .comment-actions {
+            font-size: 0.8rem;
+        }
+        
+        .comment-actions button {
+            color: #65676b;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        .comment-actions button:hover {
+            text-decoration: underline;
+        }
+        
+        .comment-like.active {
+            color: #1877f2;
+        }
+        
+        /* Animation pour les nouveaux commentaires */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .comment-item:nth-last-child(1) {
+            animation: fadeIn 0.3s ease-out;
+        }
+    </style>
 
     <!-- Boutons d'action -->
     <div class="mt-4">
