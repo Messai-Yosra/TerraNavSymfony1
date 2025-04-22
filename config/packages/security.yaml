@@ -109,6 +109,8 @@ security:
         - { path: ^/convert, roles: PUBLIC_ACCESS }
         - { path: ^/get-activities/[a-zA-Z-]+$, roles: PUBLIC_ACCESS }
         - { path: ^/search-amadeus, roles: PUBLIC_ACCESS }
+        - { path: ^/api/voyages-expires, roles: PUBLIC_ACCESS }
+        - { path: ^/api/voyage/TEMP_ID/supprimer, roles: PUBLIC_ACCESS }
 
 
         # Routes Gestion réservations

@@ -8,9 +8,17 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Doctrine\ORM\EntityManagerInterface;
 
 final class VoyageAgenceController extends AbstractController
 {
+    private EntityManagerInterface $entityManager;
+
+    public function __construct(EntityManagerInterface $entityManager)
+    {
+        $this->entityManager = $entityManager;
+    }
     #[Route('/VoyagesAgence', name: 'app_voyages_agence')]
     public function index(Request $request, VoyageRepository $voyageRepository, UtilisateurRepository $userRepository): Response
     {
@@ -46,8 +54,19 @@ final class VoyageAgenceController extends AbstractController
         // Récupérer les voyages filtrés
         $voyages = $voyageRepository->findByFiltersAgence($criteria);
 
+        $expiredVoyages = $voyageRepository->findExpiredVoyages();
+        $expiredVoyagesData = array_map(function($voyage) {
+            return [
+                'id' => $voyage->getId(),
+                'titre' => $voyage->getTitre(),
+                'dateRetour' => $voyage->getDateRetour()->format('Y-m-d H:i:s')
+            ];
+        }, $expiredVoyages);
+
         return $this->render('voyages/voyageAgence.html.twig', [
             'voyages' => $voyages,
+            'expiredVoyages' => $expiredVoyages,
+            'expiredVoyagesData' => $expiredVoyagesData, // Données pour le JS
             'filterParams' => [
                 'search' => $searchTerm,
                 'minPrice' => $minPrice,
@@ -69,5 +88,7 @@ final class VoyageAgenceController extends AbstractController
             'similarVoyages' => $similarVoyages,
         ]);
     }
+
+
 
 }

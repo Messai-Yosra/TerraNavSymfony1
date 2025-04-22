@@ -6,6 +6,7 @@ use App\Entity\Offre;
 use App\Entity\Utilisateur;
 use App\Form\voyages\OffreType;
 use App\Repository\Utilisateur\UtilisateurRepository;
+use App\Service\BarCodeGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -223,7 +224,8 @@ class OffreController extends AbstractController
         EntityManagerInterface $entityManager,
         MailerInterface $mailer,
         LoggerInterface $logger,
-        ParameterBagInterface $params
+        ParameterBagInterface $params,
+        BarCodeGenerator $barcodeGenerator
     ): Response
     {
         $offreId = $request->request->get('offre_id');
@@ -264,6 +266,8 @@ class OffreController extends AbstractController
                         $offerImagePath = $params->get('kernel.project_dir').'/public/img/about-1.jpg'; // Image par défaut
                     }
 
+                    $qrCodeUrl = $barcodeGenerator->generateOfferBarcodeUrl($offre->getId());
+
                     // Création de l'email
                     $email = (new Email())
                         ->from('weldkhlifa2003@gmail.com')
@@ -271,7 +275,8 @@ class OffreController extends AbstractController
                         ->subject('Nouvelle offre disponible !')
                         ->html($this->renderView('voyages/nouvelle_offre.html.twig', [
                             'user' => $user,
-                            'offre' => $offre
+                            'offre' => $offre,
+                            'qrCodeUrl' => $qrCodeUrl  // Passage du QR code au template
                         ]));
 
                     if (file_exists($logoPath)) {

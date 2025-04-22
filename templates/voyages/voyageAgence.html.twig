@@ -402,5 +402,82 @@
                 margin-bottom: 1rem;
             }
         }
+
+        /* Dans votre section style */
+        .smart-assistant-popup {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 400px;
+            max-width: 90%;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            overflow: hidden;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .assistant-header {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .assistant-header h5 {
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .assistant-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .assistant-body {
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .assistant-body p {
+            margin-bottom: 10px;
+        }
+
+        .voyage-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .voyage-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .voyage-list li:last-child {
+            border-bottom: none;
+        }
+
+        .assistant-footer {
+            padding: 10px 15px;
+            background: #f8f9fa;
+            text-align: right;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
     </style>
+
+    
 {% endblock %}

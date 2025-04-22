@@ -24,7 +24,9 @@ class VoyageRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('v')
             ->leftJoin('v.id_offre', 'o')
-            ->addSelect('o');
+            ->addSelect('o')
+            ->andWhere('v.dateRetour >= CURRENT_DATE()') // Date de retour après aujourd'hui
+            ->andWhere('v.nbPlacesD > 0');
 
         if (!empty($criteria['search'])) {
             $qb->andWhere('v.titre LIKE :search OR v.description LIKE :search')
@@ -266,5 +268,16 @@ class VoyageRepository extends ServiceEntityRepository
         $result = $stmt->executeQuery();
 
         return $result->fetchAllAssociative();
+    }
+
+    // Dans VoyageRepository.php
+    public function findExpiredVoyages(): array
+    {
+        return $this->createQueryBuilder('v')
+            ->where('v.dateRetour < CURRENT_DATE()')
+            ->orderBy('v.dateRetour', 'DESC')
+            ->setMaxResults(5) // Limiter à 5 suggestions max
+            ->getQuery()
+            ->getResult();
     }
 }
