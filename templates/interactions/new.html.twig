@@ -25,6 +25,9 @@
             <div class="form-group mb-3">
                 {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label'}}) }}
                 {{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}
+                <button type="button" id="generateDescription" class="btn btn-secondary mt-2">
+                    Générer une description
+                </button>
                 <div class="invalid-feedback description-error"></div>
                 {% if form.description.vars.errors is not empty %}
                     <div class="alert alert-danger">
@@ -55,7 +58,54 @@
     document.addEventListener('DOMContentLoaded', function () {
         const form = document.getElementById('postForm');
         const descriptionInput = form.querySelector('#{{ form.description.vars.id }}');
+        const generateButton = document.getElementById('generateDescription');
 
+        // Generate description using the API
+        generateButton.addEventListener('click', function () {
+            fetch("{{ path('post_generate_content') }}", {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ prompt: 'Générer une description pour le post' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    descriptionInput.value = data.content;
+                    descriptionInput.classList.remove('is-invalid');
+                    document.querySelector('.description-error').textContent = '';
+                    Swal.fire({
+                        position: "top-end",
+                        icon: "success",
+                        title: "Description générée avec succès !",
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                } else {
+                    Swal.fire({
+                        position: "top-end",
+                        icon: "error",
+                        title: "Erreur",
+                        text: "Impossible de générer la description.",
+                        showConfirmButton: true
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                Swal.fire({
+                    position: "top-end",
+                    icon: "error",
+                    title: "Erreur",
+                    text: "Une erreur s'est produite lors de la génération.",
+                    showConfirmButton: true
+                });
+            });
+        });
+
+        // Validation logic remains unchanged
         form.addEventListener('submit', function (event) {
             event.preventDefault();
             
@@ -68,20 +118,15 @@
             // Validate description
             const descriptionValue = descriptionInput.value.trim();
             
-            // Check not blank
             if (!descriptionValue) {
                 isValid = false;
                 descriptionInput.classList.add('is-invalid');
                 document.querySelector('.description-error').textContent = 'La description du post ne doit pas être vide.';
-            } 
-            // Check minimum length
-            else if (descriptionValue.length < 10) {
+            } else if (descriptionValue.length < 10) {
                 isValid = false;
                 descriptionInput.classList.add('is-invalid');
                 document.querySelector('.description-error').textContent = 'La description du post doit contenir au moins 10 caractères.';
-            }
-            // Check contains at least one letter
-            else if (!/[a-zA-Z]/.test(descriptionValue)) {
+            } else if (!/[a-zA-Z]/.test(descriptionValue)) {
                 isValid = false;
                 descriptionInput.classList.add('is-invalid');
                 document.querySelector('.description-error').textContent = 'La description du post doit contenir au moins une lettre.';

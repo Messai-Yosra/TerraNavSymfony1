@@ -12,14 +12,17 @@ use App\Entity\Utilisateur;
 use App\Entity\Reaction;
 use App\Form\AddPostFormType;
 use App\Repository\PostRepository;
+use App\Service\interactions\ContentGenerationService;
+
 final class ChatController extends AbstractController
 {
     private $entityManager;
+    private $contentGenerationService;
 
-    // Injecter l'EntityManager dans le contrôleur
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, ContentGenerationService $contentGenerationService)
     {
         $this->entityManager = $entityManager;
+        $this->contentGenerationService = $contentGenerationService;
     }
 
     #[Route('/new', name: 'app_post_new')]
@@ -40,7 +43,7 @@ final class ChatController extends AbstractController
                 $post->setImage($filename);
             }
     
-            $user = $this->getUser(); // Récupérer l'utilisateur connecté
+            $user = $this->getUser(); 
             if (!$user) {
                 throw $this->createNotFoundException('Utilisateur non trouvé.');
             }
@@ -179,5 +182,19 @@ public function toggleLike(int $id, Request $request, EntityManagerInterface $en
         'liked' => $liked,
         'count' => $newCount
     ]);
+}
+#[Route('/posts/generate-content', name: 'post_generate_content', methods: ['POST'])]
+public function generateContent(Request $request): JsonResponse
+{
+    $data = json_decode($request->getContent(), true);
+    $prompt = $data['prompt'] ?? 'Default prompt for generating content';
+
+    $generatedContent = $this->contentGenerationService->generateContent($prompt);
+
+    if ($generatedContent) {
+        return $this->json(['success' => true, 'content' => $generatedContent]);
+    }
+
+    return $this->json(['success' => false, 'message' => 'Failed to generate content'], 400);
 }
 }
