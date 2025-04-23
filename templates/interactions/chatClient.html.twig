@@ -165,17 +165,7 @@
                                     <button class="btn btn-sm btn-action rounded-pill flex-grow-1 mx-1">
                                         <i class="fas fa-share me-1"></i> Partager
                                     </button>
-                                    
-                                    {% if app.user and app.user.id == post.id_user.id %}
-                                        <a href="{{ path('app_post_edit', {'id': post.id}) }}" class="btn btn-sm btn-warning rounded-pill flex-grow-1 mx-1">
-                                            <i class="fas fa-edit me-1"></i> Modifier
-                                        </a>
-                                        <button class="btn btn-sm btn-danger rounded-pill flex-grow-1 mx-1 delete-btn"
-                                                data-delete-url="{{ path('app_post_delete', {'id': post.id}) }}"
-                                                data-post-title="{{ post.description|slice(0, 30) }}...">
-                                            <i class="fas fa-trash-alt me-1"></i> Supprimer
-                                        </button>
-                                    {% endif %}
+                                
                                 </div>
                             </div>
                         </div>
