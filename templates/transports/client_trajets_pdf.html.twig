@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des Trajets</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        h1 { color: #333; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>Liste des Trajets</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Départ</th>
+                <th>Destination</th>
+                <th>Date de départ</th>
+                <th>Durée (min)</th>
+                <th>Disponibilité</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for trajet in trajets %}
+            <tr>
+                <td>{{ trajet.pointDepart }}</td>
+                <td>{{ trajet.destination }}</td>
+                <td>{{ trajet.dateDepart|date('d/m/Y H:i') }}</td>
+                <td>{{ trajet.duree }}</td>
+                <td>{{ trajet.disponibilite ? 'Oui' : 'Non' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

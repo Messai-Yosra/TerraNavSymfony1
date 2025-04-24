@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des Transports</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #0056b3; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #0056b3; color: white; }
+        img { max-width: 100px; height: auto; }
+    </style>
+</head>
+<body>
+    <h1>Liste des Transports</h1>
+    {% if transports|length > 0 %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Type</th>
+                    <th>Capacité</th>
+                    <th>Prix</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transport in transports %}
+                    <tr>
+                        <td>{{ transport.nom }}</td>
+                        <td>{{ transport.type }}</td>
+                        <td>{{ transport.capacite }}</td>
+                        <td>{{ transport.prix|number_format(2) }} DTN</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Aucun transport disponible</p>
+    {% endif %}
+</body>
+</html>
