@@ -3,6 +3,7 @@
 namespace App\Controller\utilisateurs;
 
 use App\Entity\Reclamation;
+use App\Service\utilisateurs\TwilioSMSService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,23 +33,49 @@ class ReclamationAdminController extends AbstractController
     }
     
     #[Route('/marquer-traite/{id}', name: 'admin_reclamation_traiter')]
-    public function marquerTraite(Reclamation $reclamation): Response
+    public function marquerTraite(Reclamation $reclamation, TwilioSMSService $smsService): Response
     {
         // Marquer comme traité
         $reclamation->setEtat('Traité');
         $this->entityManager->flush();
         
-        $this->addFlash('success', 'Réclamation #' . $reclamation->getId() . ' marquée comme traitée');
+        // Récupérer le numéro de téléphone et l'email de l'utilisateur
+        $utilisateur = $reclamation->getId_user();
+        $phoneNumber = $utilisateur->getNumTel();
+        $email = $utilisateur->getEmail(); // Récupérer l'email de l'utilisateur
+        
+        // Envoyer un SMS si le numéro existe
+        if ($phoneNumber) {
+            try {
+                // Formater le numéro au format international
+                if (!str_starts_with($phoneNumber, '+')) {
+                    $phoneNumber = '+216' . preg_replace('/[^0-9]/', '', $phoneNumber);
+                }
+                
+                // Envoyer le SMS avec l'email
+                $result = $smsService->sendReclamationProcessedNotification($phoneNumber, $email);
+                
+                if ($result) {
+                    $this->addFlash('success', 'Réclamation marquée comme traitée et SMS envoyé à l\'utilisateur');
+                } else {
+                    $this->addFlash('warning', 'Réclamation marquée comme traitée mais l\'envoi du SMS a échoué');
+                }
+            } catch (\Exception $e) {
+                $this->addFlash('warning', 'Réclamation marquée comme traitée mais erreur lors de l\'envoi du SMS: ' . $e->getMessage());
+            }
+        } else {
+            $this->addFlash('success', 'Réclamation marquée comme traitée (aucun numéro de téléphone disponible)');
+        }
+        
         return $this->redirectToRoute('admin_reclamation');
     }
     
     #[Route('/details/{id}', name: 'admin_reclamation_details')]
     public function details(Reclamation $reclamation): Response
     {
-        // Modifiez cette ligne pour qu'elle pointe vers le bon template
         return $this->render('utilisateurs/reclamationAdmin.html.twig', [
             'reclamation' => $reclamation,
-            'showDetails' => true  // Ajoutez ce flag
+            'showDetails' => true
         ]);
     }
 

@@ -4,6 +4,7 @@ namespace App\Controller\utilisateurs;
 
 use App\Entity\Reclamation;
 use App\Form\ReclamationClientType;
+use App\Service\utilisateurs\BadWordsCheckerService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,7 +22,7 @@ class ReclamationClientController extends AbstractController
     }
 
     #[Route('/reclamer', name: 'app_reclamer')]  // Simplified route
-    public function index(Request $request): Response
+    public function index(Request $request, BadWordsCheckerService $badWordsChecker): Response
     {
         $user = $this->getUser();
         if (!$user) {
@@ -42,6 +43,19 @@ class ReclamationClientController extends AbstractController
         $form->handleRequest($request);
         
         if ($form->isSubmitted() && $form->isValid()) {
+            $description = $reclamation->getDescription();
+            
+            // Vérifier si la description contient des mots inappropriés
+            if (!$badWordsChecker->checkText($description)) {
+                // Obtenir la version censurée du texte
+                $censoredText = $badWordsChecker->censorText($description);
+                
+                $this->addFlash('error', 'Votre réclamation contient des termes inappropriés. Nous avons censuré ces termes.');
+                
+                // Remplacer le texte original par le texte censuré
+                $reclamation->setDescription($censoredText);
+            }
+            
             $this->entityManager->persist($reclamation);
             $this->entityManager->flush();
             

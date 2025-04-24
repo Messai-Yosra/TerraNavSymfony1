@@ -83,11 +83,14 @@
         <div class="dashboard-header">
             <h1>Gestion des réclamations</h1>
             
-            {% for message in app.flashes('success') %}
-                <div class="alert alert-success">
-                    <i class="fas fa-check-circle"></i>
-                    {{ message }}
-                </div>
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label }} alert-dismissible fade show">
+                        <i class="fas fa-{% if label == 'success' %}check-circle{% elseif label == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
             {% endfor %}
         </div>
 
@@ -156,7 +159,8 @@
                         
                         <div class="card-footer">
                             {% if reclamation.etat == 'Non traité' %}
-                                <a href="{{ path('admin_reclamation_traiter', {'id': reclamation.id}) }}" class="action-btn complete">
+                                <a href="{{ path('admin_reclamation_traiter', {'id': reclamation.id}) }}" class="action-btn complete"
+                                   onclick="return confirm('Confirmer le traitement ? Un SMS sera envoyé si un numéro de téléphone est disponible.')">
                                     <i class="fas fa-check"></i> Marquer traité
                                 </a>
                             {% else %}
