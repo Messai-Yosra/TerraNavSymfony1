@@ -3,6 +3,8 @@
 namespace App\Service\interactions;
 
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Google\Cloud\AIPlatform\V1\PredictionServiceClient;
+use Google\Cloud\AIPlatform\V1\Content;
 
 class ContentGenerationService
 {
@@ -15,8 +17,8 @@ class ContentGenerationService
 
     public function generateContent(string $prompt): ?string
     {
-        $apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='; // Replace with the actual API URL
-        $apiKey = 'AIzaSyCpqpCJ4zMZKHbEY4frJ36dSJX3gjJhpm8AIzaSyCpqpCJ4zMZKHbEY4frJ36dSJX3gjJhpm8'; // Replace with your API key
+        $apiUrl = 'https://generativelanguage.googleapis.com/v1beta2/models/gemini-1.5:generateText'; // Replace with the actual API URL
+        $apiKey = 'AIzaSyCpqpCJ4zMZKHbEY4frJ36dSJX3gjJhpm8'; // Replace with your API key
 
         $response = $this->httpClient->request('POST', $apiUrl, [
             'headers' => [

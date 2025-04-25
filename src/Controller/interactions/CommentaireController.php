@@ -3,7 +3,6 @@ namespace App\Controller\interactions;
 
 use App\Entity\Commentaire;
 use App\Entity\Post;
-use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -11,8 +10,22 @@ use Symfony\Component\HttpFoundation\Response;
 use App\Form\CommentaireType; 
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+
 class CommentaireController extends AbstractController
 {
+    private $mailer;
+    private $urlGenerator;
+
+    public function __construct(EntityManagerInterface $entityManager, MailerInterface $mailer, UrlGeneratorInterface $urlGenerator)
+    {
+        $this->entityManager = $entityManager;
+        $this->mailer = $mailer;
+        $this->urlGenerator = $urlGenerator;
+    }
+    
     #[Route('/commentaire/new/{postId}', name: 'app_commentaire_new', methods: ['GET', 'POST'])]
     public function new(int $postId, Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -23,19 +36,19 @@ class CommentaireController extends AbstractController
             throw $this->createNotFoundException('Le post n\'existe pas');
         }
 
-        // Récupérer l'utilisateur avec l'ID 1 (s'il existe)
+        // Récupérer l'utilisateur connecté
         $user = $this->getUser();
 
         if (!$user) {
-            throw $this->createNotFoundException('Utilisateur avec l\'ID 1 non trouvé');
+            throw $this->createNotFoundException('Utilisateur non connecté');
         }
 
         $commentaire = new Commentaire();
 
-        // Assigner l'utilisateur avec l'ID 1 au commentaire
+        // Assigner l'utilisateur au commentaire
         $commentaire->setId_user($user);
 
-        // Créer un formulaire pour ajouter un commentaire (tu peux ajouter un formulaire symfony si nécessaire)
+        // Créer un formulaire pour ajouter un commentaire
         $form = $this->createFormBuilder($commentaire)
             ->add('contenu', TextareaType::class)
             ->getForm();
@@ -53,7 +66,25 @@ class CommentaireController extends AbstractController
             $entityManager->persist($commentaire);
             $entityManager->flush();
 
-            // Rediriger ou afficher un message de succès
+            // Envoyer un email au créateur du post
+            $postCreator = $post->getId_user();
+            if ($postCreator && $postCreator->getEmail()) {
+                $commentLink = 'http://localhost:8000/ChatClient';                
+                $email = (new Email())
+                    ->from('mayar.mnari@esprit.tn') // Remplacez par votre adresse d'envoi
+                    ->to($postCreator->getEmail())
+                    ->subject('Nouveau commentaire sur votre post')
+                    ->html("
+                        <h1>Nouveau commentaire</h1>
+                        <p>Un nouveau commentaire a été ajouté à votre post : <strong>{$post->getDescription()}</strong></p>
+                        <p><strong>Commentaire :</strong> {$commentaire->getContenu()}</p>
+                        <p><strong>Publié par :</strong> {$user->getUsername()}</p>
+                        <p><strong>Date :</strong> {$commentaire->getDate()->format('d/m/Y H:i')}</p>
+                        <p><a href='$commentLink'>Voir le commentaire</a></p>
+                    ");
+
+                $this->mailer->send($email);
+            }
             return $this->redirectToRoute('app_chat');
         }
 
@@ -62,7 +93,6 @@ class CommentaireController extends AbstractController
             'post' => $post,
         ]);
     }
-
     #[Route('/post/{id}', name: 'app_post_show')]
     public function show(int $id): Response
     {
@@ -78,11 +108,6 @@ class CommentaireController extends AbstractController
     }
     
     private $entityManager;
-
-    public function __construct(EntityManagerInterface $entityManager)
-    {
-        $this->entityManager = $entityManager;
-    }
 
     #[Route('/comment/{id}/edit', name: 'app_commentaire_edit', methods: ['GET', 'POST'])]
     public function editComment(int $id, Request $request): Response
