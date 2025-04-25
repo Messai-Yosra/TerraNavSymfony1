@@ -482,6 +482,26 @@
             border-top-left-radius: 0;
             border-bottom-left-radius: 0;
         }
+
+        /* Animation pour le champ description */
+        .animate__flash {
+            animation-duration: 1s;
+            border: 1px solid #28a745;
+            box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
+        }
+
+        /* Style du bouton pendant la génération */
+        .btn-generating {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            cursor: wait;
+        }
+
+        /* Style pour les erreurs */
+        .field-error {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+        }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -676,4 +696,59 @@
         });
     </script>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const generateBtn = document.getElementById('generateDescBtn');
+            const descriptionField = document.getElementById('{{ form.description.vars.id }}');
+
+            generateBtn.addEventListener('click', async function() {
+                // Afficher un indicateur de chargement
+                generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération...';
+                generateBtn.disabled = true;
+
+                try {
+                    // Récupérer les données du formulaire
+                    const formData = {
+                        destination: document.getElementById('{{ form.destination.vars.id }}').value,
+                        pointDepart: document.getElementById('{{ form.pointDepart.vars.id }}').value,
+                        type: document.getElementById('{{ form.type.vars.id }}').value,
+                        dateDepart: document.getElementById('{{ form.dateDepart.vars.id }}').value,
+                        dateRetour: document.getElementById('{{ form.dateRetour.vars.id }}').value,
+                        nbPlacesD: document.getElementById('{{ form.nbPlacesD.vars.id }}').value,
+                        prix: document.getElementById('{{ form.prix.vars.id }}').value
+                    };
+
+                    // Appeler l'API
+                    const response = await fetch('{{ path('app_generate_description') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        descriptionField.value = data.description;
+                        // Ajouter une petite animation pour montrer que c'est généré
+                        descriptionField.classList.add('animate__animated', 'animate__flash');
+                        setTimeout(() => {
+                            descriptionField.classList.remove('animate__animated', 'animate__flash');
+                        }, 1000);
+                    } else {
+                        throw new Error(data.error || 'Erreur lors de la génération');
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de la génération: ' + error.message);
+                } finally {
+                    // Réinitialiser le bouton
+                    generateBtn.innerHTML = '<i class="fas fa-magic me-1"></i> Générer';
+                    generateBtn.disabled = false;
+                }
+            });
+        });
+    </script>
 {% endblock %}

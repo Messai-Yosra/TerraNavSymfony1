@@ -8,8 +8,10 @@ use App\Entity\Voyage;
 use App\Form\voyages\VoyageType;
 use App\Repository\Utilisateur\UtilisateurRepository;
 use App\Repository\Voyage\OffreRepository;
+use App\Service\OpenRouterService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -168,6 +170,46 @@ class VoyageController extends AbstractController
             $this->addFlash('error', 'Une erreur est survenue : '.$e->getMessage());
             return $this->redirectToRoute('app_confirmation_ajout');
         }
+    }
+
+
+    #[Route('/generate-description', name: 'app_generate_description', methods: ['POST'])]
+    public function generateDescription(Request $request, OpenRouterService $openRouter): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        try {
+            $prompt = $this->createPromptFromData($data);
+            $description = $openRouter->askQuestion($prompt);
+
+            return $this->json([
+                'success' => true,
+                'description' => $description
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function createPromptFromData(array $data): string
+    {
+        $prompt = "Tu es un expert en rédaction de descriptions de voyages touristiques. 
+               Crée une description attrayante pour un voyage avec ces caractéristiques:\n\n";
+
+        $prompt .= "- Destination: ".($data['destination'] ?? 'Non spécifié')."\n";
+        $prompt .= "- Départ de: ".($data['pointDepart'] ?? 'Non spécifié')."\n";
+        $prompt .= "- Type de voyage: ".($data['type'] ?? 'Non spécifié')."\n";
+        $prompt .= "- Dates: Du ".($data['dateDepart'] ?? 'Non spécifié')." au ".($data['dateRetour'] ?? 'Non spécifié')."\n";
+        $prompt .= "- Nombre de places: ".($data['nbPlacesD'] ?? 'Non spécifié')."\n";
+        $prompt .= "- Prix: ".($data['prix'] ?? 'Non spécifié')."€\n\n";
+
+        $prompt .= "La description doit être en français, entre 100 et 150 mots, avec un ton enthousiaste et professionnel. 
+               Mets en valeur les points forts du voyage et utilise éventuellement des emojis pertinents.";
+
+        return $prompt;
     }
 
 

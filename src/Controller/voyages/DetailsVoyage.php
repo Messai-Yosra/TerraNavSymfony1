@@ -9,6 +9,7 @@ use App\Repository\Voyage\OffreRepository;
 use App\Repository\Voyage\VoyageRepository;
 use App\Service\CurrencyConverter;
 use App\Service\OpenAiService;
+use App\Service\OpenRouterService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -98,6 +99,48 @@ class DetailsVoyage extends AbstractController
                 'activities' => $activities
             ]);
 
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    #[Route('/translate-description', name: 'app_translate_description', methods: ['POST'])]
+    public function translateDescription(Request $request, OpenRouterService $openRouter): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        try {
+            $languages = [
+                'en' => ['name' => 'Anglais', 'flag' => 'us.png'],
+                'es' => ['name' => 'Espagnol', 'flag' => 'es.png'],
+                'de' => ['name' => 'Allemand', 'flag' => 'de.png'],
+                'it' => ['name' => 'Italien', 'flag' => 'it.png'],
+                'ar' => ['name' => 'Arabe', 'flag' => 'rs.png'],
+                'tr' => ['name' => 'Turc', 'flag' => 'tr.png']
+            ];
+
+            $targetLang = $data['targetLang'];
+            $description = $data['description'];
+
+            if (!array_key_exists($targetLang, $languages)) {
+                throw new \Exception('Langue non supportée');
+            }
+
+            $prompt = "Traduis ce texte de voyage touristique en {$languages[$targetLang]['name']} de manière naturelle et attrayante:\n\n";
+            $prompt .= $description;
+            $prompt .= "\n\nConserve le ton enthousiaste et professionnel. N'ajoute pas de commentaires, juste la traduction.";
+
+            $translation = $openRouter->askQuestion($prompt);
+
+            return $this->json([
+                'success' => true,
+                'translation' => $translation,
+                'flag' => $languages[$targetLang]['flag'],
+                'langName' => $languages[$targetLang]['name']
+            ]);
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,

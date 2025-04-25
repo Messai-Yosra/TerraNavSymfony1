@@ -11,6 +11,8 @@ parameters:
     env(STRIPE_SECRET_KEY): ~
     amadeus.api.key: '%env(AMADEUS_API_KEY)%'
     amadeus.api.secret: '%env(AMADEUS_API_SECRET)%'
+    openrouter.api_key: '%env(OPENROUTER_API_KEY)%'
+
 services:
     # default configuration for services in *this* file
     _defaults:
@@ -40,6 +42,10 @@ services:
     App\Service\BarCodeGenerator:
         arguments:
             $router: '@router'
+
+    App\Service\OpenRouterService:
+        arguments:
+            $apiKey: '%openrouter.api_key%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
