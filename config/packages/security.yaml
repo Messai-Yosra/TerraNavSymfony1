@@ -114,6 +114,7 @@ security:
         - { path: ^/ReservationAdmin, roles: PUBLIC_ACCESS }
         - { path: ^//panier/confirm/success/[ 0-9 ]+, roles: PUBLIC_ACCESS }
         - { path: ^/panier/confirm/success, roles: ROLE_USER }
+        - { path: ^/reservation/[ 0-9 ]+/qr-cod, roles: PUBLIC_ACCESS }
 
 
         # Routes Gestion interactions

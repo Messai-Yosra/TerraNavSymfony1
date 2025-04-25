@@ -131,6 +131,12 @@
                                                         data-description="{{ reservation.id_voyage and reservation.id_voyage.description ? reservation.id_voyage.description : 'Aucune description disponible' }}">
                                                     Détails
                                                 </button>
+                                                <!-- QR Code button -->
+                                                <button class="btn btn-sm btn-info get-qr-code-btn"
+                                                        onclick="window.location.href='/reservation/{{ reservation.id }}/qr-code?download=true'"
+                                                        title="Download QR Code">
+                                                    <i class="fas fa-qrcode"></i> QR Code
+                                                </button>
                                             </td>
                                         </tr>
                                     {% endfor %}
@@ -209,6 +215,12 @@
                                                         data-description="{% if reservation.id_Chambre and reservation.id_Chambre.description %}{{ reservation.id_Chambre.description }}{% else %}Aucune description disponible{% endif %}">
                                                     Détails
                                                 </button>
+                                                <!-- QR Code button -->
+                                                <button class="btn btn-sm btn-info get-qr-code-btn"
+                                                        onclick="window.location.href='/reservation/{{ reservation.id }}/qr-code?download=true'"
+                                                        title="Download QR Code">
+                                                    <i class="fas fa-qrcode"></i> QR Code
+                                                </button>
                                             </td>
                                         </tr>
                                     {% endfor %}
@@ -275,6 +287,12 @@
                                                         data-description="{{ reservation.id_Transport.description ? reservation.id_Transport.description : 'Aucune description disponible' }}">
                                                     Détails
                                                 </button>
+                                                <!-- QR Code button -->
+                                                <button class="btn btn-sm btn-info get-qr-code-btn"
+                                                        onclick="window.location.href='/reservation/{{ reservation.id }}/qr-code?download=true'"
+                                                        title="Download QR Code">
+                                                    <i class="fas fa-qrcode"></i> QR Code
+                                                </button>
                                             </td>
                                         </tr>
                                     {% endfor %}
@@ -329,17 +347,17 @@
     <div class="modal fade" id="reservationDetailsModal" tabindex="-1" aria-labelledby="reservationDetailsModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="reservationDetailsModalLabel">Détails de la réservation</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6">
                             <h5>Informations générales</h5>
                             <ul class="list-group list-group-flush">
                                 <li class="list-group-item d-flex justify-content-between">
-                                    <span>Référence:</span>
+                                    <span>Username:</span>
+                                    <span class="fw-bold">{{ username }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Référence de réservation:</span>
                                     <span class="fw-bold" id="modalReservationId"></span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between">
@@ -377,6 +395,7 @@
             </div>
         </div>
     </div>
+
 
     <script src="{{ asset('js/reservations/historiqueClient.js') }}"></script>
 {% endblock %}

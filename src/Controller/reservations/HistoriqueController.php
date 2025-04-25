@@ -4,11 +4,15 @@ namespace App\Controller\reservations;
 
 use App\Repository\Reservation\ReservationRepository;
 use App\Repository\Reservation\PanierRepository;
+use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\Builder\BuilderInterface;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\Writer\PngWriter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-
+use Symfony\Component\HttpFoundation\Request;
 final class HistoriqueController extends AbstractController
 {
     #[Route('/HistoriqueClient', name: 'app_historique')]
@@ -76,7 +80,89 @@ final class HistoriqueController extends AbstractController
                 return $carry + count($items);
             }, 0),
             'total_spent' => $totalSpent,
-            'unique_destinations' => count($destinations)
+            'unique_destinations' => count($destinations),
+            'username' => $user->getUsername()
         ]);
+    }
+
+    #[Route('/reservation/{id}/qr-code', name: 'app_reservation_qr_code')]
+    public function generateQrCode(int $id, Request $request, ReservationRepository $reservationRepository, Security $security): Response
+    {
+        $user = $security->getUser();
+        $reservation = $reservationRepository->find($id);
+
+        if (!$reservation) {
+            throw $this->createNotFoundException('Reservation not found');
+        }
+
+        $qrCode = Builder::create()
+            ->writer(new PngWriter())
+            ->data($this->generateQrCodeData($reservation,$user))
+            ->encoding(new Encoding('UTF-8'))
+            ->size(300)
+            ->margin(10)
+            ->build();
+
+        // Generate appropriate filename
+        $prefix = match(strtolower($reservation->gettype_service())) {
+            'voyage' => 'VOY',
+            'chambre' => 'HEB',
+            'transport' => 'TRP',
+            default => 'RES'
+        };
+        $filename = $prefix . '-' . $reservation->getId() . '-qrcode.png';
+
+        // Check if download was requested
+        $isDownload = $request->query->getBoolean('download');
+
+        $response = new Response($qrCode->getString());
+
+        if ($isDownload) {
+            // Force download with proper headers
+            $response->headers->set('Content-Type', 'image/png');
+            $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+            $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
+            $response->headers->set('Pragma', 'no-cache');
+            $response->headers->set('Expires', '0');
+        } else {
+            // Regular inline display
+            $response->headers->set('Content-Type', $qrCode->getMimeType());
+            $response->headers->set('Content-Disposition', 'inline; filename="' . $filename . '"');
+        }
+
+        return $response;
+    }
+
+    private function generateQrCodeData($reservation, $user): string
+    {
+        return json_encode([
+            'reservation' => [
+                'id' => $reservation->getId(),
+                'type' => $reservation->gettype_service(),
+                'status' => $reservation->getEtat(),
+                'reference' => $this->generateReference($reservation),
+                'price' => $reservation->getPrix(),
+                'date' => $reservation->getdate_reservation()->format('Y-m-d H:i'),
+                'places' => $reservation->getnb_places()
+            ],
+            'user' => [
+                'id' => $user->getId(),
+                'username' => $user->getUsername(),
+                'Email' => $user->getEmail(),
+            ]
+        ]);
+    }
+
+    private function generateReference($reservation): string
+    {
+        $type = strtolower($reservation->gettype_service());
+        $prefix = match($type) {
+            'voyage' => 'VOY',
+            'chambre' => 'HEB',
+            'transport' => 'TRP',
+            default => 'RES'
+        };
+
+        return $prefix . '-' . $reservation->getId();
     }
 }
