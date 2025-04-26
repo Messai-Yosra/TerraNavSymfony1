@@ -116,6 +116,7 @@ security:
         - { path: ^/agence/statistiques/generer-rapport, roles: PUBLIC_ACCESS }
         - { path: ^/agence/voyages/generer-suggestion, roles: PUBLIC_ACCESS }
         - { path: ^/AjoutVoyageIA, roles: PUBLIC_ACCESS }
+        - { path: ^/agence/voyages/expired, roles: PUBLIC_ACCESS }
 
 
         # Routes Gestion réservations

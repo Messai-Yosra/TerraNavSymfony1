@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 final class VoyageAgenceController extends AbstractController
 {
@@ -87,6 +88,28 @@ final class VoyageAgenceController extends AbstractController
             'voyage' => $voyage,
             'similarVoyages' => $similarVoyages,
         ]);
+    }
+
+
+
+    #[Route('/agence/voyages/expired', name: 'app_voyages_expired')]
+    public function getExpiredVoyages(VoyageRepository $voyageRepository, CsrfTokenManagerInterface $csrfTokenManager): JsonResponse
+    {
+        $voyages = $voyageRepository->findExpiredVoyages();
+
+        $data = [];
+        foreach ($voyages as $voyage) {
+            $data[] = [
+                'id' => $voyage->getId(),
+                'titre' => $voyage->getTitre(),
+                'destination' => $voyage->getDestination(),
+                'dateRetour' => $voyage->getDateRetour()->format('Y-m-d'),
+                'type' => $voyage->getType(),
+                'csrf_token' => $csrfTokenManager->getToken('delete' . $voyage->getId())->getValue(),
+            ];
+        }
+
+        return $this->json($data);
     }
 
 
