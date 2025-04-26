@@ -1,9 +1,10 @@
 {% extends "baseClient.html.twig" %}
 
-{% block title %}Proposer un Voyage{% endblock %}
+{% block title %}Proposition de Voyage - IA{% endblock %}
 
 {% block content %}
-    <!-- Page Header Start -->
+    <!-- Même entête que AjouterVoyage.html.twig -->
+
     <div class="container-fluid page-header mb-5 p-0" style="background-image: url(img/voyages/1.avif);">
         <div class="container-fluid page-header-inner py-5">
             <div class="container text-center pb-5">
@@ -17,8 +18,16 @@
             </div>
         </div>
     </div>
-    <!-- Page Header End -->
-
+    <!-- Ajouter une bannière spéciale IA -->
+    <div class="container-xxl py-3">
+        <div class="alert alert-info d-flex align-items-center">
+            <i class="fas fa-robot fa-2x me-3"></i>
+            <div>
+                <h4 class="alert-heading">Proposition générée par votre assistant IA</h4>
+                <p class="mb-0">Vous pouvez modifier librement cette suggestion avant de la publier.</p>
+            </div>
+        </div>
+    </div>
     <!-- Voyage Form Start -->
     <div class="container-xxl py-5">
         <div class="container">

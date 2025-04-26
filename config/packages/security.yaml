@@ -113,6 +113,9 @@ security:
         - { path: ^/api/voyage/TEMP_ID/supprimer, roles: PUBLIC_ACCESS }
         - { path: ^/generate-description, roles: PUBLIC_ACCESS }
         - { path: ^/translate-description, roles: PUBLIC_ACCESS }
+        - { path: ^/agence/statistiques/generer-rapport, roles: PUBLIC_ACCESS }
+        - { path: ^/agence/voyages/generer-suggestion, roles: PUBLIC_ACCESS }
+        - { path: ^/AjoutVoyageIA, roles: PUBLIC_ACCESS }
 
 
         # Routes Gestion réservations

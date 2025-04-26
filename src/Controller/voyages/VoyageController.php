@@ -8,6 +8,7 @@ use App\Entity\Voyage;
 use App\Form\voyages\VoyageType;
 use App\Repository\Utilisateur\UtilisateurRepository;
 use App\Repository\Voyage\OffreRepository;
+use App\Service\GeocoderService;
 use App\Service\OpenRouterService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -211,6 +212,39 @@ class VoyageController extends AbstractController
 
         return $prompt;
     }
+
+    #[Route('/AjoutVoyageIA', name: 'app_ajout_voyage_ia')]
+    public function ajoutVoyageIA(Request $request, OffreRepository $offreRepository): Response
+    {
+        $voyage = new Voyage();
+
+        // Pré-remplir avec les paramètres de l'URL
+        $voyage->setTitre($request->query->get('titre', 'Nouveau Voyage'));
+        $voyage->setDestination($request->query->get('destination'));
+        $voyage->setPointDepart($request->query->get('pointDepart'));
+        $voyage->setType($request->query->get('type'));
+        $voyage->setPrix($request->query->get('prix'));
+        $voyage->setNbPlacesD($request->query->get('nbPlacesD'));
+        $voyage->setDescription($request->query->get('description'));
+
+        // Gestion des dates
+        if ($dateDepart = $request->query->get('dateDepart')) {
+            $voyage->setDateDepart(new \DateTime($dateDepart));
+        }
+        if ($dateRetour = $request->query->get('dateRetour')) {
+            $voyage->setDateRetour(new \DateTime($dateRetour));
+        }
+
+        $form = $this->createForm(VoyageType::class, $voyage);
+
+        $offres = $offreRepository->findAll();
+        return $this->render('voyages/AjouterVoyageIA.html.twig', [
+            'form' => $form->createView(),
+            'offres' => $offres,
+            'isIaGenerated' => true
+        ]);
+    }
+
 
 
 
