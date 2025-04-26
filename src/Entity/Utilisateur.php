@@ -151,6 +151,9 @@ class Utilisateur implements PasswordAuthenticatedUserInterface, UserInterface
     #[ORM\OneToMany(mappedBy: "id_user", targetEntity: Voyage::class)]
     private Collection $voyages;
 
+    #[ORM\Column(name: "has_facial_auth", type: "boolean", options: ["default" => false])]
+    private bool $hasFacialAuth = false;
+
     public function __construct()
     {
         $this->hebergements = new ArrayCollection();
@@ -637,5 +640,16 @@ class Utilisateur implements PasswordAuthenticatedUserInterface, UserInterface
     public function getUserIdentifier(): string
     {
         return $this->email;
+    }
+    
+    public function getHasFacialAuth(): bool
+    {
+        return $this->hasFacialAuth;
+    }
+    
+    public function setHasFacialAuth(bool $hasFacialAuth): self
+    {
+        $this->hasFacialAuth = $hasFacialAuth;
+        return $this;
     }
 }

@@ -261,7 +261,7 @@
         }
 
         /* Importation de nouvelles polices */
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family:Poppins:wght@300;400;500;600;700&display=swap');
         
         /* Mise en page horizontale à deux colonnes */
         .split-layout {
@@ -808,6 +808,13 @@
                             
                             <div class="signup-section">
                                 <p>Nouveau sur TerraNav ? <a href="{{ path('app_signup') }}">Créer un compte</a></p>
+                                
+                                <!-- Option de connexion par reconnaissance faciale -->
+                                <p class="mt-2">
+                                    <a href="{{ path('app_facial_auth_login') }}" class="facial-auth-link">
+                                        <i class="fas fa-camera me-1"></i> Se connecter avec reconnaissance faciale
+                                    </a>
+                                </p>
                             </div>
                         </form>
                     </div>
