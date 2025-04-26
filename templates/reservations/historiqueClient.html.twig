@@ -22,7 +22,7 @@
                 <div class="col-md-12">
                     <div class="card shadow">
                         <div class="card-header bg-primary text-white">
-                            <h5 class="mb-0">Rechercher, filtrer et trier</h5>
+                            <h5 class="mb-0">Rechercher, filtrer et consulter le calendrier</h5>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -59,18 +59,9 @@
 
                                 <!-- Sort Options -->
                                 <div class="col-md-2 mb-3">
-                                    <div class="dropdown">
-                                        <button class="btn btn-outline-primary dropdown-toggle w-100" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <i class="fa fa-sort me-1"></i> Trier par
-                                        </button>
-                                        <ul class="dropdown-menu w-100" aria-labelledby="sortDropdown">
-                                            <li><a class="dropdown-item sort-option" href="#" data-sort="price-asc"><i class="fa fa-sort-amount-up me-2"></i> Prix croissant</a></li>
-                                            <li><a class="dropdown-item sort-option" href="#" data-sort="price-desc"><i class="fa fa-sort-amount-down me-2"></i> Prix décroissant</a></li>
-                                            <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item sort-option" href="#" data-sort="date-recent"><i class="fa fa-calendar me-2"></i> Date récente</a></li>
-                                            <li><a class="dropdown-item sort-option" href="#" data-sort="date-oldest"><i class="fa fa-calendar-alt me-2"></i> Date ancienne</a></li>
-                                        </ul>
-                                    </div>
+                                    <a href="{{ path('mes_reservations_calendar') }}" class="btn btn-outline-primary w-100">
+                                        <i class="fa fa-calendar me-1"></i> Calendrier
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -276,8 +267,8 @@
                                                 <button class="btn btn-sm btn-primary details-btn"
                                                         data-reservation-id="{{ reservation.id }}"
                                                         data-reservation-type="transport"
-                                                        data-title="{{ reservation.id_Transport.nom }}"
-                                                        data-subtitle="{{ reservation.id_Transport.type }}"
+                                                        data-title="{{ reservation.id_Transport.type }}"
+                                                        data-subtitle="{{ reservation.id_Transport.nom }}"
                                                         data-price="{{ reservation.prix }}"
                                                         data-date="{{ reservation.dateAffectation ? reservation.dateAffectation|date('d/m/Y') : 'N/A' }}"
                                                         data-status="{{ reservation.Etat }}"
@@ -353,7 +344,7 @@
                             <h5>Informations générales</h5>
                             <ul class="list-group list-group-flush">
                                 <li class="list-group-item d-flex justify-content-between">
-                                    <span>Username:</span>
+                                    <span>Nom du client:</span>
                                     <span class="fw-bold">{{ username }}</span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between">
