@@ -193,6 +193,9 @@ final class DashboardController extends AbstractController
         // Récupérer l'historique des 30 derniers jours
         $loginHistory = $loginLogger->getLoginHistory(30);
         
+        // Récupérer les utilisateurs les plus actifs (top 5 par défaut)
+        $mostActiveUsers = $loginLogger->getMostActiveUsers(30, 5);
+        
         // Analyser et préparer des statistiques
         $stats = [
             'totalConnexions' => count($loginHistory),
@@ -200,7 +203,8 @@ final class DashboardController extends AbstractController
                 return substr($entry['timestamp'], 0, 10) === date('Y-m-d');
             })),
             'utilisateursUniques' => count(array_unique(array_column($loginHistory, 'userId'))),
-            'connexionsParRole' => []
+            'connexionsParRole' => [],
+            'utilisateursLesPlusActifs' => $mostActiveUsers
         ];
         
         // Agréger les connexions par rôle
