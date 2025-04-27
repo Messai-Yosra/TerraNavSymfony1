@@ -12,17 +12,21 @@ use App\Entity\Utilisateur;
 use App\Entity\Reaction;
 use App\Form\AddPostFormType;
 use App\Repository\PostRepository;
-use App\Service\interactions\ContentGenerationService;
+use App\Service\interactions\PostDescriptionGenerator;
+use App\Service\interactions\ProfanityFilter; // Ensure this class exists in the specified namespace
 
 final class ChatController extends AbstractController
 {
     private $entityManager;
     private $contentGenerationService;
+    private $profanityFilter;
 
-    public function __construct(EntityManagerInterface $entityManager, ContentGenerationService $contentGenerationService)
-    {
+    public function __construct(
+        EntityManagerInterface $entityManager,
+        ProfanityFilter $profanityFilter
+    ) {
         $this->entityManager = $entityManager;
-        $this->contentGenerationService = $contentGenerationService;
+        $this->profanityFilter = $profanityFilter;
     }
 
     #[Route('/new', name: 'app_post_new')]
@@ -33,6 +37,29 @@ final class ChatController extends AbstractController
         $form->handleRequest($request);
     
         if ($form->isSubmitted() && $form->isValid()) {
+            // Récupérer et filtrer la description
+            $description = $form->get('description')->getData();
+            
+            // Vérifier si la description est vide
+            if (empty(trim($description))) {
+                $this->addFlash('error', 'La description ne peut pas être vide.');
+                return $this->render('interactions/new.html.twig', [
+                    'form' => $form->createView(),
+                ]);
+            }
+
+            // Filtrer le contenu inapproprié
+            $filteredDescription = $this->profanityFilter->filter($description);
+            
+            // Vérifier si le contenu a été modifié par le filtre
+            if ($filteredDescription !== $description) {
+                $this->addFlash('warning', 'Votre description contenait du contenu inapproprié qui a été filtré.');
+            }
+
+            // Mettre à jour la description filtrée
+            $post->setDescription($filteredDescription);
+
+            // Gestion de l'image
             $image = $form->get('image')->getData();
             if ($image) {
                 $filename = uniqid() . '.' . $image->guessExtension();
@@ -51,7 +78,8 @@ final class ChatController extends AbstractController
     
             $this->entityManager->persist($post);
             $this->entityManager->flush();
-    
+
+            $this->addFlash('success', 'Votre post a été créé avec succès.');
             return $this->redirectToRoute('app_chat');
         }
     
@@ -183,18 +211,34 @@ public function toggleLike(int $id, Request $request, EntityManagerInterface $en
         'count' => $newCount
     ]);
 }
-#[Route('/posts/generate-content', name: 'post_generate_content', methods: ['POST'])]
-public function generateContent(Request $request): JsonResponse
-{
+// src/Controller/PostController.php
+
+
+#[Route('/post/generate-description', name: 'post_generate_description', methods: ['POST'])]
+public function generateDescription(
+    Request $request,
+    PostDescriptionGenerator $descriptionGenerator
+): JsonResponse {
     $data = json_decode($request->getContent(), true);
-    $prompt = $data['prompt'] ?? 'Default prompt for generating content';
+    $context = $data['context'] ?? '';
 
-    $generatedContent = $this->contentGenerationService->generateContent($prompt);
+    try {
+        $description = $descriptionGenerator->generatePostDescription(
+            $context,
+            $data['type'] ?? 'general',
+            $data['style'] ?? 'convivial',
+            true
+        );
 
-    if ($generatedContent) {
-        return $this->json(['success' => true, 'content' => $generatedContent]);
+        return $this->json([
+            'success' => true,
+            'content' => $description
+        ]);
+    } catch (\Exception $e) {
+        return $this->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 400);
     }
-
-    return $this->json(['success' => false, 'message' => 'Failed to generate content'], 400);
 }
 }

@@ -155,13 +155,29 @@
 
                             <div class="card-body">
                                 <div class="info-item">
-                                    <span class="info-label"><i class="fas fa-user"></i> Auteur :</span>
+                                    <span class="info-label" style="width: 150px;">
+                                        <i class="fas fa-user"></i> Auteur :
+                                    </span>
                                     <span class="info-value">{{ post.id_user.username }}</span>
                                 </div>
 
                                 <div class="info-item">
-                                    <span class="info-label"><i class="far fa-calendar-alt"></i> Date :</span>
+                                    <span class="info-label" style="width: 150px;">
+                                        <i class="far fa-calendar-alt"></i> Date :
+                                    </span>
                                     <span class="info-value">{{ post.date|date('d/m/Y H:i') }}</span>
+                                </div>
+
+                                <div class="info-item">
+                                    <span class="info-label" style="width: 180px;">
+                                        <i class="fas fa-quote-right"></i> Description :
+                                    </span>
+                                    <span class="info-value">
+                                        {% set lines = post.description|split('\n') %}
+                                        {% for line in lines %}
+                                            <div style="padding-left: 40px;">{{ line }}</div>
+                                        {% endfor %}
+                                    </span>
                                 </div>
 
                                 {% if post.image %}

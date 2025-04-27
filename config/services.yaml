@@ -9,7 +9,9 @@ parameters:
     uploads_directory: '%kernel.project_dir%/public/img'
     env(STRIPE_PUBLIC_KEY): ~
     env(STRIPE_SECRET_KEY): ~
+    openai_api_key: '%env(OPENAI_API_KEY)%'
 services:
+
     # default configuration for services in *this* file
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
@@ -23,7 +25,11 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
-
+    App\Service\interactions\PostDescriptionGenerator:
+        arguments:
+            $model: '%env(OPENAI_MODEL)%'
+            $temperature: '%env(OPENAI_TEMPERATURE)%'
+            $maxTokens: '%env(OPENAI_MAX_TOKENS)%'
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
     App\Service\hebergements\FileUploader:

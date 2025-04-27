@@ -93,7 +93,7 @@ class CommentaireController extends AbstractController
     ->to($postCreator->getEmail())
     ->subject('Nouveau commentaire sur votre publication')
     ->embed($logoContent, 'logo', $logoMime)
-    ->html($this->renderView('interactions/new_comment.html.twig', [
+    ->html($this->renderView('interactions/cmntrmail.html.twig', [
         'postCreator' => $postCreator,
         'user' => $user,
         'post' => $post,

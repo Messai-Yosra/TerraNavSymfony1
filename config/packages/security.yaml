@@ -46,6 +46,7 @@ security:
     # L'option access_control doit être ICI, au même niveau que firewalls
     access_control:
         # Routes publiques en premier
+        - { path: ^/post/generate-description, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/reset-password, roles: PUBLIC_ACCESS }
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/register, roles: PUBLIC_ACCESS }
