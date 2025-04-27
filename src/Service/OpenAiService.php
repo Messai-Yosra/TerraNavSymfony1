@@ -10,7 +10,7 @@ class OpenAiService
     private Client $client;
     private const DEFAULT_MODEL = 'gpt-3.5-turbo';
     private const DEFAULT_TEMPERATURE = 0.7;
-    private const DEFAULT_MAX_TOKENS = 200;
+    private const DEFAULT_MAX_TOKENS = 100;
 
     public function __construct(string $apiKey)
     {

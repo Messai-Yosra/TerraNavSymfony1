@@ -1,4 +1,4 @@
-{% extends "baseClient.html.twig" %}
+{% extends "baseAgenceVoyage.html.twig" %}
 
 {% block title %}Vos Voyages{% endblock %}
 
@@ -25,9 +25,9 @@
         <div class="container">
             <div class="bg-white shadow" style="padding: 35px;">
                 <form id="filterForm" method="get" action="{{ path('app_voyages_agence') }}">
-                    <div class="row g-3">
+                    <div class="row g-3 align-items-center">
                         <div class="col-md-10">
-                            <div class="row g-3">
+                            <div class="row g-3 align-items-end">
                                 <!-- Prix Minimum -->
                                 <div class="col-md-3">
                                     <label for="minPriceSlider">Prix Minimum (DT)</label>
@@ -56,45 +56,50 @@
 
                                 <!-- Nombre de places minimum -->
                                 <div class="col-md-2">
-                                    <label for="minPlaces">Places min</label>
-                                    <input type="number" id="minPlaces" name="minPlaces"
-                                           class="form-control" min="1"
-                                           value="{{ filterParams.minPlaces ?? '' }}"
-                                           placeholder="Places min">
+                                    <div class="form-group mb-0">
+                                        <label for="minPlaces">Places min</label>
+                                        <input type="number" id="minPlaces" name="minPlaces"
+                                               class="form-control" min="1"
+                                               value="{{ filterParams.minPlaces ?? '' }}"
+                                               placeholder="Places min">
+                                    </div>
                                 </div>
 
                                 <!-- Type de voyage -->
                                 <div class="col-md-2">
-                                    <label for="type">Type</label>
-                                    <select class="form-select" id="type" name="type">
-                                        <option value="all">Tous les types</option>
-                                        <option value="Avion" {% if filterParams.type == 'Avion' %}selected{% endif %}>Avion</option>
-                                        <option value="Bateau" {% if filterParams.type == 'Bateau' %}selected{% endif %}>Bateau</option>
-                                        <option value="Train" {% if filterParams.type == 'Train' %}selected{% endif %}>Train</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <label for="sort" class="form-label">Trier par</label>
-                                    <select class="form-select" id="sort" name="sort">
-                                        <option value="">Par défaut</option>
-                                        <option value="alpha" {% if filterParams.sort == 'alpha' %}selected{% endif %}>Ordre alphabétique</option>
-                                        <option value="prix_asc" {% if filterParams.sort == 'prix_asc' %}selected{% endif %}>prix croissant</option>
-                                        <option value="prix_desc" {% if filterParams.sort == 'prix_desc' %}selected{% endif %}>prix décroissant</option>
-                                        <option value="remise_asc" {% if filterParams.sort == 'remise_asc' %}selected{% endif %}>remise croissante</option>
-                                        <option value="remise_desc" {% if filterParams.sort == 'remise_desc' %}selected{% endif %}>remise décroissante</option>
-                                        <option value="plus_proche" {% if filterParams.sort == 'plus_proche' %}selected{% endif %}>plus proche</option>
-                                    </select>
+                                    <div class="form-group mb-0">
+                                        <label for="type">Type</label>
+                                        <select class="form-select" id="type" name="type">
+                                            <option value="all">Tous les types</option>
+                                            <option value="Avion" {% if filterParams.type == 'Avion' %}selected{% endif %}>Avion</option>
+                                            <option value="Bateau" {% if filterParams.type == 'Bateau' %}selected{% endif %}>Bateau</option>
+                                            <option value="Train" {% if filterParams.type == 'Train' %}selected{% endif %}>Train</option>
+                                        </select>
+                                    </div>
                                 </div>
 
-                                <!-- Voyages en solde -->
-                                <div class="col-md-4">
-                                    <div class="filter-group">
-                                        <label class="form-label fw-bold">Options</label>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="onSale" name="onSale"
-                                                   {% if filterParams.onSale %}checked{% endif %}>
-                                            <label class="form-check-label" for="onSale">Promotions seulement</label>
-                                        </div>
+                                <!-- Trier par -->
+                                <div class="col-md-2">
+                                    <div class="form-group mb-0">
+                                        <label for="sort">Trier par</label>
+                                        <select class="form-select" id="sort" name="sort">
+                                            <option value="">Par défaut</option>
+                                            <option value="alpha" {% if filterParams.sort == 'alpha' %}selected{% endif %}>Ordre alphabétique</option>
+                                            <option value="prix_asc" {% if filterParams.sort == 'prix_asc' %}selected{% endif %}>prix croissant</option>
+                                            <option value="prix_desc" {% if filterParams.sort == 'prix_desc' %}selected{% endif %}>prix décroissant</option>
+                                            <option value="remise_asc" {% if filterParams.sort == 'remise_asc' %}selected{% endif %}>remise croissante</option>
+                                            <option value="remise_desc" {% if filterParams.sort == 'remise_desc' %}selected{% endif %}>remise décroissante</option>
+                                            <option value="plus_proche" {% if filterParams.sort == 'plus_proche' %}selected{% endif %}>plus proche</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Ligne supplémentaire pour le checkbox -->
+                                <div class="col-md-12 mt-2">
+                                    <div class="form-check form-switch d-inline-block">
+                                        <input class="form-check-input" type="checkbox" id="onSale" name="onSale"
+                                               {% if filterParams.onSale %}checked{% endif %}>
+                                        <label class="form-check-label" for="onSale">Promotions seulement</label>
                                     </div>
                                 </div>
                             </div>
@@ -133,16 +138,18 @@
     <div class="container-xxl py-3">
         <div class="container">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <div class="ms-3">
+                <div>
                     <h6 class="section-title text-start text-primary text-uppercase">Vos Destinations</h6>
                     <h1 class="mb-0">Liste de vos <span class="text-primary text-uppercase">Voyages</span></h1>
                 </div>
-                <button class="btn btn-outline-primary mb-3" onclick="fetchSuggestion()">
-                    <i class="fas fa-robot me-2"></i>Obtenir une suggestion IA
-                </button>
-                <a href="{{ path('app_ajout_voyage') }}" class="btn btn-primary me-3">
-                    <i class="fas fa-plus me-2"></i>Ajouter un voyage
-                </a>
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-outline-primary mb-3" onclick="fetchSuggestion()">
+                        <i class="fas fa-robot me-2"></i>Obtenir une suggestion IA
+                    </button>
+                    <a href="{{ path('app_ajout_voyage') }}" class="btn btn-primary mb-0">
+                        <i class="fas fa-plus me-2"></i>Ajouter un voyage
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -288,7 +295,7 @@
     <!-- Notification pour les voyages expirés -->
     <div class="smart-assistant-popup" id="expiredVoyagesNotification" style="display: none;">
         <div class="assistant-header">
-            <img src="{{ asset('img/assistant-avatar.png') }}" alt="Assistant" class="assistant-avatar" onerror="this.src='https://via.placeholder.com/40';">
+            <img src="{{ asset('img/assistant-robot.png') }}" alt="Assistant" class="assistant-avatar" onerror="this.src='https://via.placeholder.com/40';">
             <h5>Voyages expirés</h5>
             <button type="button" class="btn-close btn-close-white" onclick="closeNotification()"></button>
         </div>
@@ -486,6 +493,32 @@
                 border-radius: 10px 10px 0 0;
             }
         }
+
+        /* Style spécifique pour la barre d'actions */
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .action-bar .titles {
+            flex: 1;
+        }
+
+        .action-bar .buttons {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        /* Assure que les boutons ont la même hauteur */
+        .action-bar .btn {
+            height: 38px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
     </style>
 
     <script>
@@ -527,7 +560,7 @@
 
             // Vérifier les voyages expirés au chargement et toutes les minutes
             showExpiredVoyagesNotification();
-            setInterval(showExpiredVoyagesNotification, 60000);
+            setInterval(showExpiredVoyagesNotification,120000);
         });
 
         function resetFilters() {
@@ -546,25 +579,19 @@
         }
 
         function fetchSuggestion() {
-            // Afficher le modal
             const modal = new bootstrap.Modal(document.getElementById('aiSuggestionModal'));
             modal.show();
 
-            // Afficher le spinner
             const contentDiv = document.getElementById('aiSuggestionContent');
             contentDiv.innerHTML = `
-                <div class="text-center py-5">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Chargement...</span>
-                    </div>
-                    <p class="mt-3">Génération de la suggestion en cours...</p>
-                </div>
-            `;
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Chargement...</span>
+            </div>
+            <p class="mt-3">Génération de la suggestion en cours...</p>
+        </div>
+    `;
 
-            // Cacher le bouton "Utiliser" par défaut
-            document.getElementById('useSuggestionBtn').style.display = 'none';
-
-            // Envoyer la requête AJAX
             fetch('{{ path('app_generate_voyage_suggestion') }}', {
                 method: 'POST',
                 headers: {
@@ -573,32 +600,28 @@
                 }
             })
                 .then(response => {
-                    if (!response.ok) throw new Error('Erreur réseau');
+                    if (!response.ok) {
+                        throw new Error(`Erreur HTTP! statut: ${response.status}`);
+                    }
                     return response.text();
                 })
                 .then(html => {
-                    // Mettre à jour le contenu du modal
                     contentDiv.innerHTML = html;
-
-                    // Afficher le bouton "Utiliser"
                     document.getElementById('useSuggestionBtn').style.display = 'inline-block';
-
-                    // Mettre à jour le lien du bouton
-                    const useBtn = document.getElementById('useSuggestionBtn');
                     const viewBtn = contentDiv.querySelector('a.btn-primary');
                     if (viewBtn) {
-                        useBtn.href = viewBtn.href;
+                        document.getElementById('useSuggestionBtn').href = viewBtn.href;
                     }
                 })
                 .catch(error => {
                     console.error('Erreur:', error);
                     contentDiv.innerHTML = `
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            Une erreur est survenue lors de la génération de la suggestion.
-                            <div class="mt-2"><small>${error.message}</small></div>
-                        </div>
-                    `;
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Échec de la génération de suggestion.<br>
+                <small>${error.message}</small>
+            </div>
+        `;
                 });
         }
 

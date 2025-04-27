@@ -280,4 +280,13 @@ class VoyageRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findDestinationsAndTypesForAI(): array
+    {
+        return $this->createQueryBuilder('v')
+            ->select('DISTINCT v.destination', 'v.type', 'v.prix')
+            ->setMaxResults(100) // Limite pour éviter de surcharger
+            ->getQuery()
+            ->getResult();
+    }
 }

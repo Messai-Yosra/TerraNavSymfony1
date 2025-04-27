@@ -21,4 +21,11 @@ class BarCodeGenerator
 // Retourne l'URL de l'API QuickChart pour générer le QR code
         return sprintf('https://quickchart.io/qr?text=%s&size=200', urlencode($offerUrl));
     }
+
+
+    public function generateVoyageBarcodeUrl(int $voyageId): string
+    {
+        $url = $this->router->generate('app_voyage_details', ['id' => $voyageId], UrlGeneratorInterface::ABSOLUTE_URL);
+        return sprintf('https://quickchart.io/qr?text=%s&size=200', urlencode($url));
+    }
 }

@@ -1,41 +1,62 @@
-{% extends "baseAgenceVoyage.html.twig" %}
+{# templates/voyages/AjouterOffreIA.html.twig #}
+{% extends "baseClient.html.twig" %}
 
-{% block title %}Modifier l'Offre - {{ offre.titre }}{% endblock %}
+{% block title %}Proposer une Offre - IA{% endblock %}
 
 {% block content %}
-    <!-- Page Header Start -->
+    <!-- En-tête avec mention IA -->
     <div class="container-fluid page-header mb-5 p-0" style="background-image: url({{ asset('img/voyages/1.avif') }});">
         <div class="container-fluid page-header-inner py-5">
             <div class="container text-center pb-5">
-                <h1 class="display-3 text-white mb-3 animated slideInDown">Modifier l'offre</h1>
+                <h1 class="display-3 text-white mb-3 animated slideInDown">Créer une nouvelle offre</h1>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb justify-content-center text-uppercase">
-                        <li class="breadcrumb-item"><a href="{{ path('app_offres_agence') }}">Vos offres</a></li>
-                        <li class="breadcrumb-item text-white active" aria-current="page">Modification</li>
+                        <li class="breadcrumb-item"><a href="#">Accueil</a></li>
+                        <li class="breadcrumb-item text-white active" aria-current="page">Nouvelle Offre IA</li>
                     </ol>
                 </nav>
             </div>
         </div>
     </div>
-    <!-- Page Header End -->
+
+    <!-- Bannière IA -->
+    <div class="container-xxl py-3">
+        <div class="alert alert-info d-flex align-items-center">
+            <i class="fas fa-robot fa-2x me-3"></i>
+            <div>
+                <h4 class="alert-heading">Proposition générée par votre assistant IA</h4>
+                <p class="mb-0">Vous pouvez modifier librement cette suggestion avant de la publier.</p>
+            </div>
+        </div>
+    </div>
 
     <!-- Offre Form Start -->
     <div class="container-xxl py-5">
         <div class="container">
             <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
-                <h6 class="section-title text-center text-primary text-uppercase">Formulaire de modification</h6>
-                <h1 class="mb-5">Modifier <span class="text-primary text-uppercase">{{ offre.titre }}</span></h1>
+                <h6 class="section-title text-center text-primary text-uppercase">Formulaire d'offre</h6>
+                <h1 class="mb-5">Créer une <span class="text-primary text-uppercase">Nouvelle Offre</span></h1>
             </div>
-            <form id="offreForm" action="{{ path('app_modifier_offre_bd', {'id': offre.id}) }}" method="POST" enctype="multipart/form-data">
+            <form id="offreForm" action="{{ path('app_ajout_offre') }}" method="POST" enctype="multipart/form-data">
                 <div class="row g-5">
                     <div class="col-lg-6">
-                        <!-- Affichage de l'image existante -->
+                        <!-- Première série d'images -->
                         <div class="row g-3 mb-4">
-                            <div class="col-12 text-center">
-                                <img class="img-fluid rounded wow zoomIn hover-zoom"
-                                     src="{{ asset(offre.transformSingleImagePath(offre.imagePath)) }}"
-                                     style="max-width: 80%; margin-top: 10%;"
-                                     onerror="this.src='{{ asset('img/about-1.jpg') }}'">
+                            <div class="col-6 text-end">
+                                <img class="img-fluid rounded w-75 wow zoomIn hover-zoom" data-wow-delay="0.1s"
+                                     src="{{ asset('img/voyages/ajout1.avif') }}" style="margin-top: 25%;">
+                            </div>
+                            <div class="col-6 text-start">
+                                <img class="img-fluid rounded w-100 wow zoomIn hover-zoom" data-wow-delay="0.3s"
+                                     src="{{ asset('img/voyages/ajout2.avif') }}">
+                            </div>
+                            <div class="col-6 text-end">
+                                <img class="img-fluid rounded w-50 wow zoomIn hover-zoom" data-wow-delay="0.5s"
+                                     src="{{ asset('img/voyages/ajout3.avif') }}">
+                            </div>
+                            <div class="col-6 text-start">
+                                <img class="img-fluid rounded w-75 wow zoomIn hover-zoom" data-wow-delay="0.7s"
+                                     src="{{ asset('img/voyages/ajout4.avif') }}">
                             </div>
                         </div>
                     </div>
@@ -51,31 +72,23 @@
                                     <div class="row g-3">
                                         <!-- Titre -->
                                         <div class="col-12">
-                                            <div class="form-floating {% if errors.titre is defined %}has-error{% endif %}">
-                                                <input type="text" class="form-control {% if errors.titre is defined %}is-invalid{% endif %}"
-                                                       id="titre" name="titre" placeholder="Titre de l'offre"
-                                                       value="{{ offre.titre }}" >
-                                                <label for="titre"><i class="fas fa-heading me-2 text-primary"></i>Titre de l'offre</label>
-                                                {% if errors.titre is defined %}
-                                                    <div class="invalid-feedback d-block">
-                                                        {{ errors.titre }}
-                                                    </div>
-                                                {% endif %}
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="titre" name="titre"
+                                                       value="{{ offre.titre }}" required>
+                                                <label for="titre"><i class="fas fa-heading me-2 text-primary"></i>Titre
+                                                    de l'offre</label>
                                             </div>
                                         </div>
 
                                         <!-- Réduction -->
                                         <div class="col-md-6">
-                                            <div class="form-floating {% if errors.reduction is defined %}has-error{% endif %}">
-                                                <input type="number" class="form-control {% if errors.reduction is defined %}is-invalid{% endif %}"
-                                                       id="reduction" name="reduction"   step="0.5"
-                                                       placeholder="Réduction" value="{{ offre.reduction }}" >
-                                                <label for="reduction"><i class="fas fa-percent me-2 text-primary"></i>Réduction (%)</label>
-                                                {% if errors.reduction is defined %}
-                                                    <div class="invalid-feedback d-block">
-                                                        {{ errors.reduction }}
-                                                    </div>
-                                                {% endif %}
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" id="reduction"
+                                                       name="reduction"
+                                                       value="{{ offre.reduction }}" step="0.5" min="0" max="100"
+                                                       required>
+                                                <label for="reduction"><i class="fas fa-percent me-2 text-primary"></i>Réduction
+                                                    (%)</label>
                                             </div>
                                         </div>
                                     </div>
@@ -91,31 +104,21 @@
                                     <div class="row g-3">
                                         <!-- Date de début -->
                                         <div class="col-md-6">
-                                            <div class="form-floating {% if errors.dateDebut is defined %}has-error{% endif %}">
-                                                <input type="datetime-local" class="form-control {% if errors.dateDebut is defined %}is-invalid{% endif %}"
-                                                       id="dateDebut" name="dateDebut"
-                                                       value="{{ offre.dateDebut|date('Y-m-d\\TH:i') }}" >
+                                            <div class="form-floating">
+                                                <input type="datetime-local" class="form-control" id="dateDebut"
+                                                       name="dateDebut"
+                                                       value="{{ offre.dateDebut|date('Y-m-d\\TH:i') }}" required>
                                                 <label for="dateDebut"><i class="fas fa-hourglass-start me-2 text-primary"></i>Date de début</label>
-                                                {% if errors.dateDebut is defined %}
-                                                    <div class="invalid-feedback d-block">
-                                                        {{ errors.dateDebut }}
-                                                    </div>
-                                                {% endif %}
                                             </div>
                                         </div>
 
                                         <!-- Date de fin -->
                                         <div class="col-md-6">
-                                            <div class="form-floating {% if errors.dateFin is defined %}has-error{% endif %}">
-                                                <input type="datetime-local" class="form-control {% if errors.dateFin is defined %}is-invalid{% endif %}"
-                                                       id="dateFin" name="dateFin"
-                                                       value="{{ offre.dateFin|date('Y-m-d\\TH:i') }}" >
+                                            <div class="form-floating">
+                                                <input type="datetime-local" class="form-control" id="dateFin"
+                                                       name="dateFin"
+                                                       value="{{ offre.dateFin|date('Y-m-d\\TH:i') }}" required>
                                                 <label for="dateFin"><i class="fas fa-hourglass-end me-2 text-primary"></i>Date de fin</label>
-                                                {% if errors.dateFin is defined %}
-                                                    <div class="invalid-feedback d-block">
-                                                        {{ errors.dateFin }}
-                                                    </div>
-                                                {% endif %}
                                             </div>
                                         </div>
                                     </div>
@@ -129,27 +132,19 @@
                                 </div>
                                 <div class="card-body">
                                     <!-- Image -->
-                                    <div class="col-md-12">
+                                    <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="image" class="form-label"><i class="fas fa-image me-2 text-primary"></i>Modifier l'image</label>
+                                            <label for="image" class="form-label"><i class="fas fa-image me-2 text-primary"></i>Image de l'offre</label>
                                             <input type="file" class="form-control hover-file-input" id="image"
-                                                   name="image" accept="image/*">
-                                            <small class="form-text text-muted">Sélectionnez une nouvelle image pour remplacer l'actuelle</small>
-                                            <div id="imagePreview" class="mt-2">
-                                                <input type="hidden" name="existing_image" value="{{ asset(offre.transformSingleImagePath(offre.imagePath)) }}">
-                                            </div>
+                                                   name="image" accept="image/*" >
+                                            <div id="imagePreview" class="mt-2"></div>
                                         </div>
                                     </div>
-                                    <div class="form-group mt-3 {% if errors.description is defined %}has-error{% endif %}">
-                                        <label for="description"><i class="fas fa-info-circle me-2 text-primary"></i>Description détaillée</label>
-                                        <textarea class="form-control {% if errors.description is defined %}is-invalid{% endif %}"
-                                                  placeholder="Description détaillée" id="description"
-                                                  name="description" style="height: 100px" >{{ offre.description }}</textarea>
-                                        {% if errors.description is defined %}
-                                            <div class="invalid-feedback d-block">
-                                                {{ errors.description }}
-                                            </div>
-                                        {% endif %}
+                                    <div class="form-group">
+                                        <label for="description"><i class="fas fa-info-circle me-2 text-primary"></i>Description
+                                            détaillée</label>
+                                        <textarea class="form-control" id="description" name="description"
+                                                  style="height: 100px" required>{{ offre.description }}</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -158,11 +153,12 @@
                             <div class="row g-3 mt-2">
                                 <div class="col-6">
                                     <button class="btn btn-primary w-100 py-3 btn-hover" type="submit">
-                                        <i class="fas fa-save me-2"></i>Enregistrer
+                                        <i class="fas fa-plus-circle me-2"></i>Créer l'offre
                                     </button>
                                 </div>
                                 <div class="col-6">
-                                    <a href="{{ path('app_offres_agence') }}" class="btn btn-secondary w-100 py-3 btn-hover" id="cancelBtn">
+                                    <a href="{{ path('app_offres_agence') }}"
+                                       class="btn btn-secondary w-100 py-3 btn-hover" id="cancelBtn">
                                         <i class="fas fa-times-circle me-2"></i>Annuler
                                     </a>
                                 </div>
@@ -173,8 +169,6 @@
             </form>
         </div>
     </div>
-    <!-- Offre Form End -->
-
     <style>
         /* Effets de hover */
         .hover-effect {
@@ -281,15 +275,18 @@
     </style>
 
     <!-- Modal de confirmation -->
-    <div class="modal fade" id="confirmCancelModal" tabindex="-1" aria-labelledby="confirmCancelModalLabel" aria-hidden="true">
+    <div class="modal fade" id="confirmCancelModal" tabindex="-1" aria-labelledby="confirmCancelModalLabel"
+         aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="confirmCancelModalLabel"><i class="fas fa-exclamation-triangle me-2"></i>Confirmation</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="confirmCancelModalLabel"><i
+                                class="fas fa-exclamation-triangle me-2"></i>Confirmation</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    Êtes-vous sûr de vouloir annuler la modification de cette offre ?<br>
+                    Êtes-vous sûr de vouloir annuler la création de cette offre ?<br>
                     <small class="text-muted">Toutes les informations non enregistrées seront perdues.</small>
                 </div>
                 <div class="modal-footer">
@@ -303,7 +300,6 @@
             </div>
         </div>
     </div>
-
     <style>
         /* Ajouts de style pour la modale */
         .modal-content {

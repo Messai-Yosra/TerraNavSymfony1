@@ -8,7 +8,6 @@ use App\Entity\Voyage;
 use App\Form\voyages\VoyageType;
 use App\Repository\Utilisateur\UtilisateurRepository;
 use App\Repository\Voyage\OffreRepository;
-use App\Service\GeocoderService;
 use App\Service\OpenRouterService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -244,6 +243,9 @@ class VoyageController extends AbstractController
             'isIaGenerated' => true
         ]);
     }
+
+
+
 
 
 
