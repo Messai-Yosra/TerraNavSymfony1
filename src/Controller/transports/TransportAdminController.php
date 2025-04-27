@@ -151,4 +151,52 @@ final class TransportAdminController extends AbstractController
 
         return $this->redirectToRoute('admin_transports_list');
     }
+    #[Route('/transports/exporter/pdf', name: 'client_transports_export_pdf', methods: ['GET'])]
+    public function exportPdf(EntityManagerInterface $entityManager, LoggerInterface $logger): Response
+    {
+        $transports = $entityManager->getRepository(Transport::class)
+            ->createQueryBuilder('t')
+            ->where('t.id_user = :user')
+            ->setParameter('user', $entityManager->getReference(Utilisateur::class, 251))
+            ->getQuery()
+            ->getResult();
+
+        $html = $this->renderView('transports/client_transports_pdf.html.twig', [
+            'transports' => $transports,
+        ]);
+
+        try {
+            $logger->info('Generating PDF with Dompdf');
+
+            // Configure Dompdf options
+            $options = new Options();
+            $options->set('isHtml5ParserEnabled', true);
+            $options->set('isRemoteEnabled', true); // Enable if your template includes external resources like images
+
+            // Instantiate Dompdf
+            $dompdf = new Dompdf($options);
+            $dompdf->loadHtml($html);
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
+            $pdfOutput = $dompdf->output();
+            $logger->info('PDF generated successfully');
+
+            $filename = 'transports_list_' . date('Ymd_His') . '.pdf';
+
+            return new Response(
+                $pdfOutput,
+                Response::HTTP_OK,
+                [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => (new ResponseHeaderBag())->makeDisposition(
+                        ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+                        $filename
+                    ),
+                ]
+            );
+        } catch (\Exception $e) {
+            $logger->error('PDF generation failed: ' . $e->getMessage());
+            throw $e; // Remove this in production; redirect with flash message instead
+        }
+    }
 }

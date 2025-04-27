@@ -4,39 +4,60 @@
     <meta charset="UTF-8">
     <title>Liste des Transports</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
+        body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
         h1 { color: #0056b3; text-align: center; }
+        h3 { color: #0056b3; margin-top: 20px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
         th { background-color: #0056b3; color: white; }
-        img { max-width: 100px; height: auto; }
+        td { background-color: #f9f9f9; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .form-row { display: flex; flex-wrap: wrap; gap: 20px; }
+        .form-group { flex: 1 1 45%; }
+        .form-control { width: 100%; padding: 8px; font-size: 14px; }
+        .full-width { width: 100%; }
+        .footer { text-align: center; font-size: 12px; color: #777; margin-top: 40px; }
+        .date { font-size: 14px; color: #555; }
+        .note { color: #ff6600; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h1>Liste des Transports</h1>
-    {% if transports|length > 0 %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Nom</th>
-                    <th>Type</th>
-                    <th>Capacité</th>
-                    <th>Prix</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for transport in transports %}
+    <div class="container">
+        <h1>Liste des Transports</h1>
+        <p class="date">Date: {{ "now"|date("d/m/Y H:i") }}</p>
+
+        {% if transports|length > 0 %}
+            <table>
+                <thead>
                     <tr>
-                        <td>{{ transport.nom }}</td>
-                        <td>{{ transport.type }}</td>
-                        <td>{{ transport.capacite }}</td>
-                        <td>{{ transport.prix|number_format(2) }} DTN</td>
+                        <th>Nom</th>
+                        <th>Type</th>
+                        <th>Capacité</th>
+                        <th>Prix</th>
+                        <th>Description</th>
+                        <th>Contact</th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>Aucun transport disponible</p>
-    {% endif %}
+                </thead>
+                <tbody>
+                    {% for transport in transports %}
+                        <tr>
+                            <td>{{ transport.nom }}</td>
+                            <td>{{ transport.type }}</td>
+                            <td>{{ transport.capacite }}</td>
+                            <td>{{ transport.prix|number_format(2) }} DTN</td>
+                            <td>{{ transport.description }}</td>
+                            <td>{{ transport.contact }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>Aucun transport disponible</p>
+        {% endif %}
+
+        <div class="footer">
+            <p class="note">* Les informations sur les transports sont mises à jour en temps réel.</p>
+        </div>
+    </div>
 </body>
 </html>

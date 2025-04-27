@@ -19,6 +19,7 @@
                 <a href="{{ path('admin_trajets_index') }}" class="btn btn-primary">
                     <i class="fas fa-list"></i> Voir la liste des Trajets
                 </a>
+                 <a href="{{ path('client_transports_export_pdf') }}" class="btn btn-primary">Exporter en PDF <i class="fa fa-file-pdf ms-2"></i></a>
             </div>
             
             {% if transports is defined and transports is not empty %}

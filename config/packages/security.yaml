@@ -155,9 +155,9 @@ security:
         - { path: ^/transports/ajouter, roles: PUBLIC_ACCESS }
         - { path: ^/transports/modifier/[ 0-9 ]+, roles: PUBLIC_ACCESS }
         - { path: ^/transports/supprimer/[ 0-9 ]+, roles: PUBLIC_ACCESS }
-
-
-
+        - { path: ^/cities/autocomplete, roles: PUBLIC_ACCESS }
+        - { path: ^/check-distance, roles: PUBLIC_ACCESS }
+        - { path: ^/transports/search, roles: PUBLIC_ACCESS }
         # Routes Gestion Hebergement
         - { path: ^/hebergements/*, roles: PUBLIC_ACCESS }
         - { path: ^/chambre/*, roles: PUBLIC_ACCESS }

@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Validator\Constraints\DistanceConstraint;
+use App\Service\IpCountryService;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Psr\Log\LoggerInterface;
@@ -27,9 +28,15 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Knp\Snappy\Pdf;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+use App\Service\CityAutocompleter;
+use Symfony\Component\HttpClient\HttpClient;
+
+
 
 final class TransportClientController extends AbstractController
 {
+   
     #[Route('/transports', name: 'app_transports')]
     public function index(Request $request): Response
     {
@@ -84,8 +91,10 @@ final class TransportClientController extends AbstractController
 
         return $this->render('transports/transportClient.html.twig', [
             'form' => $form->createView(),
+            'mapbox_access_token' => $this->getParameter('mapbox_access_token'), // Pass the token
         ]);
     }
+
     #[Route('/transports/liste', name: 'client_transports_list', methods: ['GET'])]
     public function list(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -144,11 +153,20 @@ final class TransportClientController extends AbstractController
             'searchTerm' => $searchTerm,
         ]);
     }
+
     #[Route('/transports/ajouter', name: 'client_transport_new')]
-    public function new(Request $request, EntityManagerInterface $em): Response
+    public function new(Request $request, EntityManagerInterface $em, IpCountryService $ipCountryService): Response
     {
         $transport = new Transport();
-        
+
+        // Récupérer l'adresse IP du client
+        $clientIp = $request->getClientIp();
+
+        // Obtenir le code du pays et l'indicatif téléphonique
+        $countryCode = $ipCountryService->getCountryCodeFromIp($clientIp);
+        $phoneCode = $countryCode ? $ipCountryService->getPhoneCodeFromCountryCode($countryCode) : '';
+
+        // Créer le formulaire
         $form = $this->createFormBuilder($transport, [
             'attr' => ['id' => 'transport-form'],
             'data_class' => Transport::class
@@ -227,7 +245,10 @@ final class TransportClientController extends AbstractController
             ])
             ->add('contact', TextType::class, [
                 'label' => 'Contact',
-                'attr' => ['class' => 'form-control'],
+                'attr' => [
+                    'class' => 'form-control',
+                    'placeholder' => $phoneCode ? 'Ex: ' . $phoneCode . '123456789' : 'Ex: +21612345678 ou email',
+                ],
                 'constraints' => [
                     new Assert\NotBlank(['message' => 'Le contact est requis']),
                     new Assert\Length([
@@ -256,11 +277,10 @@ final class TransportClientController extends AbstractController
                     ]),
                 ],
             ])
-          
             ->getForm();
-    
+
         $form->handleRequest($request);
-        
+
         if ($form->isSubmitted()) {
             if ($request->isXmlHttpRequest()) {
                 if (!$form->isValid()) {
@@ -268,30 +288,30 @@ final class TransportClientController extends AbstractController
                     foreach ($form->getErrors(true) as $error) {
                         $errors[$error->getOrigin()->getName()] = $error->getMessage();
                     }
-                    
+
                     return $this->json([
                         'success' => false,
                         'errors' => $errors
                     ], 422);
                 }
-    
+
                 try {
                     $transport->setId_User($em->getReference(Utilisateur::class, 251));
                     $transport->setId_Trajet($em->getReference(Trajet::class, 4));
-                    
+
                     $imageFile = $form->get('imagePath')->getData();
                     if ($imageFile) {
-                        $newFilename = uniqid().'.'.$imageFile->guessExtension();
+                        $newFilename = uniqid() . '.' . $imageFile->guessExtension();
                         $imageFile->move(
-                            $this->getParameter('kernel.project_dir').'/public/uploads/transports',
+                            $this->getParameter('kernel.project_dir') . '/public/uploads/transports',
                             $newFilename
                         );
-                        $transport->setImagePath('uploads/transports/'.$newFilename);
+                        $transport->setImagePath('uploads/transports/' . $newFilename);
                     }
-                    
+
                     $em->persist($transport);
                     $em->flush();
-                    
+
                     return $this->json([
                         'success' => true,
                         'title' => 'Succès',
@@ -302,42 +322,44 @@ final class TransportClientController extends AbstractController
                     return $this->json([
                         'success' => false,
                         'title' => 'Erreur',
-                        'message' => 'Une erreur est survenue lors de la création: '.$e->getMessage()
+                        'message' => 'Une erreur est survenue lors de la création: ' . $e->getMessage()
                     ], 500);
                 }
             }
-    
+
             // Non-AJAX handling
             if ($form->isValid()) {
                 try {
                     $transport->setId_User($em->getReference(Utilisateur::class, 251));
                     $transport->setId_Trajet($em->getReference(Trajet::class, 4));
-                    
+
                     $imageFile = $form->get('imagePath')->getData();
                     if ($imageFile) {
-                        $newFilename = uniqid().'.'.$imageFile->guessExtension();
+                        $newFilename = uniqid() . '.' . $imageFile->guessExtension();
                         $imageFile->move(
-                            $this->getParameter('kernel.project_dir').'/public/uploads/transports',
+                            $this->getParameter('kernel.project_dir') . '/public/uploads/transports',
                             $newFilename
                         );
-                        $transport->setImagePath('uploads/transports/'.$newFilename);
+                        $transport->setImagePath('uploads/transports/' . $newFilename);
                     }
-                    
+
                     $em->persist($transport);
                     $em->flush();
-                    
+
                     $this->addFlash('success', 'Transport créé avec succès');
                 } catch (\Exception $e) {
-                    $this->addFlash('error', 'Une erreur est survenue lors de la création: '.$e->getMessage());
+                    $this->addFlash('error', 'Une erreur est survenue lors de la création: ' . $e->getMessage());
                 }
                 return $this->redirectToRoute('client_transport_new');
             }
         }
-    
+
         return $this->render('transports/Client_Transport_new.html.twig', [
             'form' => $form->createView(),
+            'phoneCode' => $phoneCode,
         ]);
     }
+
     #[Route('/transports/modifier/{id}', name: 'client_transport_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, string $id, EntityManagerInterface $em): Response
     {
@@ -533,6 +555,7 @@ final class TransportClientController extends AbstractController
             'transport' => $transport,
         ]);
     }
+
     #[Route('/transports/supprimer/{id}', name: 'client_transport_delete')]
     public function delete(Request $request, Transport $transport, EntityManagerInterface $em): Response
     {
@@ -584,33 +607,42 @@ final class TransportClientController extends AbstractController
         return $this->redirectToRoute('client_transports_list');
     }
 
-
-
     #[Route('/transports/search', name: 'app_transport_search')]
-public function search(Request $request, EntityManagerInterface $entityManager): Response
-{
-    // Récupération des paramètres
-    $departure = $request->query->get('departure');
-    $passengers = $request->query->get('passengers', 1); // Valeur par défaut: 1 passager
+    public function search(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        // Récupération des paramètres
+        $departure = $request->query->get('departure');
+        $passengers = $request->query->get('passengers', 1); // Valeur par défaut: 1 passager
 
-    // Recherche dans la base de données
-    $transports = $entityManager->getRepository(Transport::class)
-        ->createQueryBuilder('t')
-        ->join('t.id_trajet', 'tr')
-        ->where('tr.pointDepart LIKE :departure')
-        ->andWhere('t.capacite >= :passengers') // Filtre par capacité
-        ->setParameter('departure', '%'.$departure.'%')
-        ->setParameter('passengers', $passengers)
-        ->getQuery()
-        ->getResult();
+        // Recherche dans la base de données
+        $transports = $entityManager->getRepository(Transport::class)
+            ->createQueryBuilder('t')
+            ->join('t.id_trajet', 'tr')
+            ->where('tr.pointDepart LIKE :departure')
+            ->andWhere('t.capacite >= :passengers') // Filtre par capacité
+            ->setParameter('departure', '%'.$departure.'%')
+            ->setParameter('passengers', $passengers)
+            ->getQuery()
+            ->getResult();
 
-    return $this->render('transports/Transport_search.html.twig', [
-        'transports' => $transports,
-        'departure' => $departure,
-        'passengers' => $passengers
-    ]);
-}
-#[Route('/transports/check-distance', name: 'app_check_distance', methods: ['POST'])]
+        return $this->render('transports/Transport_search.html.twig', [
+            'transports' => $transports,
+            'departure' => $departure,
+            'passengers' => $passengers
+        ]);
+    }
+
+    private $httpClient;
+    private $logger;
+    private $mapboxApiKey;
+    // Injection des dépendances via le constructeur
+    public function __construct(HttpClientInterface $httpClient, LoggerInterface $logger)
+    {
+        $this->httpClient = $httpClient;
+        $this->logger = $logger;
+    }
+
+    #[Route('/check-distance', name: 'app_check_distance', methods: ['POST'])]
     public function checkDistance(Request $request, LoggerInterface $logger): JsonResponse
     {
         $departure = $request->request->get('departure');
@@ -705,65 +737,81 @@ public function search(Request $request, EntityManagerInterface $entityManager):
         }
     }
 
-    #[Route('/api/cities/autocomplete', name: 'app_cities_autocomplete', methods: ['GET'])]
-    public function autocompleteCities(Request $request, CityAutocompleter $cityAutocompleter): JsonResponse
+
+
+    #[Route('/cities/autocomplete', name: 'app_cities_autocomplete', methods: ['GET'])]
+    public function autocomplete(Request $request, CityAutocompleter $cityAutocompleter, LoggerInterface $logger): JsonResponse
     {
         $query = $request->query->get('q', '');
-        $suggestions = $cityAutocompleter->getCitySuggestions($query);
-        
-        return $this->json($suggestions);
+    
+        try {
+            // Récupérer les suggestions
+            $cities = $cityAutocompleter->getCitySuggestions($query);
+    
+            // Formatter les résultats pour l'autocomplétion
+            $suggestions = array_map(function ($city) {
+                return [
+                    'label' => sprintf('%s, %s', $city['name'], $city['country']),
+                    'value' => $city['name'],
+                    'coordinates' => $city['coordinates'],
+                ];
+            }, $cities);
+    
+            return new JsonResponse($suggestions);
+        } catch (\Exception $e) {
+            $logger->error('Autocomplete failed: {message}', [
+                'message' => $e->getMessage(),
+                'query' => $query,
+            ]);
+            return new JsonResponse([], 200); // Return empty array to avoid client-side error
+        }
     }
+    #[Route('/transports/exporter/pdf', name: 'client_transports_export_pdf', methods: ['GET'])]
+    public function exportPdf(EntityManagerInterface $entityManager, LoggerInterface $logger): Response
+    {
+        $transports = $entityManager->getRepository(Transport::class)
+            ->createQueryBuilder('t')
+            ->where('t.id_user = :user')
+            ->setParameter('user', $entityManager->getReference(Utilisateur::class, 251))
+            ->getQuery()
+            ->getResult();
 
+        $html = $this->renderView('transports/client_transports_pdf.html.twig', [
+            'transports' => $transports,
+        ]);
 
-   
+        try {
+            $logger->info('Generating PDF with Dompdf');
 
+            // Configure Dompdf options
+            $options = new Options();
+            $options->set('isHtml5ParserEnabled', true);
+            $options->set('isRemoteEnabled', true); // Enable if your template includes external resources like images
 
-#[Route('/transports/exporter/pdf', name: 'client_transports_export_pdf', methods: ['GET'])]
-public function exportPdf(EntityManagerInterface $entityManager, LoggerInterface $logger): Response
-{
-    $transports = $entityManager->getRepository(Transport::class)
-        ->createQueryBuilder('t')
-        ->where('t.id_user = :user')
-        ->setParameter('user', $entityManager->getReference(Utilisateur::class, 251))
-        ->getQuery()
-        ->getResult();
+            // Instantiate Dompdf
+            $dompdf = new Dompdf($options);
+            $dompdf->loadHtml($html);
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
+            $pdfOutput = $dompdf->output();
+            $logger->info('PDF generated successfully');
 
-    $html = $this->renderView('transports/client_transports_pdf.html.twig', [
-        'transports' => $transports,
-    ]);
+            $filename = 'transports_list_' . date('Ymd_His') . '.pdf';
 
-    try {
-        $logger->info('Generating PDF with Dompdf');
-
-        // Configure Dompdf options
-        $options = new Options();
-        $options->set('isHtml5ParserEnabled', true);
-        $options->set('isRemoteEnabled', true); // Enable if your template includes external resources like images
-
-        // Instantiate Dompdf
-        $dompdf = new Dompdf($options);
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper('A4', 'portrait');
-        $dompdf->render();
-        $pdfOutput = $dompdf->output();
-        $logger->info('PDF generated successfully');
-
-        $filename = 'transports_list_' . date('Ymd_His') . '.pdf';
-
-        return new Response(
-            $pdfOutput,
-            Response::HTTP_OK,
-            [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => (new ResponseHeaderBag())->makeDisposition(
-                    ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-                    $filename
-                ),
-            ]
-        );
-    } catch (\Exception $e) {
-        $logger->error('PDF generation failed: ' . $e->getMessage());
-        throw $e; // Remove this in production; redirect with flash message instead
+            return new Response(
+                $pdfOutput,
+                Response::HTTP_OK,
+                [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => (new ResponseHeaderBag())->makeDisposition(
+                        ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+                        $filename
+                    ),
+                ]
+            );
+        } catch (\Exception $e) {
+            $logger->error('PDF generation failed: ' . $e->getMessage());
+            throw $e; // Remove this in production; redirect with flash message instead
+        }
     }
-}
 }

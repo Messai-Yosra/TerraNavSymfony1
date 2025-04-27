@@ -9,6 +9,8 @@ parameters:
     uploads_directory: '%kernel.project_dir%/public/img'
     env(STRIPE_PUBLIC_KEY): ~
     env(STRIPE_SECRET_KEY): ~
+    mapbox_access_token: '%env(MAPBOX_ACCESS_TOKEN)%'
+    geodb_api_key: '%env(GEODB_API_KEY)%'
 services:
     # default configuration for services in *this* file
     _defaults:
@@ -48,5 +50,12 @@ services:
         tags:
             - { name: kernel.event_subscriber }
 
+    App\Service\CityAutocompleter:
+        arguments:
+            $httpClient: '@http_client'
+            $logger: '@logger'
 
-  
+    App\Service\IpCountryService:
+        arguments:
+            $httpClient: '@http_client'
+            $logger: '@logger'
