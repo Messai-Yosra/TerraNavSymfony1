@@ -30,33 +30,47 @@ final class TransportAdminController extends AbstractController
     }
 
     #[Route('/TransportsAdmin/liste', name: 'admin_transports_list')]
-public function list(Request $request, EntityManagerInterface $entityManager, PaginatorInterface $paginator): Response
+public function adminList(Request $request, EntityManagerInterface $em, PaginatorInterface $paginator): Response
 {
-    $searchTerm = $request->query->get('search');
+    $searchTerm = $request->query->get('search', '');
+    $isAjax = $request->isXmlHttpRequest();
 
-    $queryBuilder = $entityManager->getRepository(Transport::class)
-        ->createQueryBuilder('t')
-        ->leftJoin('t.id_trajet', 'tr')
-        ->addSelect('tr');
+    // Construction de la requête de base
+    $qb = $em->createQueryBuilder()
+        ->select('t')
+        ->from(Transport::class, 't')
+        ->orderBy('t.nom', 'ASC');
 
-    if ($searchTerm) {
-        $queryBuilder->where('t.nom LIKE :searchTerm')
-                     ->setParameter('searchTerm', '%'.$searchTerm.'%');
+    // Filtre de recherche
+    if (!empty($searchTerm)) {
+        $qb->andWhere('LOWER(t.nom) LIKE LOWER(:searchTerm)')
+           ->setParameter('searchTerm', '%'.$searchTerm.'%');
     }
 
-    // Paginate the query
-    $pagination = $paginator->paginate(
-        $queryBuilder->getQuery(), // Query to paginate
-        $request->query->getInt('page', 1), // Page number, default to 1
-        10 // Number of items per page
+    // Pagination
+    $transports = $paginator->paginate(
+        $qb->getQuery(),
+        $request->query->getInt('page', 1),
+        10
     );
 
+    // Réponse AJAX
+    if ($isAjax) {
+        $html = $this->renderView('admin/transport/_list.html.twig', [
+            'transports' => $transports
+        ]);
+
+        return new JsonResponse([
+            'html' => $html,
+            'count' => $transports->getTotalItemCount()
+        ]);
+    }
+
     return $this->render('transports/admin_transports_list.html.twig', [
-        'transports' => $pagination, // Pass the pagination object instead of raw results
+        'transports' => $transports,
         'searchTerm' => $searchTerm
     ]);
 }
-
     // Ajouter un nouveau transport
     #[Route('/TransportsAdmin/ajouter', name: 'admin_transport_new')]
     public function new(Request $request, EntityManagerInterface $em): Response

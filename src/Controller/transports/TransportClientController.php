@@ -890,4 +890,28 @@ public function assignTrajet(int $transportId, int $trajetId, EntityManagerInter
 
     return $this->redirectToRoute('client_transports_list');
 }
+
+#[Route('/client/transport/{id}', name: 'client_transport_details')]
+public function details(Transport $transport, EntityManagerInterface $entityManager): Response
+{
+    // Get associated trajet
+    $trajet = $transport->getId_Trajet();
+
+    // Get similar transports (same type, excluding the current transport)
+    $autresTransports = $entityManager->getRepository(Transport::class)->findBy(
+        [
+            'type' => $transport->getType(),
+            'id_user' => $transport->getId_User(),
+        ],
+        ['id' => 'DESC'],
+        6
+    );
+    $autresTransports = array_filter($autresTransports, fn($t) => $t->getId() !== $transport->getId());
+
+    return $this->render('transports/transport_details.html.twig', [
+        'transport' => $transport,
+        'trajet' => $trajet,
+        'autresTransports' => $autresTransports,
+    ]);
+}
 }

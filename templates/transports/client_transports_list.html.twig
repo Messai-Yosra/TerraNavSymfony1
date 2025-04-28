@@ -62,6 +62,7 @@
                                         <div class="d-flex justify-content-center gap-2 flex-wrap">
                                             <a href="{{ path('client_transport_edit', {'id': transport.id}) }}" class="btn btn-light rounded-pill">Modifier <i class="fa fa-edit ms-2"></i></a>
                                             <button class="btn btn-danger rounded-pill delete-btn" data-id="{{ transport.id }}" data-token="{{ csrf_token('delete' ~ transport.id) }}">Supprimer <i class="fa fa-trash ms-2"></i></button>
+                                            <a href="{{ path('client_transport_details', {'id': transport.id}) }}" class="btn btn-info rounded-pill">Détails <i class="fa fa-info-circle ms-2"></i></a>
                                             <a href="{{ path('client_trajet_affect', {'transportId': transport.id}) }}" class="btn btn-success rounded-pill">Affecter un Trajet <i class="fa fa-route ms-2"></i></a>
                                         </div>
                                     </div>

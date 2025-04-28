@@ -41,7 +41,7 @@ public function index(Request $request, EntityManagerInterface $em, PaginatorInt
     $pagination = $paginator->paginate(
         $trajetsQuery->getQuery(), // Query to paginate
         $request->query->getInt('page', 1), // Page number, default to 1
-        3 // Number of items per page
+        7 // Number of items per page
     );
     
     return $this->render('transports/trajetAdmin.html.twig', [
@@ -243,4 +243,6 @@ public function delete(Request $request, Trajet $trajet, EntityManagerInterface 
             throw $e; // À supprimer en production
         }
     }
+    
+
 }

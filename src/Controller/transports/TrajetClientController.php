@@ -372,5 +372,20 @@ public function affect(int $transportId, Request $request, EntityManagerInterfac
         'transportId' => $transportId,
     ]);
 }
-    
+#[Route('/client/trajet/{id}', name: 'client_trajet_details')]
+    public function details(Trajet $trajet, EntityManagerInterface $entityManager): Response
+    {
+        // Get other trajets (all available trajets, excluding the current one)
+        $autresTrajets = $entityManager->getRepository(Trajet::class)->findBy(
+            ['disponibilite' => true],
+            ['dateDepart' => 'DESC'],
+            6 // Limit to 6
+        );
+        $autresTrajets = array_filter($autresTrajets, fn($t) => $t->getId() !== $trajet->getId());
+
+        return $this->render('transports/trajet_details.html.twig', [
+            'trajet' => $trajet,
+            'autresTrajets' => $autresTrajets,
+        ]);
+    }
 }

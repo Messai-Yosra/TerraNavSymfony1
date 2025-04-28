@@ -15,8 +15,6 @@
                 <h1 class="mb-5">Mes <span class="text-primary text-uppercase">Trajets</span></h1>
                 <a href="{{ path('client_trajet_new') }}" class="btn btn-primary rounded-pill py-3 px-5 mb-4">Ajouter un Trajet</a>
                 <a href="{{ path('client_transports_list') }}" class="btn btn-primary rounded-pill py-3 px-5 mb-4">Voir liste Transport</a>
-                
-    </a>
             </div>
             <!-- Flash Messages -->
             {% for message in app.flashes('success') %}
@@ -51,8 +49,9 @@
                                     </p>
                                     <div class="service-hover-content">
                                         <p class="text-white">{{ trajet.description|default('Aucune description disponible.')|length > 100 ? trajet.description|slice(0, 100) ~ '...' : trajet.description }}</p>
-                                        <div class="d-flex justify-content-center gap-2">
+                                        <div class="d-flex justify-content-center gap-2 flex-wrap">
                                             <a href="{{ path('client_trajet_edit', {'id': trajet.id}) }}" class="btn btn-light rounded-pill">Modifier <i class="fa fa-edit ms-2"></i></a>
+                                            <a href="{{ path('client_trajet_details', {'id': trajet.id}) }}" class="btn btn-primary rounded-pill">Détails <i class="fa fa-info-circle ms-2"></i></a>
                                             <button class="btn btn-danger rounded-pill delete-btn" data-id="{{ trajet.id }}" data-token="{{ csrf_token('delete' ~ trajet.id) }}">Supprimer <i class="fa fa-trash ms-2"></i></button>
                                         </div>
                                     </div>
@@ -143,38 +142,37 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
-      
-    /* Styles pour le bouton PDF (identique aux transports) */
-    .btn-success {
-        background-color: #28a745;
-        border-color: #28a745;
-        transition: all 0.3s;
-    }
-    
-    .btn-success:hover {
-        background-color: #218838;
-        border-color: #1e7e34;
-        transform: translateY(-2px);
-    }
-    
-    .rounded-pill {
-        border-radius: 50rem !important;
-    }
-    
-    .py-3 {
-        padding-top: 1rem !important;
-        padding-bottom: 1rem !important;
-    }
-    
-    .px-5 {
-        padding-left: 3rem !important;
-        padding-right: 3rem !important;
-    }
-    
-    .mb-2 {
-        margin-bottom: 0.5rem !important;
-    }
 
+        /* Styles pour le bouton PDF (identique aux transports) */
+        .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
+            transition: all 0.3s;
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+            transform: translateY(-2px);
+        }
+        
+        .rounded-pill {
+            border-radius: 50rem !important;
+        }
+        
+        .py-3 {
+            padding-top: 1rem !important;
+            padding-bottom: 1rem !important;
+        }
+        
+        .px-5 {
+            padding-left: 3rem !important;
+            padding-right: 3rem !important;
+        }
+        
+        .mb-2 {
+            margin-bottom: 0.5rem !important;
+        }
     </style>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -206,6 +204,7 @@
 
                 // Use template literal for safer string construction
                 const editUrl = `{{ path('client_trajet_edit', {'id': 'ID'}) }}`.replace('ID', trajet.id);
+                const detailsUrl = `{{ path('client_trajet_details', {'id': 'ID'}) }}`.replace('ID', trajet.id);
 
                 return `
                     <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.${index * 0.1}s">
@@ -223,8 +222,9 @@
                             </p>
                             <div class="service-hover-content">
                                 <p class="text-white">${shortDescription}</p>
-                                <div class="d-flex justify-content-center gap-2">
+                                <div class="d-flex justify-content-center gap-2 flex-wrap">
                                     <a href="${editUrl}" class="btn btn-light rounded-pill">Modifier <i class="fa fa-edit ms-2"></i></a>
+                                    <a href="${detailsUrl}" class="btn btn-primary rounded-pill">Détails <i class="fa fa-info-circle ms-2"></i></a>
                                     <button class="btn btn-danger rounded-pill delete-btn" data-id="${trajet.id}" data-token="${trajet.csrfToken}">Supprimer <i class="fa fa-trash ms-2"></i></button>
                                 </div>
                             </div>
