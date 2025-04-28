@@ -89,14 +89,48 @@ class DetailsVoyage extends AbstractController
         }
     }
     #[Route('/get-activities/{destination}', name: 'app_get_activities', methods: ['GET'])]
-    public function getActivities(string $destination, OpenAiService $openAiService): JsonResponse
+    public function getActivities(string $destination, OpenRouterService $openRouter): JsonResponse
     {
         try {
-            $activities = $openAiService->generateActivities($destination);
+            $prompt = "Donne-moi 3 activités populaires à faire à $destination.
+Pour chaque activité, fournis un JSON valide avec :
+- name: nom court (max 5 mots)
+- description: description concise (max 20 mots)
+
+Format de sortie STRICT :
+{
+\"activities\": [
+    {
+        \"name\": \"Nom activité\",
+        \"description\": \"Description courte\"
+    }
+]
+}";
+
+            $response = $openRouter->askQuestion($prompt);
+
+            // Essayez d'extraire le JSON de la réponse
+            $jsonStart = strpos($response, '{');
+            $jsonEnd = strrpos($response, '}');
+
+            if ($jsonStart === false || $jsonEnd === false) {
+                throw new \Exception('Format de réponse inattendu de l\'API');
+            }
+
+            $jsonString = substr($response, $jsonStart, $jsonEnd - $jsonStart + 1);
+            $data = json_decode($jsonString, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception('Réponse JSON invalide: '.json_last_error_msg());
+            }
+
+            if (!isset($data['activities'])) {
+                throw new \Exception('Structure de réponse inattendue');
+            }
 
             return $this->json([
                 'success' => true,
-                'activities' => $activities
+                'activities' => $data['activities']
             ]);
 
         } catch (\Exception $e) {
