@@ -15,7 +15,6 @@
                 <h1 class="mb-5">Mes <span class="text-primary text-uppercase">Transports</span></h1>
                 <a href="{{ path('client_transport_new') }}" class="btn btn-primary rounded-pill py-3 px-5 mb-2">Ajouter un Transport</a>
                 <a href="{{ path('client_trajets_list') }}" class="btn btn-primary rounded-pill py-3 px-5 mb-2">Voir liste Trajet</a>
-               
             </div>
             <!-- Flash Messages -->
             {% for message in app.flashes('success') %}
@@ -60,9 +59,10 @@
                                     {% endif %}
                                     <div class="service-hover-content">
                                         <p class="text-white">{{ transport.description|default('Aucune description disponible.')|length > 100 ? transport.description|slice(0, 100) ~ '...' : transport.description }}</p>
-                                        <div class="d-flex justify-content-center gap-2">
+                                        <div class="d-flex justify-content-center gap-2 flex-wrap">
                                             <a href="{{ path('client_transport_edit', {'id': transport.id}) }}" class="btn btn-light rounded-pill">Modifier <i class="fa fa-edit ms-2"></i></a>
                                             <button class="btn btn-danger rounded-pill delete-btn" data-id="{{ transport.id }}" data-token="{{ csrf_token('delete' ~ transport.id) }}">Supprimer <i class="fa fa-trash ms-2"></i></button>
+                                            <a href="{{ path('client_trajet_affect', {'transportId': transport.id}) }}" class="btn btn-success rounded-pill">Affecter un Trajet <i class="fa fa-route ms-2"></i></a>
                                         </div>
                                     </div>
                                 </div>
@@ -188,12 +188,15 @@
                 const description = transport.description || 'Aucune description disponible.';
                 const shortDescription = description.length > 100 ? description.slice(0, 100) + '...' : description;
 
-                // Generate edit URL with validated ID
+                // Generate URLs with validated ID
                 const editUrlTemplate = `{{ path('client_transport_edit', {'id': 'ID'}) }}`;
                 const editUrl = editUrlTemplate.replace('ID', transportId);
+                const affectUrlTemplate = `{{ path('client_trajet_affect', {'transportId': 'ID'}) }}`;
+                const affectUrl = affectUrlTemplate.replace('ID', transportId);
 
-                // Log the generated URL and transport data for debugging
+                // Log the generated URLs and transport data for debugging
                 console.log(`Generated edit URL for transport ${transportId}: ${editUrl}`);
+                console.log(`Generated affect URL for transport ${transportId}: ${affectUrl}`);
                 console.log(`Transport data:`, transport);
 
                 return `
@@ -214,9 +217,10 @@
                             ${image}
                             <div class="service-hover-content">
                                 <p class="text-white">${shortDescription}</p>
-                                <div class="d-flex justify-content-center gap-2">
+                                <div class="d-flex justify-content-center gap-2 flex-wrap">
                                     <a href="${editUrl}" class="btn btn-light rounded-pill">Modifier <i class="fa fa-edit ms-2"></i></a>
                                     <button class="btn btn-danger rounded-pill delete-btn" data-id="${transportId}" data-token="${transport.csrfToken}">Supprimer <i class="fa fa-trash ms-2"></i></button>
+                                    <a href="${affectUrl}" class="btn btn-success rounded-pill">Affecter un Trajet <i class="fa fa-route ms-2"></i></a>
                                 </div>
                             </div>
                         </div>

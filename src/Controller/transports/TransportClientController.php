@@ -612,25 +612,58 @@ final class TransportClientController extends AbstractController
     {
         // Récupération des paramètres
         $departure = $request->query->get('departure');
-        $passengers = $request->query->get('passengers', 1); // Valeur par défaut: 1 passager
+        $minPrice = $request->query->get('minPrice', 0);
+        $maxPrice = $request->query->get('maxPrice', 1000);
+        $minCapacity = $request->query->get('minCapacity', null);
+        $type = $request->query->get('type', 'all');
 
-        // Recherche dans la base de données
-        $transports = $entityManager->getRepository(Transport::class)
+        // Construction de la requête
+        $queryBuilder = $entityManager->getRepository(Transport::class)
             ->createQueryBuilder('t')
-            ->join('t.id_trajet', 'tr')
-            ->where('tr.pointDepart LIKE :departure')
-            ->andWhere('t.capacite >= :passengers') // Filtre par capacité
-            ->setParameter('departure', '%'.$departure.'%')
-            ->setParameter('passengers', $passengers)
-            ->getQuery()
-            ->getResult();
+            ->join('t.id_trajet', 'tr');
+
+        // Filtre par point de départ
+        if ($departure) {
+            $queryBuilder->where('tr.pointDepart LIKE :departure')
+                         ->setParameter('departure', '%' . $departure . '%');
+        }
+
+        // Filtre par prix
+        $queryBuilder->andWhere('t.prix >= :minPrice')
+                     ->andWhere('t.prix <= :maxPrice')
+                     ->setParameter('minPrice', $minPrice)
+                     ->setParameter('maxPrice', $maxPrice);
+
+        // Filtre par capacité
+        if ($minCapacity !== null && $minCapacity !== '') {
+            $queryBuilder->andWhere('t.capacite >= :minCapacity')
+                         ->setParameter('minCapacity', $minCapacity);
+        }
+
+        // Filtre par type
+        if ($type !== 'all') {
+            $queryBuilder->andWhere('t.type = :type')
+                         ->setParameter('type', $type);
+        }
+
+        // Exécution de la requête
+        $transports = $queryBuilder->getQuery()->getResult();
+
+        // Paramètres de filtre pour le template
+        $filterParams = [
+            'minPrice' => $minPrice,
+            'maxPrice' => $maxPrice,
+            'minCapacity' => $minCapacity,
+            'type' => $type,
+        ];
 
         return $this->render('transports/Transport_search.html.twig', [
             'transports' => $transports,
             'departure' => $departure,
-            'passengers' => $passengers
+            'filterParams' => $filterParams,
         ]);
     }
+
 
     private $httpClient;
     private $logger;
@@ -814,4 +847,47 @@ final class TransportClientController extends AbstractController
             throw $e; // Remove this in production; redirect with flash message instead
         }
     }
+    
+    #[Route('/transports/affecter/{transportId}', name: 'client_transport_affect_trajet', methods: ['GET'])]
+public function affectTrajet(int $transportId, EntityManagerInterface $entityManager): Response
+{
+    // Validate transport existence
+    $transport = $entityManager->getRepository(Transport::class)->find($transportId);
+    if (!$transport) {
+        $this->addFlash('error', 'Transport non trouvé.');
+        return $this->redirectToRoute('client_transports_list');
+    }
+
+    // Redirect to the new trajet selection page
+    return $this->redirectToRoute('client_trajet_affect', ['transportId' => $transportId]);
+}
+
+#[Route('/transports/assigner/{transportId}/{trajetId}', name: 'client_transport_assign_trajet', methods: ['GET'])]
+public function assignTrajet(int $transportId, int $trajetId, EntityManagerInterface $entityManager): Response
+{
+    // Validate transport
+    $transport = $entityManager->getRepository(Transport::class)->find($transportId);
+    if (!$transport) {
+        $this->addFlash('error', 'Transport non trouvé.');
+        return $this->redirectToRoute('client_transports_list');
+    }
+
+    // Validate trajet
+    $trajet = $entityManager->getRepository(Trajet::class)->find($trajetId);
+    if (!$trajet) {
+        $this->addFlash('error', 'Trajet non trouvé.');
+        return $this->redirectToRoute('client_transports_list');
+    }
+
+    // Assign trajet to transport
+    try {
+        $transport->setId_Trajet($trajet);
+        $entityManager->flush();
+        $this->addFlash('success', 'Trajet affecté avec succès au transport.');
+    } catch (\Exception $e) {
+        $this->addFlash('error', 'Erreur lors de l\'affectation du trajet : ' . $e->getMessage());
+    }
+
+    return $this->redirectToRoute('client_transports_list');
+}
 }

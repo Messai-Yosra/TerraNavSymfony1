@@ -6,6 +6,114 @@
     <link rel="stylesheet" href="{{ asset('css/transports/adminTransportList.css') }}"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
 
+    <style>
+        /* Pagination Container */
+        .pagination {
+            margin-top: 20px;
+            text-align: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        /* Pagination List */
+        .pagination ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        /* Pagination Items */
+        .pagination li {
+            margin: 0 5px;
+        }
+
+        /* Pagination Links and Spans */
+        .pagination li a,
+        .pagination li span {
+            display: inline-block;
+            padding: 8px 12px;
+            font-size: 14px;
+            line-height: 1.5;
+            text-decoration: none;
+            color: #007bff; /* Match Bootstrap primary color */
+            background-color: #fff;
+            border: 1px solid #ddd; /* Match table borders */
+            border-radius: 4px; /* Match button border-radius */
+            transition: all 0.2s ease-in-out;
+        }
+
+        /* Hover Effect for Links */
+        .pagination li a:hover {
+            background-color: #f8f9fa; /* Light gray hover, matching Bootstrap */
+            border-color: #007bff;
+            color: #0056b3; /* Darker blue for hover */
+        }
+
+        /* Active Page */
+        .pagination li.active span {
+            background-color: #007bff; /* Match btn-primary */
+            border-color: #007bff;
+            color: #fff; /* White text for active page */
+        }
+
+        /* Disabled Items */
+        .pagination li.disabled span {
+            color: #6c757d; /* Match Bootstrap secondary color */
+            background-color: #fff;
+            border-color: #ddd;
+            cursor: not-allowed;
+        }
+
+        /* Previous/Next Buttons with Icons */
+        .pagination li.prev a,
+        .pagination li.next a {
+            padding: 8px 15px;
+            font-weight: 500;
+        }
+
+        .pagination li.prev a:before,
+        .pagination li.next a:after {
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            margin: 0 5px;
+        }
+
+        .pagination li.prev a:before {
+            content: '\f053'; /* Font Awesome left arrow */
+        }
+
+        .pagination li.next a:after {
+            content: '\f054'; /* Font Awesome right arrow */
+        }
+
+        /* Disabled Previous/Next */
+        .pagination li.prev.disabled span:before,
+        .pagination li.next.disabled span:after {
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            margin: 0 5px;
+            color: #6c757d;
+        }
+
+        .pagination li.prev.disabled span:before {
+            content: '\f053';
+        }
+
+        .pagination li.next.disabled span:after {
+            content: '\f054';
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 576px) {
+            .pagination li a,
+            .pagination li span {
+                padding: 6 WidelyUsedpx 10px;
+                font-size: 12px;
+            }
+        }
+    </style>
+
     <div class="content-card">
         <div class="card-header">
             <h1><i class="fas fa-route"></i> Gestion des trajets</h1>
@@ -18,9 +126,6 @@
                 </a>
                 <a href="{{ path('admin_transports_list') }}" class="btn btn-primary">
                     <i class="fas fa-list"></i> Voir la liste des transports
-                </a>
-                <a href="{{ path('admin_trajets_new') }}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Ajouter un trajet
                 </a>
                 <a href="{{ path('client_trajets_export_pdf') }}" class="btn btn-primary"> Exporter en PDF <i class="fa fa-file-pdf ms-2"></i></a>
                 <!-- Search Form -->
@@ -45,7 +150,7 @@
                 </form>
             </div>
             
-            {% if trajets is defined and trajets is not empty %}
+            {% if trajets|length > 0 %}
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>
@@ -123,6 +228,11 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div class="pagination">
+                    {{ knp_pagination_render(trajets) }}
                 </div>
             {% else %}
                 <div class="empty-state">

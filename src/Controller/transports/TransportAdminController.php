@@ -6,6 +6,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Knp\Component\Pager\PaginatorInterface;
 use App\Entity\Transport;
 use App\Entity\Trajet;
 use App\Entity\Utilisateur;
@@ -29,27 +30,32 @@ final class TransportAdminController extends AbstractController
     }
 
     #[Route('/TransportsAdmin/liste', name: 'admin_transports_list')]
-    public function list(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        $searchTerm = $request->query->get('search');
-        
-        $queryBuilder = $entityManager->getRepository(Transport::class)
-            ->createQueryBuilder('t')
-            ->leftJoin('t.id_trajet', 'tr')
-            ->addSelect('tr');
-        
-        if ($searchTerm) {
-            $queryBuilder->where('t.nom LIKE :searchTerm')
-                        ->setParameter('searchTerm', '%'.$searchTerm.'%');
-        }
-        
-        $transports = $queryBuilder->getQuery()->getResult();
+public function list(Request $request, EntityManagerInterface $entityManager, PaginatorInterface $paginator): Response
+{
+    $searchTerm = $request->query->get('search');
 
-        return $this->render('transports/admin_transports_list.html.twig', [
-            'transports' => $transports,
-            'searchTerm' => $searchTerm
-        ]);
+    $queryBuilder = $entityManager->getRepository(Transport::class)
+        ->createQueryBuilder('t')
+        ->leftJoin('t.id_trajet', 'tr')
+        ->addSelect('tr');
+
+    if ($searchTerm) {
+        $queryBuilder->where('t.nom LIKE :searchTerm')
+                     ->setParameter('searchTerm', '%'.$searchTerm.'%');
     }
+
+    // Paginate the query
+    $pagination = $paginator->paginate(
+        $queryBuilder->getQuery(), // Query to paginate
+        $request->query->getInt('page', 1), // Page number, default to 1
+        10 // Number of items per page
+    );
+
+    return $this->render('transports/admin_transports_list.html.twig', [
+        'transports' => $pagination, // Pass the pagination object instead of raw results
+        'searchTerm' => $searchTerm
+    ]);
+}
 
     // Ajouter un nouveau transport
     #[Route('/TransportsAdmin/ajouter', name: 'admin_transport_new')]

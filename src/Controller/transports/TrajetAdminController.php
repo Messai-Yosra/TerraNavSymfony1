@@ -4,6 +4,7 @@ namespace App\Controller\transports;
 
 use App\Entity\Trajet;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\{
     TextType, 
@@ -25,7 +26,7 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 final class TrajetAdminController extends AbstractController
 {
     #[Route('/TrajetsAdmin/liste', name: 'admin_trajets_index')]
-public function index(Request $request, EntityManagerInterface $em): Response
+public function index(Request $request, EntityManagerInterface $em, PaginatorInterface $paginator): Response
 {
     $searchTerm = $request->query->get('search');
     
@@ -33,17 +34,21 @@ public function index(Request $request, EntityManagerInterface $em): Response
     
     if ($searchTerm) {
         $trajetsQuery->where('t.pointDepart LIKE :searchTerm')
-                    ->setParameter('searchTerm', '%'.$searchTerm.'%');
+                     ->setParameter('searchTerm', '%'.$searchTerm.'%');
     }
     
-    $trajets = $trajetsQuery->getQuery()->getResult();
+    // Paginate the query
+    $pagination = $paginator->paginate(
+        $trajetsQuery->getQuery(), // Query to paginate
+        $request->query->getInt('page', 1), // Page number, default to 1
+        3 // Number of items per page
+    );
     
     return $this->render('transports/trajetAdmin.html.twig', [
-        'trajets' => $trajets,
+        'trajets' => $pagination, // Pass the pagination object
         'searchTerm' => $searchTerm
     ]);
 }
-
     #[Route('/TrajetsAdmin/ajouter', name: 'admin_trajets_new')]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
