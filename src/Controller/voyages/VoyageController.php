@@ -244,6 +244,62 @@ class VoyageController extends AbstractController
         ]);
     }
 
+    #[Route('/get-airports/{city}', name: 'app_get_airports', methods: ['GET'])]
+    public function getAirports(string $city, OpenRouterService $openRouter): JsonResponse
+    {
+        try {
+            // Formulation plus précise de la question avec inclusion du nom de la ville
+            $question = "Liste tous les aéroports principaux de la ville de $city avec leur code IATA. 
+                Réponds strictement sous ce format: 
+                'Ville NomAéroport (CODE)-Ville NomAéroport (CODE)-...' 
+                sans commentaires supplémentaires. 
+                Le nom de la ville doit précéder chaque nom d'aéroport.
+                Exemple pour Paris: 
+                'Paris Aéroport Charles de Gaulle (CDG)-Paris Aéroport Orly (ORY)-Paris Aéroport Beauvais (BVA)'
+                Exemple pour New York:
+                'New York Aéroport John F. Kennedy (JFK)-New York Aéroport LaGuardia (LGA)-New York Aéroport Newark (EWR)'";
+
+            $response = $openRouter->askQuestion($question);
+
+            // Nettoyage et validation de la réponse
+            $response = trim($response);
+
+            // Supprimer les guillemets si présents
+            $response = trim($response, '"\'');
+
+            // Vérifier que la réponse contient bien des aéroports
+            if (empty($response) || !str_contains($response, '(')) {
+                throw new \Exception("Format de réponse inattendu de l'API");
+            }
+
+            // Séparation et nettoyage
+            $airports = explode('-', $response);
+            $airports = array_map('trim', $airports);
+            $airports = array_filter($airports, function($item) {
+                return !empty($item) && str_contains($item, '(');
+            });
+
+            // Si aucun aéroport valide trouvé
+            if (empty($airports)) {
+                return $this->json([
+                    'success' => false,
+                    'error' => "Aucun aéroport trouvé pour cette ville"
+                ], 404);
+            }
+
+            return $this->json([
+                'success' => true,
+                'airports' => array_values($airports)
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 
 
 

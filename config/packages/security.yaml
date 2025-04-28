@@ -121,6 +121,7 @@ security:
         - { path: ^/voyage/select-users/[ 0-9 ]+, roles: PUBLIC_ACCESS }
         - { path: ^/agence/offres/generer-suggestion, roles: PUBLIC_ACCESS }
         - { path: ^/AjoutOffreIA, roles: PUBLIC_ACCESS }
+        - { path: ^/get-airports/[a-zA-Z\s-]+$, roles: PUBLIC_ACCESS }
 
 
         # Routes Gestion réservations

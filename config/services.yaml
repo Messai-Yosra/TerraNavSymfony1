@@ -72,5 +72,3 @@ services:
             $loginLogger: '@App\Service\utilisateurs\LoginHistoryLogger'
         tags:
             - { name: kernel.event_subscriber }
-
-

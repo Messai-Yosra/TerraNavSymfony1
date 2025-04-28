@@ -26,7 +26,9 @@ class VoyageType extends AbstractType
                 'label_html' => true,
                 'attr' => [
                     'class' => 'form-control',
-                    'placeholder' => 'Destination'
+                    'placeholder' => 'Destination',
+                    'autocomplete' => 'off',
+                    'id' => 'destinationInput' // Ajout d'un ID spécifique
                 ]
             ])
             ->add('pointDepart', TextType::class, [
@@ -34,7 +36,9 @@ class VoyageType extends AbstractType
                 'label_html' => true,
                 'attr' => [
                     'class' => 'form-control',
-                    'placeholder' => 'Point de départ'
+                    'placeholder' => 'Point de départ',
+                    'autocomplete' => 'off',
+                    'id' => 'departureInput' // Ajout d'un ID spécifique
                 ]
             ])
             ->add('titre', TextType::class, [
