@@ -6,6 +6,7 @@
 parameters:
     chambre_images_directory: '%kernel.project_dir%/public/ChambreImages'
     profile_photos_directory: '%kernel.project_dir%/public/uploads/profile'
+    stories_directory: '%kernel.project_dir%/public/uploads/stories'
     uploads_directory: '%kernel.project_dir%/public/img'
     env(STRIPE_PUBLIC_KEY): ~
     env(STRIPE_SECRET_KEY): ~

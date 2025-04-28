@@ -12,8 +12,11 @@ use App\Entity\Utilisateur;
 use App\Entity\Reaction;
 use App\Form\AddPostFormType;
 use App\Repository\PostRepository;
+use App\Entity\Story; 
 use App\Service\interactions\PostDescriptionGenerator;
-use App\Service\interactions\ProfanityFilter; // Ensure this class exists in the specified namespace
+use App\Service\interactions\ProfanityFilter; 
+use App\Form\StoryType;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final class ChatController extends AbstractController
 {
@@ -91,16 +94,46 @@ final class ChatController extends AbstractController
 
 
     #[Route('/ChatClient', name: 'app_chat')]
-public function index(): Response
-{
-    $posts = $this->entityManager->getRepository(Post::class)->findAll();
-    
-    dump($posts);
+    public function index(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        // Get page number from request
+        $page = $request->query->getInt('page', 1);
+        $limit = 5; // Number of posts per page
 
-    return $this->render('interactions/chatClient.html.twig', [
-        'posts' => $posts, 
-    ]);
-}
+        // Get post repository
+        $postRepository = $entityManager->getRepository(Post::class);
+        
+        // Get total number of posts
+        $totalPosts = $postRepository->count(['statut' => 'traitée']);
+        
+        // Calculate offset
+        $offset = ($page - 1) * $limit;
+        
+        // Get paginated posts
+        $posts = $postRepository->createQueryBuilder('p')
+            ->where('p.statut = :statut')
+            ->setParameter('statut', 'traitée')
+            ->orderBy('p.date', 'DESC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        // Calculate total pages
+        $totalPages = ceil($totalPosts / $limit);
+
+        // Get active stories
+        $storyRepository = $entityManager->getRepository(Story::class);
+        $activeStories = $storyRepository->findActiveStories();
+
+        return $this->render('interactions/chatClient.html.twig', [
+            'posts' => $posts,
+            'activeStories' => $activeStories,
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
+            'limit' => $limit
+        ]);
+    }
 
 #[Route('/{id}/edit', name: 'app_post_edit')]
 public function editPost(int $id, Request $request): Response
@@ -240,5 +273,48 @@ public function generateDescription(
             'message' => $e->getMessage()
         ], 400);
     }
+}
+#[Route('/story/new', name: 'app_story_new')]
+public function addStory(Request $request): Response
+{
+    // Vérifier si l'utilisateur est connecté
+    $user = $this->getUser();
+    if (!$user) {
+        $this->addFlash('error', 'Vous devez être connecté pour ajouter une story.');
+        return $this->redirectToRoute('app_login');
+    }
+
+    $story = new Story();
+    $form = $this->createForm(StoryType::class, $story);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+        try {
+            $mediaFile = $form->get('media')->getData();
+            
+            if ($mediaFile) {
+                $newFilename = uniqid().'.'.$mediaFile->guessExtension();
+                $mediaFile->move(
+                    $this->getParameter('stories_directory'),
+                    $newFilename
+                );
+                $story->setMedia($newFilename);
+            }
+
+            $story->setIdUser($user);
+            
+            $this->entityManager->persist($story);
+            $this->entityManager->flush();
+
+            $this->addFlash('success', 'Story ajoutée avec succès!');
+            return $this->redirectToRoute('app_chat');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Une erreur est survenue lors de l\'ajout de la story.');
+        }
+    }
+
+    return $this->render('interactions/newStory.html.twig', [
+        'form' => $form->createView(),
+    ]);
 }
 }
