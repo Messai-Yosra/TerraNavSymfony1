@@ -57,6 +57,13 @@ security:
         - { path: ^/connect/google, roles: PUBLIC_ACCESS }
         - { path: ^/connect/google/check, roles: PUBLIC_ACCESS }
         
+        # Routes pour l'authentification faciale
+        - { path: ^/facial-auth/login, roles: PUBLIC_ACCESS }
+        - { path: ^/facial-auth/verify-face, roles: PUBLIC_ACCESS }
+        - { path: ^/facial-auth/enroll, roles: ROLE_USER }
+        - { path: ^/facial-auth/enroll-face, roles: ROLE_USER }
+        - { path: ^/facial-auth/remove-face, roles: ROLE_USER }
+        
         # Routes qui nécessitent authentification
         - { path: ^/profile, roles: ROLE_USER }
         - { path: ^/admin, roles: ROLE_ADMIN }
@@ -190,7 +197,7 @@ security:
 
         # Règle générale - utilisez IS_AUTHENTICATED_ANONYMOUSLY au lieu de PUBLIC_ACCESS
         # pour les routes qui devraient être accessibles sans authentification
-        - { path: ^/, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/, roles: PUBLIC_ACCESS }
 
 
 when@test:

@@ -69,10 +69,11 @@
                 >
                     <i class="fas fa-edit"></i> Modifier
                 </button>
-                <a href="{{ path('admin_user_delete', {'id': utilisateur.id}) }}" 
-                   class="btn btn-danger btn-sm"
-                   onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur?');">
-                    <i class="fas fa-trash"></i> Supprimer
+                 <a href="{{ path('admin_user_ban', {'id': utilisateur.id}) }}" 
+                   class="btn btn-{{ utilisateur.isBanned ? 'success' : 'warning' }}"
+                   onclick="return confirm('Êtes-vous sûr de vouloir {{ utilisateur.isBanned ? 'réactiver' : 'bannir' }} cet utilisateur?')">
+                    <i class="fas fa-{{ utilisateur.isBanned ? 'user-check' : 'ban' }}"></i> 
+                    {{ utilisateur.isBanned ? 'Réactiver' : 'Bannir' }}
                 </a>
             </div>
         </div>

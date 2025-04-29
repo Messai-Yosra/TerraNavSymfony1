@@ -1,0 +1,21 @@
+services:
+  # Facial recognition service
+  facial-auth:
+    build:
+      context: ./facial-auth
+      dockerfile: Dockerfile
+    container_name: terranav-facial-auth
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./facial-auth/app:/app
+      - facial-data:/app/faces
+    environment:
+      - DEBUG=true
+      - JWT_SECRET=terranav_facial_auth_secret_key
+      - FACE_RECOGNITION_THRESHOLD=0.6
+    restart: unless-stopped
+
+volumes:
+  facial-data:
+    # Persistent volume for facial recognition data

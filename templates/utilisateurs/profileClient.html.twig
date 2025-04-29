@@ -234,6 +234,28 @@
                                     <label for="adresse">Adresse</label>
                                 </div>
                             </div>
+                            
+                            <div class="col-12 mb-4">
+                                <div class="card border-0 shadow-sm rounded">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><i class="fas fa-shield-alt me-2 text-primary"></i> Sécurité du compte</h5>
+                                        <div class="d-flex justify-content-between align-items-center mt-3">
+                                            <div>
+                                                <h6 class="mb-1">Reconnaissance faciale</h6>
+                                                <p class="text-muted mb-0 small">{% if app.user.hasFacialAuth %}Activée{% else %}Non configurée{% endif %}</p>
+                                            </div>
+                                            <a href="{{ path('app_facial_auth_enroll') }}" class="btn btn-sm {% if app.user.hasFacialAuth %}btn-outline-primary{% else %}btn-primary{% endif %}">
+                                                {% if app.user.hasFacialAuth %}
+                                                <i class="fas fa-edit me-1"></i> Modifier
+                                                {% else %}
+                                                <i class="fas fa-plus-circle me-1"></i> Configurer
+                                                {% endif %}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="col-12">
                                 <button class="btn btn-primary w-100 py-3" type="submit">Mettre à jour mon profil</button>
                             </div>

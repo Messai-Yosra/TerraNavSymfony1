@@ -1,0 +1,447 @@
+{% extends 'loginBase.html.twig' %}
+
+{% block title %}Configuration de la reconnaissance faciale - TerraNav{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .camera-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        #video {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: scaleX(-1); /* Mirror effect */
+        }
+
+        #canvas {
+            display: none;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            pointer-events: none;
+            border: 2px solid transparent;
+            box-sizing: border-box;
+            transition: all 0.3s;
+        }
+
+        .camera-overlay.scanning {
+            border: 2px solid #FEA116;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(254, 161, 22, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(254, 161, 22, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(254, 161, 22, 0);
+            }
+        }
+
+        .camera-buttons {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .camera-status {
+            text-align: center;
+            margin-top: 15px;
+            min-height: 24px;
+            font-weight: 500;
+        }
+
+        .btn-facial-auth {
+            background: linear-gradient(135deg, #FEA116, #FF8C00);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-facial-auth:hover {
+            background: linear-gradient(135deg, #FF8C00, #FEA116);
+            transform: translateY(-2px);
+            color: white;
+            box-shadow: 0 5px 15px rgba(254, 161, 22, 0.4);
+        }
+
+        .btn-facial-auth:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .spinner-border {
+            width: 1.5rem;
+            height: 1.5rem;
+            margin-right: 0.5rem;
+        }
+
+        .face-detected {
+            border: 2px solid #28a745 !important;
+            box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7) !important;
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-weight: 500;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .success-message {
+            color: #28a745;
+            font-weight: 500;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .enrollment-steps {
+            max-width: 400px;
+            margin: 0 auto 20px auto;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .enrollment-steps h4 {
+            color: #212529;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .enrollment-steps ul {
+            padding-left: 20px;
+            margin-bottom: 0;
+        }
+
+        .enrollment-steps li {
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .enrollment-complete {
+            text-align: center;
+            padding: 20px;
+            background: #d4edda;
+            border-radius: 8px;
+            margin-top: 20px;
+            color: #155724;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="login-card">
+                <div class="login-header text-center mb-4">
+                    <h2 class="mb-2">Configuration de la reconnaissance faciale</h2>
+                    <p class="text-muted">Enregistrez votre visage pour activer la connexion par reconnaissance faciale</p>
+                </div>
+
+                <div id="enrollmentComplete" class="enrollment-complete" style="display: none;">
+                    <i class="fas fa-check-circle fa-3x mb-3"></i>
+                    <h3>Configuration terminée!</h3>
+                    <p class="mb-3">Votre visage a été enregistré avec succès. Vous pouvez maintenant vous connecter avec la reconnaissance faciale.</p>
+                    <a href="{{ path('app_facial_auth_login') }}" class="btn btn-facial-auth">
+                        <i class="fas fa-sign-in-alt me-2"></i> Essayer maintenant
+                    </a>
+                </div>
+
+                <div id="enrollmentForm">
+                    <div class="enrollment-steps">
+                        <h4><i class="fas fa-info-circle me-2"></i> Comment ça marche:</h4>
+                        <ul>
+                            <li>Positionnez-vous face à la caméra dans un environnement bien éclairé</li>
+                            <li>Assurez-vous que votre visage est clairement visible</li>
+                            <li>Prenez une photo de votre visage en cliquant sur "Capturer"</li>
+                            <li>Cliquez sur "Enregistrer" pour activer la reconnaissance faciale</li>
+                        </ul>
+                    </div>
+
+                    <div class="camera-container">
+                        <video id="video" autoplay playsinline></video>
+                        <canvas id="canvas"></canvas>
+                        <div class="camera-overlay"></div>
+                    </div>
+
+                    <div class="camera-status" id="cameraStatus">
+                        <span class="text-muted">Initialisation de la caméra...</span>
+                    </div>
+
+                    <div class="camera-buttons">
+                        <button id="captureBtn" class="btn btn-facial-auth" disabled>
+                            <i class="fas fa-camera me-2"></i> Capturer
+                        </button>
+                        <button id="saveBtn" class="btn btn-facial-auth" disabled>
+                            <i class="fas fa-save me-2"></i> Enregistrer
+                        </button>
+                    </div>
+
+                    <div class="error-message" id="errorMessage"></div>
+                    <div class="success-message" id="successMessage"></div>
+                    
+                    <div class="action-buttons">
+                        <button id="cancelBtn" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i> Retour au profil
+                        </button>
+                        
+                        {% if user.hasFacialAuth %}
+                        <button id="removeBtn" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i> Supprimer mes données faciales
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const cameraOverlay = document.querySelector('.camera-overlay');
+            const cameraStatus = document.getElementById('cameraStatus');
+            const captureBtn = document.getElementById('captureBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const removeBtn = document.getElementById('removeBtn');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            const enrollmentForm = document.getElementById('enrollmentForm');
+            const enrollmentComplete = document.getElementById('enrollmentComplete');
+            
+            let stream = null;
+            let facingMode = "user";
+            let faceDetectionInterval = null;
+            let faceDetected = false;
+            let capturedImage = null;
+            
+            // Start the camera
+            async function startCamera() {
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: facingMode }
+                    });
+                    video.srcObject = stream;
+                    
+                    cameraStatus.innerHTML = '<span class="text-success">Caméra active. Placez votre visage dans le cadre.</span>';
+                    cameraOverlay.classList.add('scanning');
+                    captureBtn.disabled = false;
+                    
+                    // Start face detection simulation
+                    startFaceDetection();
+                    
+                } catch (err) {
+                    console.error("Error accessing camera:", err);
+                    cameraStatus.innerHTML = '<span class="text-danger">Erreur d\'accès à la caméra. Veuillez autoriser l\'accès.</span>';
+                    errorMessage.textContent = "Impossible d'accéder à la caméra. Vérifiez vos autorisations.";
+                }
+            }
+            
+            // Simple face detection simulation with camera activity
+            function startFaceDetection() {
+                // For a real implementation, use a face detection library
+                // This is just a placeholder to show the UI working
+                faceDetectionInterval = setInterval(() => {
+                    // Simulate face detection with random success for demo purposes
+                    const faceFound = Math.random() > 0.3; // Higher chance to find a face for enrollment demo
+                    
+                    if (faceFound && !faceDetected) {
+                        faceDetected = true;
+                        cameraOverlay.classList.add('face-detected');
+                        cameraOverlay.classList.remove('scanning');
+                        cameraStatus.innerHTML = '<span class="text-success">Visage détecté! Vous pouvez capturer.</span>';
+                    } else if (!faceFound && faceDetected) {
+                        faceDetected = false;
+                        cameraOverlay.classList.remove('face-detected');
+                        cameraOverlay.classList.add('scanning');
+                        cameraStatus.innerHTML = '<span class="text-warning">Recherche de visage...</span>';
+                    }
+                }, 1000);
+            }
+            
+            // Capture image from video
+            function captureImage() {
+                const context = canvas.getContext('2d');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                // Flip the image horizontally to correct for the mirroring
+                context.save();
+                context.scale(-1, 1);
+                context.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+                context.restore();
+                
+                return canvas.toDataURL('image/jpeg');
+            }
+            
+            // Handle capture button click
+            captureBtn.addEventListener('click', () => {
+                capturedImage = captureImage();
+                cameraStatus.innerHTML = '<span class="text-success">Image capturée! Cliquez sur "Enregistrer" pour continuer.</span>';
+                saveBtn.disabled = false;
+                successMessage.textContent = "Photo capturée avec succès!";
+                errorMessage.textContent = "";
+            });
+            
+            // Handle save button click - sends the face data to the server
+            saveBtn.addEventListener('click', async () => {
+                if (!capturedImage) {
+                    errorMessage.textContent = "Veuillez d'abord capturer une image.";
+                    return;
+                }
+                
+                errorMessage.textContent = "";
+                successMessage.textContent = "";
+                
+                const originalBtnText = saveBtn.innerHTML;
+                saveBtn.disabled = true;
+                captureBtn.disabled = true;
+                saveBtn.innerHTML = '<span class="spinner-border" role="status" aria-hidden="true"></span> Enregistrement...';
+                
+                try {
+                    const response = await fetch("{{ path('app_facial_auth_save') }}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            face_image: capturedImage
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Stop camera and show completion screen
+                        if (stream) {
+                            stream.getTracks().forEach(track => track.stop());
+                        }
+                        if (faceDetectionInterval) clearInterval(faceDetectionInterval);
+                        
+                        enrollmentForm.style.display = 'none';
+                        enrollmentComplete.style.display = 'block';
+                    } else {
+                        errorMessage.textContent = result.message || "Erreur lors de l'enregistrement du visage.";
+                        saveBtn.disabled = false;
+                        captureBtn.disabled = false;
+                        saveBtn.innerHTML = originalBtnText;
+                    }
+                    
+                } catch (err) {
+                    console.error("Enrollment error:", err);
+                    errorMessage.textContent = "Une erreur est survenue. Veuillez réessayer plus tard.";
+                    saveBtn.disabled = false;
+                    captureBtn.disabled = false;
+                    saveBtn.innerHTML = originalBtnText;
+                }
+            });
+            
+            // Handle remove button click - removes the face data from the server
+            if (removeBtn) {
+                removeBtn.addEventListener('click', async () => {
+                    if (!confirm("Êtes-vous sûr de vouloir supprimer vos données faciales? Vous ne pourrez plus utiliser la connexion par reconnaissance faciale.")) {
+                        return;
+                    }
+                    
+                    errorMessage.textContent = "";
+                    successMessage.textContent = "";
+                    
+                    const originalBtnText = removeBtn.innerHTML;
+                    removeBtn.disabled = true;
+                    removeBtn.innerHTML = '<span class="spinner-border" role="status" aria-hidden="true"></span> Suppression...';
+                    
+                    try {
+                        const response = await fetch("{{ path('app_facial_auth_remove') }}", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            }
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            successMessage.textContent = "Données faciales supprimées avec succès!";
+                            // Remove the button after successful deletion
+                            removeBtn.style.display = 'none';
+                        } else {
+                            errorMessage.textContent = result.message || "Erreur lors de la suppression des données faciales.";
+                            removeBtn.disabled = false;
+                            removeBtn.innerHTML = originalBtnText;
+                        }
+                        
+                    } catch (err) {
+                        console.error("Deletion error:", err);
+                        errorMessage.textContent = "Une erreur est survenue lors de la suppression.";
+                        removeBtn.disabled = false;
+                        removeBtn.innerHTML = originalBtnText;
+                    }
+                });
+            }
+            
+            // Handle cancel button click
+            cancelBtn.addEventListener('click', () => {
+                window.location.href = "{{ path('user_profile') }}";
+            });
+            
+            // Start camera when page loads
+            startCamera();
+            
+            // Clean up on page unload
+            window.addEventListener('beforeunload', () => {
+                if (faceDetectionInterval) clearInterval(faceDetectionInterval);
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+            });
+        });
+    </script>
+{% endblock %}

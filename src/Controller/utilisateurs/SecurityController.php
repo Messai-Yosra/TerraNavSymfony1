@@ -71,11 +71,26 @@ final class SecurityController extends AbstractController
             );
             $user->setPassword($hashedPassword);
             
+            // Vérifier le type d'utilisateur et s'assurer que les champs requis sont remplis
+            if ($user->getRole() === 'Agence') {
+                // Vérifier si les champs d'agence sont bien renseignés
+                if (empty($user->getNomagence()) || empty($user->getTypeAgence())) {
+                    $this->addFlash('danger', 'Veuillez remplir tous les champs requis pour une agence.');
+                    return $this->render('security/signup.html.twig', [
+                        'form' => $form->createView(),
+                    ]);
+                }
+            } else {
+                // Si c'est un client, s'assurer que les champs d'agence sont vides
+                $user->setNomagence(null);
+                $user->setTypeAgence(null);
+            }
+            
             // Save the user to the database
             $entityManager->persist($user);
             $entityManager->flush();
 
-            //create panier for user
+            // Create panier for user
             $panier = new Panier();
             $panier->setIdUser($user);  // Pass the User OBJECT, not ID
             $panier->setPrixTotal(0.0);
