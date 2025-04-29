@@ -93,3 +93,29 @@
         </section>
     </div>
 {% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('trajet-form');
+            form.addEventListener('submit', function() {
+                // Afficher spinner au clic sur "Enregistrer"
+                document.querySelector('.submit-text').style.display = 'none';
+                document.querySelector('.loading-spinner').style.display = 'inline-block';
+            });
+
+            {% for message in app.flashes('success') %}
+                Swal.fire({
+                    title: 'Succès !',
+                    text: '{{ message }}',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                });
+            {% endfor %}
+        });
+    </script>
+{% endblock %}

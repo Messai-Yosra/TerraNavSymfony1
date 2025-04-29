@@ -6,7 +6,12 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Dompdf\Dompdf;
+use Dompdf\Options;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Psr\Log\LoggerInterface; 
 use App\Entity\Trajet;
+use App\Entity\Transport;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -26,20 +31,41 @@ final class TrajetClientController extends AbstractController
         return $this->render('trajets/client_index.html.twig');
     }
 
-    #[Route('/trajets/liste', name: 'client_trajets_list')]
+    #[Route('/trajets/liste', name: 'client_trajets_list', methods: ['GET'])]
     public function list(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $searchTerm = $request->query->get('search');
+        $searchTerm = $request->query->get('search', '');
+        $isAjax = $request->isXmlHttpRequest();
 
         $queryBuilder = $entityManager->getRepository(Trajet::class)
             ->createQueryBuilder('t');
 
         if ($searchTerm) {
-            $queryBuilder->where('t.pointDepart LIKE :searchTerm OR t.destination LIKE :searchTerm')
-                         ->setParameter('searchTerm', '%'.$searchTerm.'%');
+            $queryBuilder->where('t.pointDepart LIKE :searchTerm')
+                         ->setParameter('searchTerm', '%' . $searchTerm . '%');
         }
 
         $trajets = $queryBuilder->getQuery()->getResult();
+
+        if ($isAjax) {
+            $trajetData = array_map(function ($trajet) {
+                return [
+                    'id' => $trajet->getId(),
+                    'pointDepart' => $trajet->getPointDepart(),
+                    'destination' => $trajet->getDestination(),
+                    'dateDepart' => $trajet->getDateDepart()->format('d/m/Y H:i'),
+                    'duree' => $trajet->getDuree(),
+                    'disponibilite' => $trajet->getDisponibilite(),
+                    'description' => $trajet->getDescription(),
+                    'csrfToken' => $this->container->get('security.csrf.token_manager')->getToken('delete' . $trajet->getId())->getValue(),
+                ];
+            }, $trajets);
+
+            return new JsonResponse([
+                'trajets' => $trajetData,
+                'searchTerm' => $searchTerm,
+            ]);
+        }
 
         return $this->render('transports/client_trajets_list.html.twig', [
             'trajets' => $trajets,
@@ -292,5 +318,74 @@ final class TrajetClientController extends AbstractController
         }
 
         return $this->redirectToRoute('client_trajets_list');
+    }
+
+    #[Route('/trajets/affecter/{transportId}', name: 'client_trajet_affect', methods: ['GET'])]
+public function affect(int $transportId, Request $request, EntityManagerInterface $entityManager): Response
+{
+    $searchTerm = $request->query->get('search', '');
+    $isAjax = $request->isXmlHttpRequest();
+
+    // Validate transport existence
+    $transport = $entityManager->getRepository(Transport::class)->find($transportId);
+    if (!$transport) {
+        $this->addFlash('error', 'Transport non trouvé.');
+        return $this->redirectToRoute('client_transports_list');
+    }
+
+    $queryBuilder = $entityManager->getRepository(Trajet::class)
+        ->createQueryBuilder('t')
+        ->where('t.disponibilite = :disponible')
+        ->setParameter('disponible', true);
+
+    if ($searchTerm) {
+        $queryBuilder->andWhere('t.pointDepart LIKE :searchTerm OR t.destination LIKE :searchTerm')
+                     ->setParameter('searchTerm', '%' . $searchTerm . '%');
+    }
+
+    $trajets = $queryBuilder->getQuery()->getResult();
+
+    if ($isAjax) {
+        $trajetData = array_map(function ($trajet) use ($transportId) {
+            return [
+                'id' => $trajet->getId(),
+                'pointDepart' => $trajet->getPointDepart(),
+                'destination' => $trajet->getDestination(),
+                'dateDepart' => $trajet->getDateDepart()->format('d/m/Y H:i'),
+                'duree' => $trajet->getDuree(),
+                'disponibilite' => $trajet->getDisponibilite(),
+                'description' => $trajet->getDescription(),
+                'transportId' => $transportId,
+                'csrfToken' => $this->container->get('security.csrf.token_manager')->getToken('delete' . $trajet->getId())->getValue(),
+            ];
+        }, $trajets);
+
+        return new JsonResponse([
+            'trajets' => $trajetData,
+            'searchTerm' => $searchTerm,
+        ]);
+    }
+
+    return $this->render('transports/client_trajet_affect.html.twig', [
+        'trajets' => $trajets,
+        'searchTerm' => $searchTerm,
+        'transportId' => $transportId,
+    ]);
+}
+#[Route('/client/trajet/{id}', name: 'client_trajet_details')]
+    public function details(Trajet $trajet, EntityManagerInterface $entityManager): Response
+    {
+        // Get other trajets (all available trajets, excluding the current one)
+        $autresTrajets = $entityManager->getRepository(Trajet::class)->findBy(
+            ['disponibilite' => true],
+            ['dateDepart' => 'DESC'],
+            6 // Limit to 6
+        );
+        $autresTrajets = array_filter($autresTrajets, fn($t) => $t->getId() !== $trajet->getId());
+
+        return $this->render('transports/trajet_details.html.twig', [
+            'trajet' => $trajet,
+            'autresTrajets' => $autresTrajets,
+        ]);
     }
 }

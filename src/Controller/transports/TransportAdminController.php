@@ -6,6 +6,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Knp\Component\Pager\PaginatorInterface;
 use App\Entity\Transport;
 use App\Entity\Trajet;
 use App\Entity\Utilisateur;
@@ -29,28 +30,47 @@ final class TransportAdminController extends AbstractController
     }
 
     #[Route('/TransportsAdmin/liste', name: 'admin_transports_list')]
-    public function list(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        $searchTerm = $request->query->get('search');
-        
-        $queryBuilder = $entityManager->getRepository(Transport::class)
-            ->createQueryBuilder('t')
-            ->leftJoin('t.id_trajet', 'tr')
-            ->addSelect('tr');
-        
-        if ($searchTerm) {
-            $queryBuilder->where('t.nom LIKE :searchTerm')
-                        ->setParameter('searchTerm', '%'.$searchTerm.'%');
-        }
-        
-        $transports = $queryBuilder->getQuery()->getResult();
+public function adminList(Request $request, EntityManagerInterface $em, PaginatorInterface $paginator): Response
+{
+    $searchTerm = $request->query->get('search', '');
+    $isAjax = $request->isXmlHttpRequest();
 
-        return $this->render('transports/admin_transports_list.html.twig', [
-            'transports' => $transports,
-            'searchTerm' => $searchTerm
+    // Construction de la requête de base
+    $qb = $em->createQueryBuilder()
+        ->select('t')
+        ->from(Transport::class, 't')
+        ->orderBy('t.nom', 'ASC');
+
+    // Filtre de recherche
+    if (!empty($searchTerm)) {
+        $qb->andWhere('LOWER(t.nom) LIKE LOWER(:searchTerm)')
+           ->setParameter('searchTerm', '%'.$searchTerm.'%');
+    }
+
+    // Pagination
+    $transports = $paginator->paginate(
+        $qb->getQuery(),
+        $request->query->getInt('page', 1),
+        10
+    );
+
+    // Réponse AJAX
+    if ($isAjax) {
+        $html = $this->renderView('admin/transport/_list.html.twig', [
+            'transports' => $transports
+        ]);
+
+        return new JsonResponse([
+            'html' => $html,
+            'count' => $transports->getTotalItemCount()
         ]);
     }
 
+    return $this->render('transports/admin_transports_list.html.twig', [
+        'transports' => $transports,
+        'searchTerm' => $searchTerm
+    ]);
+}
     // Ajouter un nouveau transport
     #[Route('/TransportsAdmin/ajouter', name: 'admin_transport_new')]
     public function new(Request $request, EntityManagerInterface $em): Response
@@ -150,5 +170,53 @@ final class TransportAdminController extends AbstractController
         }
 
         return $this->redirectToRoute('admin_transports_list');
+    }
+    #[Route('/transports/exporter/pdf', name: 'client_transports_export_pdf', methods: ['GET'])]
+    public function exportPdf(EntityManagerInterface $entityManager, LoggerInterface $logger): Response
+    {
+        $transports = $entityManager->getRepository(Transport::class)
+            ->createQueryBuilder('t')
+            ->where('t.id_user = :user')
+            ->setParameter('user', $entityManager->getReference(Utilisateur::class, 251))
+            ->getQuery()
+            ->getResult();
+
+        $html = $this->renderView('transports/client_transports_pdf.html.twig', [
+            'transports' => $transports,
+        ]);
+
+        try {
+            $logger->info('Generating PDF with Dompdf');
+
+            // Configure Dompdf options
+            $options = new Options();
+            $options->set('isHtml5ParserEnabled', true);
+            $options->set('isRemoteEnabled', true); // Enable if your template includes external resources like images
+
+            // Instantiate Dompdf
+            $dompdf = new Dompdf($options);
+            $dompdf->loadHtml($html);
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
+            $pdfOutput = $dompdf->output();
+            $logger->info('PDF generated successfully');
+
+            $filename = 'transports_list_' . date('Ymd_His') . '.pdf';
+
+            return new Response(
+                $pdfOutput,
+                Response::HTTP_OK,
+                [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => (new ResponseHeaderBag())->makeDisposition(
+                        ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+                        $filename
+                    ),
+                ]
+            );
+        } catch (\Exception $e) {
+            $logger->error('PDF generation failed: ' . $e->getMessage());
+            throw $e; // Remove this in production; redirect with flash message instead
+        }
     }
 }

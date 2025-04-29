@@ -8,16 +8,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
-   
-
     <!-- Transport List Section -->
     <div class="container-xxl py-5">
         <div class="container">
             <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
-                
                 <h1 class="mb-5">Mes <span class="text-primary text-uppercase">Transports</span></h1>
-                <a href="{{ path('client_transport_new') }}" class="btn btn-primary rounded-pill py-3 px-5 mb-4">Ajouter un Transport</a>
-                <a href="{{ path('client_trajets_list') }}" class="btn btn-primary rounded-pill py-3 px-5 mb-4">Voir liste Trajet</a>
+                <a href="{{ path('client_transport_new') }}" class="btn btn-primary rounded-pill py-3 px-5 mb-2">Ajouter un Transport</a>
+                <a href="{{ path('client_trajets_list') }}" class="btn btn-primary rounded-pill py-3 px-5 mb-2">Voir liste Trajet</a>
             </div>
             <!-- Flash Messages -->
             {% for message in app.flashes('success') %}
@@ -28,54 +25,56 @@
             {% endfor %}
             <div class="row g-4">
                 <div class="col-12">
-                    <!-- Search Form -->
-                    <form action="{{ path('client_transports_list') }}" method="get" class="mb-4">
-                        <div class="input-group">
-                            <input type="text" name="search" class="form-control" placeholder="Rechercher un transport..." value="{{ searchTerm|default('') }}">
-                            <button type="submit" class="btn btn-primary">Rechercher</button>
-                        </div>
-                    </form>
+                    <!-- Search Input -->
+                    <div class="input-group mb-4">
+                        <input type="text" id="search-input" class="form-control" placeholder="Rechercher un transport par nom..." value="{{ searchTerm|default('') }}">
+                    </div>
                 </div>
-                {% if transports|length > 0 %}
-                    {% for transport in transports %}
-                        <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.{{ loop.index * 0.1 }}s">
-                            <div class="service-item rounded h-100">
-                                <div class="service-icon bg-transparent border rounded p-1">
-                                    <div class="w-100 h-100 border rounded d-flex align-items-center justify-content-center">
-                                        {% if transport.type == 'Voiture privée' %}
-                                            <i class="fa fa-car fa-2x text-primary"></i>
-                                        {% elseif transport.type == 'Taxi' %}
-                                            <i class="fa fa-taxi fa-2x text-primary"></i>
-                                        {% else %}
-                                            <i class="fa fa-bus fa-2x text-primary"></i>
-                                        {% endif %}
+                <!-- Transport List Container -->
+                <div id="transport-list" class="row g-4" aria-live="polite">
+                    {% if transports|length > 0 %}
+                        {% for transport in transports %}
+                            <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.{{ loop.index * 0.1 }}s">
+                                <div class="service-item rounded h-100">
+                                    <div class="service-icon bg-transparent border rounded p-1">
+                                        <div class="w-100 h-100 border rounded d-flex align-items-center justify-content-center">
+                                            {% if transport.type == 'Voiture privée' %}
+                                                <i class="fa fa-car fa-2x text-primary"></i>
+                                            {% elseif transport.type == 'Taxi' %}
+                                                <i class="fa fa-taxi fa-2x text-primary"></i>
+                                            {% else %}
+                                                <i class="fa fa-bus fa-2x text-primary"></i>
+                                            {% endif %}
+                                        </div>
                                     </div>
-                                </div>
-                                <h5 class="mb-3">{{ transport.nom }}</h5>
-                                <p class="text-body mb-0">
-                                    Type: {{ transport.type }}<br>
-                                    Capacité: {{ transport.capacite }}<br>
-                                    Prix: {{ transport.prix|number_format(2) }}DTN<br>
-                                    Contact: {{ transport.contact }}
-                                </p>
-                                {% if transport.imagePath %}
-                                    <img src="{{ asset(transport.imagePath) }}" alt="{{ transport.nom }}" class="img-fluid rounded mt-3" style="max-height: 150px;">
-                                {% endif %}
-                                <div class="service-hover-content">
-                                    <p class="text-white">{{ transport.description|default('Aucune description disponible.')|length > 100 ? transport.description|slice(0, 100) ~ '...' : transport.description }}</p>
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <a href="{{ path('client_transport_edit', {'id': transport.id}) }}" class="btn btn-light rounded-pill">Modifier <i class="fa fa-edit ms-2"></i></a>
-                                        <button class="btn btn-danger rounded-pill delete-btn" data-id="{{ transport.id }}" data-token="{{ csrf_token('delete' ~ transport.id) }}">Supprimer <i class="fa fa-trash ms-2"></i></button>
+                                    <h5 class="mb-3">{{ transport.nom }}</h5>
+                                    <p class="text-body mb-0">
+                                        Type: {{ transport.type }}<br>
+                                        Capacité: {{ transport.capacite }}<br>
+                                        Prix: {{ transport.prix|number_format(2) }}DTN<br>
+                                        Contact: {{ transport.contact }}
+                                    </p>
+                                    {% if transport.imagePath %}
+                                        <img src="{{ asset(transport.imagePath) }}" alt="{{ transport.nom }}" class="img-fluid rounded mt-3" style="max-height: 150px;">
+                                    {% endif %}
+                                    <div class="service-hover-content">
+                                        <p class="text-white">{{ transport.description|default('Aucune description disponible.')|length > 100 ? transport.description|slice(0, 100) ~ '...' : transport.description }}</p>
+                                        <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                            <a href="{{ path('client_transport_edit', {'id': transport.id}) }}" class="btn btn-light rounded-pill">Modifier <i class="fa fa-edit ms-2"></i></a>
+                                            <button class="btn btn-danger rounded-pill delete-btn" data-id="{{ transport.id }}" data-token="{{ csrf_token('delete' ~ transport.id) }}">Supprimer <i class="fa fa-trash ms-2"></i></button>
+                                            <a href="{{ path('client_transport_details', {'id': transport.id}) }}" class="btn btn-info rounded-pill">Détails <i class="fa fa-info-circle ms-2"></i></a>
+                                            <a href="{{ path('client_trajet_affect', {'transportId': transport.id}) }}" class="btn btn-success rounded-pill">Affecter un Trajet <i class="fa fa-route ms-2"></i></a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="col-12 text-center">
+                            <p class="text-muted">Aucun transport trouvé. <a href="{{ path('client_transport_new') }}">Ajoutez-en un maintenant !</a></p>
                         </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="col-12 text-center">
-                        <p class="text-muted">Aucun transport trouvé. <a href="{{ path('client_transport_new') }}">Ajoutez-en un maintenant !</a></p>
-                    </div>
-                {% endif %}
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
@@ -159,63 +158,189 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Delete transport
-            document.querySelectorAll('.delete-btn').forEach(button => {
-                button.addEventListener('click', async function () {
-                    const transportId = this.getAttribute('data-id');
-                    const token = this.getAttribute('data-token');
+            // Dynamic search
+            const searchInput = document.getElementById('search-input');
+            const transportList = document.getElementById('transport-list');
 
-                    const result = await Swal.fire({
-                        title: 'Êtes-vous sûr ?',
-                        text: 'Voulez-vous vraiment supprimer ce transport ?',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#dc3545',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'Oui, supprimer',
-                        cancelButtonText: 'Annuler'
+            // Debounce function to limit AJAX requests
+            function debounce(func, wait) {
+                let timeout;
+                return function (...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+
+            // Function to generate transport HTML
+            function generateTransportHTML(transport, index) {
+                // Robust ID validation
+                const transportId = parseInt(transport.id);
+                if (!transport.id || isNaN(transportId) || transportId <= 0) {
+                    console.error('Invalid or missing transport ID:', transport);
+                    return '';
+                }
+
+                const icon = transport.type === 'Voiture privée' ? '<i class="fa fa-car fa-2x text-primary"></i>' :
+                             transport.type === 'Taxi' ? '<i class="fa fa-taxi fa-2x text-primary"></i>' :
+                             '<i class="fa fa-bus fa-2x text-primary"></i>';
+
+                const image = transport.imagePath ? `<img src="/${transport.imagePath}" alt="${transport.nom}" class="img-fluid rounded mt-3" style="max-height: 150px;">` : '';
+
+                const description = transport.description || 'Aucune description disponible.';
+                const shortDescription = description.length > 100 ? description.slice(0, 100) + '...' : description;
+
+                // Generate URLs with validated ID
+                const editUrlTemplate = `{{ path('client_transport_edit', {'id': 'ID'}) }}`;
+                const editUrl = editUrlTemplate.replace('ID', transportId);
+                const affectUrlTemplate = `{{ path('client_trajet_affect', {'transportId': 'ID'}) }}`;
+                const affectUrl = affectUrlTemplate.replace('ID', transportId);
+
+                // Log the generated URLs and transport data for debugging
+                console.log(`Generated edit URL for transport ${transportId}: ${editUrl}`);
+                console.log(`Generated affect URL for transport ${transportId}: ${affectUrl}`);
+                console.log(`Transport data:`, transport);
+
+                return `
+                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.${index * 0.1}s">
+                        <div class="service-item rounded h-100">
+                            <div class="service-icon bg-transparent border rounded p-1">
+                                <div class="w-100 h-100 border rounded d-flex align-items-center justify-content-center">
+                                    ${icon}
+                                </div>
+                            </div>
+                            <h5 class="mb-3">${transport.nom}</h5>
+                            <p class="text-body mb-0">
+                                Type: ${transport.type}<br>
+                                Capacité: ${transport.capacite}<br>
+                                Prix: ${transport.prix.toFixed(2)}DTN<br>
+                                Contact: ${transport.contact}
+                            </p>
+                            ${image}
+                            <div class="service-hover-content">
+                                <p class="text-white">${shortDescription}</p>
+                                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                    <a href="${editUrl}" class="btn btn-light rounded-pill">Modifier <i class="fa fa-edit ms-2"></i></a>
+                                    <button class="btn btn-danger rounded-pill delete-btn" data-id="${transportId}" data-token="${transport.csrfToken}">Supprimer <i class="fa fa-trash ms-2"></i></button>
+                                    <a href="${affectUrl}" class="btn btn-success rounded-pill">Affecter un Trajet <i class="fa fa-route ms-2"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Search handler
+            searchInput.addEventListener('input', debounce(async function () {
+                const searchTerm = this.value.trim();
+
+                try {
+                    const response = await fetch(`{{ path('client_transports_list') }}?search=${encodeURIComponent(searchTerm)}`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
                     });
 
-                    if (result.isConfirmed) {
-                        try {
-                            const response = await fetch(`{{ path('client_transport_delete', {'id': 'ID'}) }}`.replace('ID', transportId), {
-                                method: 'POST',
-                                headers: {
-                                    'X-Requested-With': 'XMLHttpRequest',
-                                    'Content-Type': 'application/x-www-form-urlencoded',
-                                },
-                                body: `_token=${encodeURIComponent(token)}`
-                            });
+                    const data = await response.json();
 
-                            const data = await response.json();
+                    // Log the full AJAX response for debugging
+                    console.log('AJAX Response:', JSON.stringify(data, null, 2));
 
-                            if (data.success) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Supprimé !',
-                                    text: data.message,
-                                    showConfirmButton: false,
-                                    timer: 1500
-                                }).then(() => {
-                                    window.location.reload();
+                    // Validate response data
+                    if (!data.transports || !Array.isArray(data.transports)) {
+                        console.error('Invalid or missing transports data:', data);
+                        transportList.innerHTML = '<div class="col-12 text-center"><p class="text-muted">Erreur lors de la récupération des transports.</p></div>';
+                        return;
+                    }
+
+                    // Filter out invalid transports
+                    const validTransports = data.transports.filter(transport => {
+                        const isValid = transport.id && !isNaN(parseInt(transport.id)) && parseInt(transport.id) > 0;
+                        if (!isValid) {
+                            console.error('Filtered out invalid transport:', transport);
+                        }
+                        return isValid;
+                    });
+
+                    // Update the transport list
+                    transportList.innerHTML = validTransports.length > 0 ?
+                        validTransports.map((transport, index) => generateTransportHTML(transport, index)).join('') :
+                        '<div class="col-12 text-center"><p class="text-muted">Aucun transport trouvé. <a href="{{ path('client_transport_new') }}">Ajoutez-en un maintenant !</a></p></div>';
+
+                    // Re-attach delete button listeners
+                    attachDeleteButtonListeners();
+                } catch (error) {
+                    console.error('Error fetching transport list:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erreur',
+                        text: 'Une erreur est survenue lors de la recherche.',
+                    });
+                }
+            }, 300));
+
+            // Function to attach delete button listeners
+            function attachDeleteButtonListeners() {
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', async function () {
+                        const transportId = this.getAttribute('data-id');
+                        const token = this.getAttribute('data-token');
+
+                        const result = await Swal.fire({
+                            title: 'Êtes-vous sûr ?',
+                            text: 'Voulez-vous vraiment supprimer ce transport ?',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#dc3545',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: 'Oui, supprimer',
+                            cancelButtonText: 'Annuler'
+                        });
+
+                        if (result.isConfirmed) {
+                            try {
+                                const response = await fetch(`{{ path('client_transport_delete', {'id': 'ID'}) }}`.replace('ID', transportId), {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Content-Type': 'application/x-www-form-urlencoded',
+                                    },
+                                    body: `_token=${encodeURIComponent(token)}`
                                 });
-                            } else {
+
+                                const data = await response.json();
+
+                                if (data.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Supprimé !',
+                                        text: data.message,
+                                        showConfirmButton: false,
+                                        timer: 1500
+                                    }).then(() => {
+                                        // Refresh the list after deletion
+                                        searchInput.dispatchEvent(new Event('input'));
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Erreur',
+                                        text: data.message || 'Impossible de supprimer le transport.',
+                                    });
+                                }
+                            } catch (error) {
                                 Swal.fire({
                                     icon: 'error',
                                     title: 'Erreur',
-                                    text: data.message || 'Impossible de supprimer le transport.',
+                                    text: 'Une erreur est survenue lors de la suppression.',
                                 });
                             }
-                        } catch (error) {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Erreur',
-                                text: 'Une erreur est survenue lors de la suppression.',
-                            });
                         }
-                    }
+                    });
                 });
-            });
+            }
+
+            // Initial attachment of delete button listeners
+            attachDeleteButtonListeners();
 
             // Flash messages
             {% for message in app.flashes('success') %}
