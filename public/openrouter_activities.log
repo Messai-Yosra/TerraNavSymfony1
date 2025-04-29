@@ -1,0 +1,397 @@
+```json
+{
+"activities": [
+    {
+        "name": "Prado Museum",
+        "description": "World-renowned art museum with Goya, Velázquez",
+        "longitude": -3.6946,
+        "latitude": 40.4138
+    },
+    {
+        "name": "Royal Palace of Madrid",
+        "description": "Official residence of Spanish Royal Family",
+        "longitude": -3.7142,
+        "latitude": 40.4181
+    },
+    {
+        "name": "Retiro Park",
+        "description": "Vast park with gardens, rowing lake, Crystal Palace",
+        "longitude": -3.6834,
+        "latitude": 40.4147
+    }
+]
+}
+```{
+"activities": [
+    {
+        "name": "Palais Royal de Madrid",
+        "description": "Résidence officielle de la royauté espagnole",
+        "longitude": -3.714040,
+        "latitude": 40.417855
+    },
+    {
+        "name": "Musée du Prado",
+        "description": "Musée d'art européen classique",
+        "longitude": -3.691966,
+        "latitude": 40.413816
+    },
+    {
+        "name": "Parc du Retiro",
+        "description": "Jardin public avec lac et monuments",
+        "longitude": -3.683370,
+        "latitude": 40.417779
+    }
+]
+}{
+  "activities": [
+    {
+      "name": "Royal Palace of Madrid",
+      "description": "Royal residence with historic rooms",
+      "longitude": -3.714218,
+      "latitude": 40.418213
+    },
+    {
+      "name": "Retiro Park",
+      "description": "Iconic park with boating lake",
+      "longitude": -3.683911,
+      "latitude": 40.414584
+    },
+    {
+      "name": "Prado Museum",
+      "description": "World-renowned art collection",
+      "longitude": -3.692078,
+      "latitude": 40.413895
+    }
+  ]
+}{
+"activities": [
+    {
+        "name": "Royal Palace",
+        "description": "Official residence of Spanish royalty",
+        "longitude": -3.7144,
+        "latitude": 40.4189
+    },
+    {
+        "name": "Retiro Park",
+        "description": "Large park with boating lake",
+        "longitude": -3.6839,
+        "latitude": 40.4147
+    },
+    {
+        "name": "Plaza Mayor",
+        "description": "Historic central square",
+        "longitude": -3.7074,
+        "latitude": 40.4153
+    }
+]
+}{
+"activities": [
+    {
+        "name": "El Retiro Park",
+        "description": "Iconic park with boating lake",
+        "longitude": -3.683273,
+        "latitude": 40.414675
+    },
+    {
+        "name": "Prado Museum",
+        "description": "World-renowned art collection",
+        "longitude": -3.691453,
+        "latitude": 40.413816
+    },
+    {
+        "name": "Royal Palace of Madrid",
+        "description": "Official royal residence with tours",
+        "longitude": -3.714310,
+        "latitude": 40.418650
+    }
+]
+}```json
+{
+    "activities": [
+        {
+            "name": "Palais Royal",
+            "description": "Résidence officielle de la royauté espagnole",
+            "longitude": -3.7143,
+            "latitude": 40.4180
+        },
+        {
+            "name": "Parc du Retiro",
+            "description": "Jardin historique avec étang à bateaux",
+            "longitude": -3.6839,
+            "latitude": 40.4147
+        },
+        {
+            "name": "Plaza Mayor",
+            "description": "Place centrale emblématique de Madrid",
+            "longitude": -3.7074,
+            "latitude": 40.4154
+        }
+    ]
+}
+```{
+"activities": [
+    {
+        "name": "Royal Palace",
+        "description": "Official residence of Spanish Royal Family",
+        "longitude": -3.7142,
+        "latitude": 40.4189
+    },
+    {
+        "name": "Retiro Park",
+        "description": "Expansive green space with museums and boating lake",
+        "longitude": -3.6831,
+        "latitude": 40.4145
+    },
+    {
+        "name": "Prado Museum",
+        "description": "Renowned art museum featuring European masterpieces",
+        "longitude": -3.6920,
+        "latitude": 40.4138
+    }
+]
+}{
+    "activities": [
+        {
+            "name": "Palais Royal de Madrid",
+            "description": "Palais royal emblématique et historique",
+            "longitude": -3.7142,
+            "latitude": 40.4189
+        },
+        {
+            "name": "Parc du Retiro",
+            "description": "Vaste parc avec lac et jardins",
+            "longitude": -3.6825,
+            "latitude": 40.4147
+        },
+        {
+            "name": "Musée du Prado",
+            "description": "Musée d'art mondialement connu",
+            "longitude": -3.6915,
+            "latitude": 40.4138
+        }
+    ]
+}{
+"activities": [
+    {
+        "name": "Palacio Real",
+        "description": "Royal residence & historic rooms",
+        "longitude": -3.7142,
+        "latitude": 40.4189
+    },
+    {
+        "name": "Parque del Retiro",
+        "description": "Iconic park with boating lake",
+        "longitude": -3.6834,
+        "latitude": 40.4155
+    },
+    {
+        "name": "Museo del Prado",
+        "description": "Renowned art museum masterpieces",
+        "longitude": -3.6920,
+        "latitude": 40.4139
+    }
+]
+}```json
+{
+"activities": [
+    {
+        "name": "Royal Palace of Madrid",
+        "description": "Official residence of Spanish royalty",
+        "longitude": -3.714370,
+        "latitude": 40.418030
+    },
+    {
+        "name": "Retiro Park",
+        "description": "Large park with lake and Crystal Palace",
+        "longitude": -3.683907,
+        "latitude": 40.414790
+    },
+    {
+        "name": "Prado Museum",
+        "description": "Major Spanish art museum",
+        "longitude": -3.691696,
+        "latitude": 40.413817
+    }
+]
+}
+``````json
+{
+    "activities": [
+        {
+            "name": "Royal Palace",
+            "description": "Grand royal residence with historic rooms",
+            "longitude": -3.7143,
+            "latitude": 40.4189
+        },
+        {
+            "name": "Prado Museum",
+            "description": "Renowned art museum with European masterpieces",
+            "longitude": -3.6919,
+            "latitude": 40.4138
+        },
+        {
+            "name": "Retiro Park",
+            "description": "Iconic park with boat pond",
+            "longitude": -3.6830,
+            "latitude": 40.4147
+        }
+    ]
+}
+```{
+  "activities": [
+    {
+      "name": "Musée du Prado",
+      "description": "Musée célèbre avec des chefs-d'œuvre européens",
+      "longitude": -3.6921,
+      "latitude": 40.4138
+    },
+    {
+      "name": "Parc du Retiro",
+      "description": "Parc emblématique avec lac et jardins",
+      "longitude": -3.6832,
+      "latitude": 40.4145
+    },
+    {
+      "name": "Palais Royal",
+      "description": "Résidence officielle du roi d'Espagne",
+      "longitude": -3.7143,
+      "latitude": 40.4180
+    }
+  ]
+}```json
+{
+"activities": [
+    {
+        "name": "Musée du Prado",
+        "description": "Principal musée d'art espagnol",
+        "longitude": -3.691536,
+        "latitude": 40.413962
+    },
+    {
+        "name": "Palais Royal",
+        "description": "Résidence officielle de la monarchie",
+        "longitude": -3.714124,
+        "latitude": 40.418109
+    },
+    {
+        "name": "Parc du Retiro",
+        "description": "Jardin historique avec plan d'eau",
+        "longitude": -3.683342,
+        "latitude": 40.415039
+    }
+]
+}
+``````json
+{
+  "activities": [
+    {
+      "name": "Palais Royal Madrid",
+      "description": "Résidence officielle monarchie espagnole",
+      "longitude": -3.714310,
+      "latitude": 40.418310
+    },
+    {
+      "name": "Musée du Prado",
+      "description": "Principal musée d'art de Madrid",
+      "longitude": -3.694000,
+      "latitude": 40.413800
+    },
+    {
+      "name": "Parc du Retiro",
+      "description": "Grand parc avec étang et palais",
+      "longitude": -3.683630,
+      "latitude": 40.414691
+    }
+  ]
+}
+``````json
+{
+"activities": [
+    {
+        "name": "Royal Palace Madrid",
+        "description": "Largest royal palace in Europe, official residence of Spanish royalty.",
+        "longitude": -3.7145,
+        "latitude": 40.4189
+    },
+    {
+        "name": "Retiro Park",
+        "description": "Iconic green space with boating lake, monuments, and gardens.",
+        "longitude": -3.6835,
+        "latitude": 40.4148
+    },
+    {
+        "name": "Prado Museum",
+        "description": "World-renowned art museum featuring European masterpieces.",
+        "longitude": -3.6919,
+        "latitude": 40.4138
+    }
+]
+}
+```{
+"activities": [
+    {
+        "name": "Palais Royal de Madrid",
+        "description": "Résidence officielle de la monarchie espagnole. Architecture baroque impressionnante et vastes jardins.",
+        "longitude": -3.714270,
+        "latitude": 40.418308
+    },
+    {
+        "name": "Parc du Retiro",
+        "description": "Jardin historique avec lac, palais de cristal et monuments. Lieu idéal pour se détendre.",
+        "longitude": -3.683312,
+        "latitude": 40.414494
+    },
+    {
+        "name": "Musée du Prado",
+        "description": "Musée renommé abritant des œuvres de Goya, Velázquez et autres maîtres européens.",
+        "longitude": -3.692091,
+        "latitude": 40.413941
+    }
+]
+}```json
+{
+  "activities": [
+    {
+      "name": "Museo del Prado",
+      "description": "Principale musée d'art espagnol, abritant des chefs-d'œuvre de Goya, Velázquez et Bosch.",
+      "longitude": -3.691779,
+      "latitude": 40.413926
+    },
+    {
+      "name": "Palais Royal de Madrid",
+      "description": "Résidence officielle de la famille royale espagnole, avec des salles somptueuses et des jardins.",
+      "longitude": -3.714370,
+      "latitude": 40.418120
+    },
+    {
+      "name": "Parc du Retiro",
+      "description": "Vaste jardin public avec un lac, des monuments historiques et des spectacles de rue.",
+      "longitude": -3.683258,
+      "latitude": 40.414706
+    }
+  ]
+}
+``````json
+{
+"activities": [
+    {
+        "name": "British Museum",
+        "description": "World-renowned museum housing millions of artifacts, including the Rosetta Stone and Egyptian mummies. Free entry.",
+        "longitude": -0.1269,
+        "latitude": 51.5194
+    },
+    {
+        "name": "Tower of London",
+        "description": "Historic castle housing the Crown Jewels, iconic Beefeaters, and centuries of British history. UNESCO site.",
+        "longitude": -0.0759,
+        "latitude": 51.5081
+    },
+    {
+        "name": "London Eye",
+        "description": "Giant Ferris wheel on South Bank offering panoramic views of London's skyline. Iconic landmark.",
+        "longitude": -0.1195,
+        "latitude": 51.5033
+    }
+]
+}
+```

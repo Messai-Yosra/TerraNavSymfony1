@@ -95,19 +95,26 @@ class DetailsVoyage extends AbstractController
             $prompt = "Donne-moi 3 activités populaires à faire à $destination.
 Pour chaque activité, fournis un JSON valide avec :
 - name: nom court (max 5 mots)
-- description: description concise (max 20 mots)
+- description: une bonne description (max 40 mots)
+- longitude: coordonnée longitude (exemple: 2.294481)
+- latitude: coordonnée latitude (exemple: 48.858370)
 
 Format de sortie STRICT :
 {
 \"activities\": [
     {
-        \"name\": \"Nom activité\",
-        \"description\": \"Description courte\"
+        \"name\": \"Tour Eiffel\",
+        \"description\": \"Monument emblématique de Paris...(reste de la description)\",
+        \"longitude\": 2.294481,
+        \"latitude\": 48.858370
     }
 ]
 }";
 
             $response = $openRouter->askQuestion($prompt);
+
+            // Debug - à enlever en production
+            file_put_contents('openrouter_activities.log', $response, FILE_APPEND);
 
             // Essayez d'extraire le JSON de la réponse
             $jsonStart = strpos($response, '{');
@@ -128,9 +135,19 @@ Format de sortie STRICT :
                 throw new \Exception('Structure de réponse inattendue');
             }
 
+            // Validation des coordonnées
+            foreach ($data['activities'] as &$activity) {
+                if (!isset($activity['longitude']) || !isset($activity['latitude'])) {
+                    // Générer des coordonnées aléatoires près du centre-ville si non fournies
+                    $activity['longitude'] = mt_rand(-1800000, 1800000) / 100000;
+                    $activity['latitude'] = mt_rand(-900000, 900000) / 100000;
+                }
+            }
+
             return $this->json([
                 'success' => true,
-                'activities' => $data['activities']
+                'activities' => $data['activities'],
+                'mapboxToken' => $this->getParameter('mapbox_access_token')
             ]);
 
         } catch (\Exception $e) {

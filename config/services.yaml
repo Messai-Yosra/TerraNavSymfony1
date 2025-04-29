@@ -12,6 +12,7 @@ parameters:
     amadeus.api.key: '%env(AMADEUS_API_KEY)%'
     amadeus.api.secret: '%env(AMADEUS_API_SECRET)%'
     openrouter.api_key: '%env(OPENROUTER_API_KEY)%'
+    mapbox_access_token: 'pk.eyJ1IjoiYXJpajE1IiwiYSI6ImNtOW9ndXoxODB6NTgybXI3cTJqbWJnZnIifQ.dBCfhP2_zHaiT6WkQqQfjw'
 
 services:
     # default configuration for services in *this* file
