@@ -9,16 +9,7 @@
     <link rel="stylesheet" href="{{ asset('css/styleClient.css') }}">
     <link rel="stylesheet" href="{{ asset('css/interactions/interactions.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     <div class="container mt-3 fade-in">
-        <div class="translation-bar mb-3">
-            <div class="card">
-                <div class="card-body d-flex align-items-center">
-                    <i class="fas fa-language me-2 text-primary"></i>
-                    <div id="google_translate_element"></div>
-                </div>
-            </div>
-        </div>
         {# Stories Section #}
         <div class="stories-container mb-4">
             {# Add Story Button #}
@@ -239,10 +230,15 @@
                                         Commenter
                                     </a>
 
-                                    <button class="btn-action">
-                                        <i class="fas fa-share me-2"></i>
-                                        Partager
-                                    </button>
+                                    <!-- Remplacez le bouton partager existant par celui-ci -->
+<button class="btn-action share-btn" 
+        data-post-id="{{ post.id }}"
+        data-post-url="{{ url('app_post_details', {'id': post.id}) }}"
+        data-post-title="{{ post.description|striptags|slice(0, 100) }}..."
+        onclick="sharePost(this)">
+    <i class="fas fa-share me-2"></i>
+    Partager
+</button>
                                 </div>
                             </div>
                         </div>
@@ -324,16 +320,7 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/emoji-toolkit@7.0.0/lib/js/joypixels.min.js"></script>
-    
     <script>
-        function googleTranslateElementInit() {
-    new google.translate.TranslateElement({
-        pageLanguage: 'fr',
-        includedLanguages: 'en,es,ar,de,it,ja,ko,ru,zh-CN',
-        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-        autoDisplay: false
-    }, 'google_translate_element');
-}
         document.addEventListener('DOMContentLoaded', function() {
             // Initialiser JoyPixels pour la conversion des emojis
             joypixels.init({
@@ -656,6 +643,97 @@
                 return container;
             }
         });
+        // Ajoutez ces fonctions dans votre bloc script existant, avant le dernier });
+function sharePost(button) {
+    const postUrl = button.dataset.postUrl;
+    const postTitle = button.dataset.postTitle;
+
+    // Vérifier si l'API Web Share est disponible
+    if (navigator.share) {
+        navigator.share({
+            title: 'TerraNav - Publication',
+            text: postTitle,
+            url: postUrl
+        })
+        .then(() => {
+            showSuccessMessage('Publication partagée avec succès!');
+        })
+        .catch(error => {
+            if (error.name !== 'AbortError') {
+                showShareModal(postUrl);
+            }
+        });
+    } else {
+        // Fallback pour les navigateurs qui ne supportent pas l'API Web Share
+        showShareModal(postUrl);
+    }
+}
+
+function showShareModal(postUrl) {
+    Swal.fire({
+        title: 'Partager la publication',
+        html: `
+            <div class="share-options">
+                <button class="btn btn-primary mb-3 w-100" onclick="copyToClipboard('${postUrl}')">
+                    <i class="far fa-copy me-2"></i>Copier le lien
+                </button>
+                <div class="d-flex justify-content-between mt-3">
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}" 
+                       class="btn btn-outline-primary share-btn-social" 
+                       target="_blank">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="https://twitter.com/intent/tweet?url=${encodeURIComponent(postUrl)}" 
+                       class="btn btn-outline-info share-btn-social" 
+                       target="_blank">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="https://api.whatsapp.com/send?text=${encodeURIComponent(postUrl)}" 
+                       class="btn btn-outline-success share-btn-social" 
+                       target="_blank">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                    <a href="mailto:?body=${encodeURIComponent(postUrl)}" 
+                       class="btn btn-outline-secondary share-btn-social">
+                        <i class="far fa-envelope"></i>
+                    </a>
+                </div>
+            </div>
+        `,
+        showConfirmButton: false,
+        showCloseButton: true
+    });
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text)
+        .then(() => {
+            showSuccessMessage('Lien copié dans le presse-papiers!');
+        })
+        .catch(() => {
+            showErrorMessage('Erreur lors de la copie du lien');
+        });
+}
+
+function showSuccessMessage(message) {
+    Swal.fire({
+        icon: 'success',
+        title: 'Succès!',
+        text: message,
+        timer: 2000,
+        showConfirmButton: false
+    });
+}
+
+function showErrorMessage(message) {
+    Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: message,
+        timer: 2000,
+        showConfirmButton: false
+    });
+}
     </script>
 
     <style>
@@ -671,23 +749,6 @@
     background-color: #f0f2f5;
     color: #1877f2;
 }
-.translation-bar {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: white;
-}
-
-.translation-bar .card {
-    border: none;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.goog-te-gadget {
-    font-family: inherit !important;
-    font-size: 14px !important;
-}
-
 .goog-te-gadget-simple {
     background-color: transparent !important;
     border: 1px solid #dee2e6 !important;
@@ -1052,5 +1113,28 @@ body {
     color: #65676b;
     font-size: 0.9rem;
 }
+/* Ajoutez ces styles dans votre section style */
+.share-options {
+    padding: 15px;
+}
+
+.share-btn-social {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.share-btn-social:hover {
+    transform: translateY(-2px);
+}
+
+.btn-outline-primary:hover { background-color: #1877f2; color: white; }
+.btn-outline-info:hover { background-color: #1da1f2; color: white; }
+.btn-outline-success:hover { background-color: #25d366; color: white; }
+.btn-outline-secondary:hover { background-color: #6c757d; color: white; }
     </style>
 {% endblock %}

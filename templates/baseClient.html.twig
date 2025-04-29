@@ -30,6 +30,82 @@
 
     <!-- Template Stylesheet -->
     <link href="{{ asset('css/styleClient.css') }}" rel="stylesheet">
+
+    <!-- Google Translate -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement(
+                {
+                    pageLanguage: 'fr',
+                    includedLanguages: 'en,es,de,it,ar',
+                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                    autoDisplay: false
+                },
+                'google_translate_element'
+            );
+        }
+    </script>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <style>
+        /* Styles pour le widget Google Translate */
+        .goog-te-gadget {
+            font-family: 'Montserrat', sans-serif !important;
+            color: #FEA116 !important;
+        }
+
+        .goog-te-gadget-simple {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid #FEA116 !important;
+            padding: 8px !important;
+            border-radius: 4px !important;
+        }
+
+        .goog-te-gadget-simple span {
+            color: #FEA116 !important;
+        }
+
+        .goog-te-gadget-simple > span > a > span {
+            color: #FEA116 !important;
+            font-size: 14px !important;
+        }
+
+        .goog-te-menu-value {
+            color: #FEA116 !important;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .goog-te-menu-value:hover {
+            color: #fff !important;
+        }
+
+        /* Style pour la liste déroulante des langues */
+        .goog-te-menu2 {
+            background-color: #212529 !important;
+            border: 1px solid #FEA116 !important;
+        }
+
+        .goog-te-menu2-item div {
+            color: #FEA116 !important;
+            padding: 8px !important;
+        }
+
+        .goog-te-menu2-item:hover div {
+            background-color: #FEA116 !important;
+            color: #fff !important;
+        }
+
+        .goog-te-menu2-item-selected div {
+            background-color: #FEA116 !important;
+            color: #fff !important;
+        }
+
+        /* Masquer le logo Google et le texte "Select Language" */
+        .goog-te-gadget-icon,
+        .goog-te-menu-value span:first-child {
+            display: none !important;
+        }
+    </style>
 </head>
 
 <body>
@@ -43,10 +119,12 @@
         <!-- Header Start -->
         <div class="container-fluid bg-dark px-0 ">
             <div class="row gx-0 nav p-lg-3">
-                <div class="col-lg-3 bg-dark d-none d-lg-block ">
+                <div class="col-lg-3 bg-dark d-none d-lg-block">
                     <a href="{{ path('app_home') }}" class="navbar-brand w-100 h-100 m-0 p-0 d-flex align-items-center justify-content-center">
                         <h1 class="m-0 text-primary text-uppercase">TerraNav</h1>
                     </a>
+                    <!-- Ajoutez le widget de traduction ici -->
+                    <div id="google_translate_element" class="d-flex justify-content-center mt-2"></div>
                 </div>
                 <div class="col-lg-9 d-flex justify-content-end">
                     <nav class="navbar navbar-expand-lg bg-dark navbar-dark p-3 p-lg-0">
