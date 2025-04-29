@@ -17,21 +17,19 @@ class StoryType extends AbstractType
         $builder
             ->add('media', FileType::class, [
                 'label' => 'Media (Image/Video)',
-                'mapped' => false,
-                'required' => false,
-                'constraints' => [
-                    new File([
-                        'maxSize' => '10M',
-                        'mimeTypes' => [
-                            'image/*',
-                            'video/*'
-                        ],
-                    ])
-                ],
+                'required' => true,
+                'attr' => [
+                    'accept' => 'image/*,video/*',
+                    'data-max-file-size' => '10485760' // 10MB en bytes
+                ]
             ])
             ->add('text', TextareaType::class, [
                 'label' => 'Texte de la story',
                 'required' => false,
+                'attr' => [
+                    'maxlength' => 500,
+                    'placeholder' => 'Ajouter un texte à votre story...'
+                ]
             ]);
     }
 

@@ -11,12 +11,14 @@ use App\Entity\Post;
 use App\Entity\Utilisateur;
 use App\Entity\Reaction;
 use App\Form\AddPostFormType;
-use App\Repository\PostRepository;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\String\Slugger\SluggerInterface;
 use App\Entity\Story; 
 use App\Service\interactions\PostDescriptionGenerator;
 use App\Service\interactions\ProfanityFilter; 
 use App\Form\StoryType;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 final class ChatController extends AbstractController
 {
@@ -275,9 +277,13 @@ public function generateDescription(
     }
 }
 #[Route('/story/new', name: 'app_story_new')]
-public function addStory(Request $request): Response
+public function addStory(
+    Request $request, 
+    ValidatorInterface $validator,
+    SluggerInterface $slugger
+): Response
 {
-    // Vérifier si l'utilisateur est connecté
+    // Vérification de l'utilisateur
     $user = $this->getUser();
     if (!$user) {
         $this->addFlash('error', 'Vous devez être connecté pour ajouter une story.');
@@ -290,26 +296,60 @@ public function addStory(Request $request): Response
 
     if ($form->isSubmitted() && $form->isValid()) {
         try {
+            /** @var UploadedFile $mediaFile */
             $mediaFile = $form->get('media')->getData();
             
-            if ($mediaFile) {
-                $newFilename = uniqid().'.'.$mediaFile->guessExtension();
+            // Vérification du fichier média
+            if (!$mediaFile) {
+                throw new \Exception('Veuillez sélectionner un média (image ou vidéo).');
+            }
+
+            // Validation du type de fichier
+            $mimeType = $mediaFile->getMimeType();
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/quicktime'];
+            if (!in_array($mimeType, $allowedTypes)) {
+                throw new \Exception('Type de fichier non autorisé. Utilisez JPG, PNG, GIF ou MP4.');
+            }
+
+            // Création d'un nom de fichier unique
+            $originalFilename = pathinfo($mediaFile->getClientOriginalName(), PATHINFO_FILENAME);
+            $safeFilename = $slugger->slug($originalFilename);
+            $newFilename = $safeFilename.'-'.uniqid().'.'.$mediaFile->guessExtension();
+
+            // Déplacement du fichier
+            try {
                 $mediaFile->move(
                     $this->getParameter('stories_directory'),
                     $newFilename
                 );
-                $story->setMedia($newFilename);
+            } catch (FileException $e) {
+                throw new \Exception('Une erreur est survenue lors du téléchargement du fichier.');
             }
 
+            // Configuration de la story
+            $story->setMedia($newFilename);
             $story->setIdUser($user);
-            
+            $story->setCreatedAt(new \DateTime());
+            $story->setIsActive(true);
+
+            // Validation de l'entité
+            $errors = $validator->validate($story);
+            if (count($errors) > 0) {
+                throw new \Exception($errors[0]->getMessage());
+            }
+
+            // Persistence des données
             $this->entityManager->persist($story);
             $this->entityManager->flush();
 
-            $this->addFlash('success', 'Story ajoutée avec succès!');
+            $this->addFlash('success', 'Votre story a été publiée avec succès!');
             return $this->redirectToRoute('app_chat');
+
         } catch (\Exception $e) {
-            $this->addFlash('error', 'Une erreur est survenue lors de l\'ajout de la story.');
+            $this->addFlash('error', $e->getMessage());
+            return $this->render('interactions/newStory.html.twig', [
+                'form' => $form->createView(),
+            ]);
         }
     }
 
