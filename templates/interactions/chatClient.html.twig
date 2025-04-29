@@ -134,7 +134,7 @@
                              data-description="{{ post.description|lower }}"
                              data-date="{{ post.date ? post.date|date('Y-m-d H:i:s') : '' }}"
                              data-comments="{{ post.nbCommentaires }}"
-                             data-likes="{{ post.nbReactions }}"
+                             data-likes="{{ post.nbReactions }}"  {# Assurez-vous que cette valeur est correcte #}
                              data-id="{{ post.id }}">
                             <!-- Post Header -->
                             <div class="card-header bg-white border-0 py-3">
@@ -459,51 +459,54 @@
                 const sortType = sortSelect.value;
                 document.getElementById('loadingIndicator').style.display = 'block';
 
-                // Get all original posts
-                const allPosts = Array.from(document.querySelectorAll('.post-item'));
+                // Récupérer tous les posts
+                let filteredPosts = Array.from(document.querySelectorAll('.post-item'));
                 
-                // Filter posts
-                postsArray = allPosts.filter(post => {
-                    const description = post.querySelector('.card-text').textContent.toLowerCase();
-                    const username = post.querySelector('.fw-bold').textContent.toLowerCase();
-                    return description.includes(searchTerm) || username.includes(searchTerm);
-                });
+                // Filtrer par terme de recherche
+                if (searchTerm) {
+                    filteredPosts = filteredPosts.filter(post => {
+                        const description = post.querySelector('.card-text').textContent.toLowerCase();
+                        const username = post.querySelector('.fw-bold').textContent.toLowerCase();
+                        return description.includes(searchTerm) || username.includes(searchTerm);
+                    });
+                }
 
-                // Sort posts
-                postsArray.sort((a, b) => {
+                // Trier les posts
+                filteredPosts.sort((a, b) => {
                     switch(sortType) {
                         case 'newest':
                             return new Date(b.dataset.date) - new Date(a.dataset.date);
                         case 'oldest':
                             return new Date(a.dataset.date) - new Date(b.dataset.date);
                         case 'most-liked':
-                            return parseInt(b.dataset.likes) - parseInt(a.dataset.likes);
+                            // Conversion explicite en nombre pour le tri
+                            return parseInt(b.dataset.likes || 0) - parseInt(a.dataset.likes || 0);
                         case 'most-commented':
-                            return parseInt(b.dataset.comments) - parseInt(a.dataset.comments);
+                            return parseInt(b.dataset.comments || 0) - parseInt(a.dataset.comments || 0);
                         default:
                             return 0;
                     }
                 });
 
-                // Vider et remplir le conteneur
+                // Mettre à jour l'affichage
+                const postsContainer = document.getElementById('postsContainer');
                 postsContainer.innerHTML = '';
-                
-                if (postsArray.length === 0) {
+
+                if (filteredPosts.length === 0) {
                     postsContainer.innerHTML = `
                         <div class="alert alert-info text-center my-4">
                             <i class="fas fa-info-circle me-2"></i>
                             Aucune publication ne correspond à votre recherche
                         </div>`;
                 } else {
-                    postsArray.forEach(post => {
+                    filteredPosts.forEach(post => {
                         const clone = post.cloneNode(true);
                         postsContainer.appendChild(clone);
                     });
-                    // Convertir les emojis après l'ajout des posts
-                    convertEmojis();
                 }
 
                 document.getElementById('loadingIndicator').style.display = 'none';
+                convertEmojis();
                 initializePostInteractions();
             }
         
