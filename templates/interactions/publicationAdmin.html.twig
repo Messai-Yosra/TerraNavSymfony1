@@ -123,13 +123,17 @@
                 {% endfor %}
 
                 <div class="header-actions">
-                    <a href="{{ path('admin_post_export_csv') }}" class="export-btn">
-                        <i class="fas fa-file-csv"></i> Exporter en CSV
-                    </a>
-                    <div>   </div>
-                    <a href="/admin/commentaires/" class="export-btn">
-                        <i class="fas fa-comments"></i> Gérer les Commentaires
-                    </a>
+                    <div class="export-buttons">
+                        <a href="{{ path('admin_post_export_csv') }}" class="export-btn">
+                            <i class="fas fa-file-csv"></i> Export CSV
+                        </a>
+                        <a href="{{ path('admin_post_export_pdf') }}" class="export-btn">
+                            <i class="fas fa-file-pdf"></i> Export PDF
+                        </a>
+                        <a href="/admin/commentaires/" class="export-btn">
+                            <i class="fas fa-comments"></i> Gérer les Commentaires
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -463,6 +467,12 @@
             gap: 10px;
         }
 
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
         .export-btn {
             background: #f0fff4;
             color: #2f855a;
@@ -480,6 +490,23 @@
         .export-btn:hover {
             background: #c6f6d5;
             color: #22543d;
+            transform: translateY(-2px);
+        }
+
+        .export-btn i {
+            font-size: 1.1rem;
+        }
+
+        /* Style spécifique pour le bouton PDF */
+        .export-btn:nth-child(2) {
+            background: #fff5f5;
+            color: #e53e3e;
+            border-color: #fed7d7;
+        }
+
+        .export-btn:nth-child(2):hover {
+            background: #fed7d7;
+            color: #c53030;
         }
 
         .empty-state {

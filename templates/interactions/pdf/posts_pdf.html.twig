@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Publications TerraNav</title>
+    <style>
+        body {
+            font-family: 'Helvetica', sans-serif;
+            margin: 20px;
+            color: #2d3748;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #edf2f7;
+            padding-bottom: 20px;
+        }
+        .logo {
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
+        .title {
+            font-size: 24px;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        .date {
+            color: #718096;
+            font-size: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th {
+            background-color: #4361ee;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-size: 14px;
+        }
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 13px;
+            vertical-align: top;
+        }
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: inline-block;
+        }
+        .status-completed {
+            background-color: #c6f6d5;
+            color: #22543d;
+        }
+        .status-pending {
+            background-color: #feebc8;
+            color: #9c4221;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #718096;
+            padding-top: 20px;
+            border-top: 1px solid #edf2f7;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        .stats {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f7fafc;
+            border-radius: 8px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #4361ee;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #718096;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{{ logo_src }}" alt="TerraNav Logo" class="logo" style="max-width: 150px; height: auto;">
+        <h1 class="title">Liste des Publications</h1>
+        <div class="date">Exporté le {{ date_export|date('d/m/Y à H:i') }}</div>
+    </div>
+
+    <div class="stats">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value">{{ posts|length }}</div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ posts|filter(p => p.statut == 'traitée')|length }}</div>
+                <div class="stat-label">Traités</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ posts|filter(p => p.statut != 'traitée')|length }}</div>
+                <div class="stat-label">En attente</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ (posts|filter(p => p.statut == 'traitée')|length / posts|length * 100)|round }}%</div>
+                <div class="stat-label">Taux traitement</div>
+            </div>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 8%">ID</th>
+                <th style="width: 20%">Auteur</th>
+                <th style="width: 40%">Description</th>
+                <th style="width: 12%">Statut</th>
+                <th style="width: 20%">Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in posts %}
+                <tr>
+                    <td>#{{ post.id }}</td>
+                    <td>{{ post.id_user.username }}</td>
+                    <td>{{ post.description|slice(0, 100) }}{% if post.description|length > 100 %}...{% endif %}</td>
+                    <td>
+                        <span class="status {{ post.statut == 'traitée' ? 'status-completed' : 'status-pending' }}">
+                            {{ post.statut }}
+                        </span>
+                    </td>
+                    <td>{{ post.date|date('d/m/Y H:i') }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Document généré automatiquement par TerraNav - Page <span class="pagenum"></span></p>
+    </div>
+</body>
+</html>

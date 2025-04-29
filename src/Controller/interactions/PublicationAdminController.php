@@ -1,7 +1,8 @@
 <?php
 
 namespace App\Controller\interactions;
-
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use App\Entity\Post;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -133,6 +134,48 @@ public function exportExcel(EntityManagerInterface $em): Response
     }
 }
 
+#[Route('/PublicationsAdmin/export-pdf', name: 'admin_post_export_pdf')]
+public function exportPdf(EntityManagerInterface $em): Response
+{
+    $posts = $em->getRepository(Post::class)->findAll();
+    usort($posts, fn($a, $b) => $b->getDate() <=> $a->getDate());
+
+    // Configure Dompdf
+    $options = new Options();
+    $options->set('isHtml5ParserEnabled', true);
+    $options->set('isPhpEnabled', true);
+    $options->set('isRemoteEnabled', true);
+    
+    // Définir le répertoire racine pour les images
+    $publicDirectory = $this->getParameter('kernel.project_dir') . '/public';
+    $options->setChroot($publicDirectory);
+
+    $dompdf = new Dompdf($options);
+
+    // Convertir le chemin du logo en base64
+    $logoPath = $publicDirectory . '/img/TerraNav.png';
+    $logoData = base64_encode(file_get_contents($logoPath));
+    $logoSrc = 'data:image/png;base64,' . $logoData;
+
+    // Générer le HTML
+    $html = $this->renderView('interactions/pdf/posts_pdf.html.twig', [
+        'posts' => $posts,
+        'date_export' => new \DateTime(),
+        'logo_src' => $logoSrc
+    ]);
+
+    $dompdf->loadHtml($html);
+    $dompdf->setPaper('A4', 'portrait');
+    $dompdf->render();
+
+    $response = new Response($dompdf->output());
+    $response->headers->set('Content-Type', 'application/pdf');
+    $response->headers->set('Content-Disposition', 
+        'attachment;filename="TerraNav_publications_'.date('Y-m-d').'.pdf"'
+    );
+
+    return $response;
+}
     #[Route('/PublicationsAdmin/post/{id}/traiter', name: 'admin_post_traiter')]
     public function traiter(int $id, EntityManagerInterface $em): Response
     {
