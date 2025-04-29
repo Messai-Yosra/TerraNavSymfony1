@@ -73,3 +73,11 @@ services:
             $loginLogger: '@App\Service\utilisateurs\LoginHistoryLogger'
         tags:
             - { name: kernel.event_subscriber }
+
+
+    # Ajouter aux autres services
+    App\Service\utilisateurs\TwilioSMSService:
+        arguments:
+            $accountSid: '%env(TWILIO_ACCOUNT_SID)%'
+            $authToken: '%env(TWILIO_AUTH_TOKEN)%'
+            $fromNumber: '%env(TWILIO_FROM_NUMBER)%'
