@@ -43,7 +43,8 @@
             {% if activeStories is defined and activeStories is not empty %}
                 {% for story in activeStories %}
                     <div class="story-item" 
-                         data-story-id="{{ story.id }}" 
+                         data-story-id="{{ story.id }}"
+                         data-created-at="{{ story.createdAt|date('Y-m-d H:i:s') }}"
                          onclick="viewStory('{{ story.id }}')">
                         <div class="story-content">
                             {% if story.media %}
@@ -381,16 +382,37 @@
                 const storyMedia = story.querySelector('.story-media');
                 const storyAvatar = story.querySelector('.story-avatar');
                 const storyUsername = story.querySelector('.story-username');
-                const date = new Date();
-        
+                const createdAt = new Date(story.dataset.createdAt);
+                const now = new Date();
+                
                 modalImg.src = storyMedia.src;
                 modalAvatar.src = storyAvatar.src;
                 modalUsername.textContent = storyUsername.textContent;
-                modalTimestamp.textContent = 'Il y a ' + Math.floor(Math.random() * 23) + 'h';
-        
+                
+                // Calcul de la différence de temps
+                const diffInSeconds = Math.floor((now - createdAt) / 1000);
+                const diffInMinutes = Math.floor(diffInSeconds / 60);
+                const diffInHours = Math.floor(diffInMinutes / 60);
+                const diffInDays = Math.floor(diffInHours / 24);
+                
+                // Formater le texte selon la différence de temps
+                let timeText;
+                if (diffInDays > 0) {
+                    timeText = `Il y a ${diffInDays} jour${diffInDays > 1 ? 's' : ''}`;
+                } else if (diffInHours > 0) {
+                    timeText = `Il y a ${diffInHours}h`;
+                } else if (diffInMinutes > 0) {
+                    timeText = `Il y a ${diffInMinutes} min`;
+                } else {
+                    timeText = 'À l\'instant';
+                }
+                
+                modalTimestamp.textContent = timeText;
+                
+                // Update navigation buttons
                 prevBtn.style.display = index > 0 ? 'block' : 'none';
                 nextBtn.style.display = index < stories.length - 1 ? 'block' : 'none';
-        
+
                 updateProgressBar(index);
             }
         
