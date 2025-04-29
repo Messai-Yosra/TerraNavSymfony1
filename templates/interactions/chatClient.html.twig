@@ -130,51 +130,54 @@
             <div id="postsContainer">
                 {% for post in posts %}
                     {% if post.statut == 'traitée' %}
-                        <div class="card mb-4 shadow-sm post-item"
+                        <div class="card mb-4 shadow-hover post-item"
                              data-description="{{ post.description|lower }}"
                              data-date="{{ post.date ? post.date|date('Y-m-d H:i:s') : '' }}"
                              data-comments="{{ post.nbCommentaires }}"
                              data-likes="{{ post.nbReactions }}"
                              data-id="{{ post.id }}">
                             <!-- Post Header -->
-                            <div class="card-header bg-white">
+                            <div class="card-header bg-white border-0 py-3">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="d-flex align-items-center">
                                         <img src="{{ post.id_user.photo ? asset('uploads/profile/' ~ post.id_user.photo) : asset('img/default-avatar.jpg') }}"
-                                             class="rounded-circle me-3"
+                                             class="rounded-circle me-2"
                                              width="40"
                                              height="40"
                                              alt="{{ post.id_user.username }} profile">
                                         <div>
-                                            <h6 class="mb-0 fw-bold">{{ post.id_user.username }}</h6>
-                                            <small class="text-muted">
-                                                <i class="far fa-clock me-1"></i>
-                                                {{ post.date ? post.date|date('d M Y à H:i') : 'Non défini' }}
-                                            </small>
+                                            <h6 class="mb-0">
+                                                <a href="#" class="text-dark fw-bold text-decoration-none hover-primary">
+                                                    {{ post.id_user.username }}
+                                                </a>
+                                            </h6>
+                                            <div class="text-muted fs-12">
+                                                <span title="{{ post.date|date('d/m/Y H:i') }}">
+                                                    {{ post.date ? post.date|date('d M à H:i') : 'Non défini' }}
+                                                </span>
+                                                · <i class="fas fa-globe-americas"></i>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="dropdown">
-                                        <button class="btn btn-sm btn-link text-muted"
-                                                type="button"
-                                                id="dropdownMenuButton{{ post.id }}"
-                                                data-bs-toggle="dropdown"
-                                                aria-expanded="false">
+                                        <button class="btn btn-icon" type="button" data-bs-toggle="dropdown">
                                             <i class="fas fa-ellipsis-h"></i>
                                         </button>
-                                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ post.id }}">
+                                        <ul class="dropdown-menu dropdown-menu-end">
                                             {% if app.user and app.user.id == post.id_user.id %}
                                                 <li>
                                                     <a class="dropdown-item" href="{{ path('app_post_edit', {'id': post.id}) }}">
-                                                        <i class="fas fa-edit me-2"></i> Modifier
+                                                        <i class="fas fa-edit me-2 text-primary"></i> Modifier
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <button class="dropdown-item delete-btn"
+                                                    <button class="dropdown-item text-danger delete-btn"
                                                             data-delete-url="{{ path('app_post_delete', {'id': post.id}) }}"
                                                             data-post-title="{{ post.description|slice(0, 30) }}...">
-                                                        <i class="fas fa-trash me-2"></i> Supprimer
+                                                        <i class="fas fa-trash-alt me-2"></i> Supprimer
                                                     </button>
                                                 </li>
+                                                <li><hr class="dropdown-divider"></li>
                                             {% endif %}
                                             <li>
                                                 <a class="dropdown-item" href="{{ path('app_post_details', {'id': post.id}) }}">
@@ -187,47 +190,59 @@
                             </div>
 
                             <!-- Post Content -->
-                            <div class="card-body">
-                                <p class="card-text emoji-content">{{ post.description|raw }}</p>
+                            <div class="card-body pt-0 pb-2">
+                                <p class="card-text mb-3 emoji-content">{{ post.description|raw }}</p>
                                 {% if post.image %}
-                                    <div class="mb-3">
+                                    <div class="post-media mb-3">
                                         <img src="{{ asset('img/' ~ post.image) }}"
                                              loading="lazy"
-                                             class="post-image img-fluid rounded w-100"
+                                             class="img-fluid rounded w-100"
                                              alt="Image du post">
                                     </div>
                                 {% endif %}
                             </div>
 
                             <!-- Post Stats -->
-                            <div class="card-footer bg-white">
-                                <div class="d-flex justify-content-between text-muted mb-2">
-                                    <div>
-                                        <span class="me-2">
-                                            <i class="fas fa-thumbs-up text-primary"></i> <span class="like-count-{{ post.id }}">{{ post.nbReactions }}</span>
+                            <div class="card-footer bg-white border-top-0 pt-0">
+                                <div class="d-flex align-items-center py-2 border-bottom">
+                                    <div class="d-flex align-items-center">
+                                        <span class="reactions-icon">
+                                            <i class="fas fa-thumbs-up"></i>
                                         </span>
-                                        <span>
-                                            <i class="fas fa-comment-alt text-secondary"></i> {{ post.nbCommentaires }}
+                                        <span class="ms-2 text-muted fs-14 like-count-{{ post.id }}">
+                                            {{ post.nbReactions }}
                                         </span>
                                     </div>
-                                    <div>
-                                        <a href="{{ path('app_post_details', {'id': post.id}) }}" class="text-muted">
-                                            Voir les commentaires
+                                    <div class="ms-auto">
+                                        <a href="{{ path('app_post_details', {'id': post.id}) }}" class="text-muted text-decoration-none fs-14">
+                                            {{ post.nbCommentaires }} commentaire{% if post.nbCommentaires > 1 %}s{% endif %}
                                         </a>
                                     </div>
                                 </div>
-                                <hr class="my-1">
 
                                 <!-- Post Actions -->
-                                <div class="d-flex justify-content-around">
-                                    <button class="btn btn-sm btn-action rounded-pill flex-grow-1 mx-1 like-btn"
+                                <div class="d-flex justify-content-around py-2">
+                                    {% set isLiked = false %}
+                                    {% if app.user %}
+                                        {% set isLiked = post.reactions|filter(r => r.idUser.id == app.user.id)|length > 0 %}
+                                    {% endif %}
+
+                                    <button class="btn-action like-btn {{ isLiked ? 'liked' : '' }}"
                                             data-post-id="{{ post.id }}"
                                             data-like-url="{{ path('app_post_like', {'id': post.id}) }}">
-                                        <i class="far fa-thumbs-up me-1"></i> J'aime
+                                        <i class="fa{{ isLiked ? 's' : 'r' }} fa-thumbs-up me-2"></i>
+                                        J'aime
                                     </button>
-                                    <a href="{{ path('app_post_details', {'id': post.id}) }}" class="btn btn-sm btn-action rounded-pill flex-grow-1 mx-1">
-                                        <i class="far fa-comment me-1"></i> Commenter
+
+                                    <a href="{{ path('app_post_details', {'id': post.id}) }}" class="btn-action">
+                                        <i class="far fa-comment-alt me-2"></i>
+                                        Commenter
                                     </a>
+
+                                    <button class="btn-action">
+                                        <i class="fas fa-share me-2"></i>
+                                        Partager
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -501,10 +516,11 @@
             }
 
             function handleLikeClick() {
-                const postId = this.dataset.postId;
-                const likeUrl = this.dataset.likeUrl;
+                const button = this;
+                const postId = button.dataset.postId;
+                const likeUrl = button.dataset.likeUrl;
+                const icon = button.querySelector('i');
                 const likeCountElement = document.querySelector(`.like-count-${postId}`);
-                const icon = this.querySelector('i');
 
                 fetch(likeUrl, {
                     method: 'POST',
@@ -514,31 +530,33 @@
                 })
                 .then(response => {
                     if (!response.ok) {
+                        if (response.status === 403) {
+                            window.location.href = '{{ path("app_login") }}';
+                            return;
+                        }
                         throw new Error('Network response was not ok');
                     }
                     return response.json();
                 })
                 .then(data => {
                     if (data.success) {
-                        // Mise à jour du compteur de likes
-                        let currentLikes = parseInt(likeCountElement.textContent);
-                        let newLikes = data.isLiked ? currentLikes + 1 : currentLikes - 1;
-                        likeCountElement.textContent = newLikes;
+                        // Mise à jour du compteur
+                        likeCountElement.textContent = data.likes;
                         
                         // Mise à jour de l'apparence du bouton
                         if (data.isLiked) {
                             icon.classList.remove('far');
                             icon.classList.add('fas');
-                            this.classList.add('btn-primary');
-                            this.classList.remove('btn-light');
+                            button.classList.remove('btn-light');
+                            button.classList.add('btn-primary');
                         } else {
                             icon.classList.remove('fas');
                             icon.classList.add('far');
-                            this.classList.remove('btn-primary');
-                            this.classList.add('btn-light');
+                            button.classList.remove('btn-primary');
+                            button.classList.add('btn-light');
                         }
 
-                        // Animation du compteur
+                        // Animation
                         likeCountElement.classList.add('like-animation');
                         setTimeout(() => {
                             likeCountElement.classList.remove('like-animation');
@@ -550,7 +568,7 @@
                     Swal.fire({
                         icon: 'error',
                         title: 'Oops...',
-                        text: 'Une erreur est survenue lors du traitement du like',
+                        text: 'Une erreur est survenue',
                         timer: 2000,
                         showConfirmButton: false
                     });
@@ -980,5 +998,56 @@ body {
             margin: 0 .05em 0 .1em;
             vertical-align: -0.25em;
         }
+.btn-action {
+    background: transparent;
+    border: none;
+    padding: 8px 12px;
+    font-weight: 600;
+    color: #65676b;
+    font-size: 0.9rem;
+    transition: color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 6px;
+    width: auto;
+    min-width: 100px;
+    justify-content: center;
+}
+
+.btn-action:hover {
+    background-color: #f0f2f5;
+    transform: none;
+    scale: none;
+}
+
+.btn-action.liked {
+    color: #1877f2;
+}
+
+.btn-action.liked i {
+    color: #1877f2;
+}
+
+.btn-action i {
+    font-size: 1.1rem;
+    transition: color 0.2s ease;
+}
+
+/* Modifiez l'animation pour n'affecter que l'icône */
+.like-animation i {
+    animation: likeIconPulse 0.3s ease-in-out;
+}
+
+@keyframes likeIconPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.reactions-count {
+    color: #65676b;
+    font-size: 0.9rem;
+}
     </style>
 {% endblock %}

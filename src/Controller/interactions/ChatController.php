@@ -203,48 +203,52 @@ public function editPost(int $id, Request $request): Response
 
 
 #[Route('/post/{id}/like', name: 'app_post_like', methods: ['POST'])]
-public function toggleLike(int $id, Request $request, EntityManagerInterface $entityManager): JsonResponse
+public function toggleLike(Post $post): JsonResponse
 {
-    $post = $entityManager->getRepository(Post::class)->find($id);
-    
-    if (!$post) {
-        return $this->json(['success' => false, 'message' => 'Post non trouvé'], 404);
-    }
-    
     $user = $this->getUser();
     if (!$user) {
-        return $this->json(['success' => false, 'message' => 'Utilisateur non connecté'], 401);
+        return $this->json([
+            'success' => false,
+            'message' => 'Vous devez être connecté pour aimer une publication'
+        ], 403);
     }
-    
-    // Vérifier si l'utilisateur a déjà aimé ce post
-    $reactionRepo = $entityManager->getRepository(Reaction::class);
-    $existingReaction = $reactionRepo->findByUserAndPost($user, $post);
-    
-    if ($existingReaction) {
-        // Si une réaction existe déjà, on la supprime (unlike)
-        $entityManager->remove($existingReaction);
-        $liked = false;
-        $newCount = $post->getNbReactions() - 1;
-    } else {
-        // Sinon on ajoute une nouvelle réaction (like)
-        $reaction = new Reaction();
-        $reaction->setIdUser($user);
-        $reaction->setIdPost($post);
-        
-        $entityManager->persist($reaction);
-        $liked = true;
-        $newCount = $post->getNbReactions() + 1;
+
+    try {
+        $reactionRepo = $this->entityManager->getRepository(Reaction::class);
+        $existingReaction = $reactionRepo->findOneBy([
+            'id_post' => $post,
+            'id_user' => $user
+        ]);
+
+        if ($existingReaction) {
+            // Si l'utilisateur a déjà liké, on retire son like
+            $this->entityManager->remove($existingReaction);
+            $post->setNbReactions($post->getNbReactions() - 1);
+            $isLiked = false;
+        } else {
+            // Si l'utilisateur n'a pas encore liké, on ajoute son like
+            $reaction = new Reaction();
+            $reaction->setIdUser($user);
+            $reaction->setIdPost($post);
+            $this->entityManager->persist($reaction);
+            $post->setNbReactions($post->getNbReactions() + 1);
+            $isLiked = true;
+        }
+
+        $this->entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'isLiked' => $isLiked,
+            'likes' => $post->getNbReactions()
+        ]);
+
+    } catch (\Exception $e) {
+        return $this->json([
+            'success' => false,
+            'message' => 'Une erreur est survenue'
+        ], 500);
     }
-    
-    // Mettre à jour le compteur de réactions
-    $post->setNbReactions($newCount);
-    $entityManager->flush();
-    
-    return $this->json([
-        'success' => true,
-        'liked' => $liked,
-        'count' => $newCount
-    ]);
 }
 // src/Controller/PostController.php
 
