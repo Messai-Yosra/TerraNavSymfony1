@@ -234,7 +234,8 @@
 <button class="btn-action share-btn" 
         data-post-id="{{ post.id }}"
         data-post-url="{{ url('app_post_details', {'id': post.id}) }}"
-        data-post-title="{{ post.description|striptags|slice(0, 100) }}..."
+        data-post-description="{{ post.description|raw|json_encode()|raw }}"
+        data-post-image="{{ post.image ? absolute_url(asset('img/' ~ post.image)) : '' }}"
         onclick="sharePost(this)">
     <i class="fas fa-share me-2"></i>
     Partager
@@ -645,94 +646,171 @@
         });
         // Ajoutez ces fonctions dans votre bloc script existant, avant le dernier });
 function sharePost(button) {
+    // Décoder la description pour éviter les caractères encodés
     const postUrl = button.dataset.postUrl;
-    const postTitle = button.dataset.postTitle;
+    const postDescription = decodeURIComponent(button.dataset.postDescription.replace(/\\u/g, '%u'));
+    const postImage = button.dataset.postImage;
 
-    // Vérifier si l'API Web Share est disponible
     if (navigator.share) {
         navigator.share({
             title: 'TerraNav - Publication',
-            text: postTitle,
-            url: postUrl
+            text: postDescription,
+            url: postUrl,
+            files: postImage ? [postImage] : []
         })
         .then(() => {
             showSuccessMessage('Publication partagée avec succès!');
         })
         .catch(error => {
             if (error.name !== 'AbortError') {
-                showShareModal(postUrl);
+                showShareModal(postUrl, postDescription, postImage);
             }
         });
     } else {
-        // Fallback pour les navigateurs qui ne supportent pas l'API Web Share
-        showShareModal(postUrl);
+        showShareModal(postUrl, postDescription, postImage);
     }
 }
 
-function showShareModal(postUrl) {
+function showShareModal(postUrl, postDescription, postImage) {
     Swal.fire({
         title: 'Partager la publication',
         html: `
             <div class="share-options">
-                <button class="btn btn-primary mb-3 w-100" onclick="copyToClipboard('${postUrl}')">
+                ${postImage ? `<img src="${postImage}" class="mb-3 img-fluid rounded">` : ''}
+                <p class="text-muted mb-3">${postDescription}</p>
+                <div class="d-flex justify-content-center gap-3 mb-3">
+                    <button onclick="shareToFacebook('${postUrl}', '${postDescription}', '${postImage}')" 
+                            class="btn btn-outline-primary share-btn-social">
+                        <i class="fab fa-facebook-f"></i>
+                    </button>
+                    <button onclick="shareToInstagram('${postUrl}', '${postDescription}', '${postImage}')" 
+                            class="btn btn-outline-instagram share-btn-social">
+                        <i class="fab fa-instagram"></i>
+                    </button>
+                    <button onclick="shareToWhatsapp('${postUrl}', '${postDescription}', '${postImage}')" 
+                            class="btn btn-outline-success share-btn-social">
+                        <i class="fab fa-whatsapp"></i>
+                    </button>
+                </div>
+                <button class="btn btn-primary w-100" onclick="copyToClipboard('${postUrl}')">
                     <i class="far fa-copy me-2"></i>Copier le lien
                 </button>
-                <div class="d-flex justify-content-between mt-3">
-                    <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}" 
-                       class="btn btn-outline-primary share-btn-social" 
-                       target="_blank">
-                        <i class="fab fa-facebook-f"></i>
-                    </a>
-                    <a href="https://twitter.com/intent/tweet?url=${encodeURIComponent(postUrl)}" 
-                       class="btn btn-outline-info share-btn-social" 
-                       target="_blank">
-                        <i class="fab fa-twitter"></i>
-                    </a>
-                    <a href="https://api.whatsapp.com/send?text=${encodeURIComponent(postUrl)}" 
-                       class="btn btn-outline-success share-btn-social" 
-                       target="_blank">
-                        <i class="fab fa-whatsapp"></i>
-                    </a>
-                    <a href="mailto:?body=${encodeURIComponent(postUrl)}" 
-                       class="btn btn-outline-secondary share-btn-social">
-                        <i class="far fa-envelope"></i>
-                    </a>
-                </div>
             </div>
         `,
         showConfirmButton: false,
-        showCloseButton: true
+        showCloseButton: true,
+        width: '500px'
     });
+}
+
+function shareToFacebook(url, description, image) {
+    const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(description)}`;
+    window.open(fbUrl, '_blank');
+}
+
+function shareToInstagram(url, description, image) {
+    Swal.fire({
+        title: 'Partager sur Instagram',
+        html: `
+            <div style="text-align: left; padding: 15px;">
+                <div class="instagram-preview" style="background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); padding: 15px; border-radius: 10px; color: white; margin-bottom: 20px; text-align: center;">
+                    ${image ? `
+                        <div style="margin-bottom: 15px; text-align: center;">
+                            <img src="${image}" alt="Post image" style="max-width: 100%; max-height: 200px; border-radius: 8px; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                        </div>
+                    ` : ''}
+                    <h3 style="margin-top: 0;">Publication TerraNav</h3>
+                    <p style="font-style: italic; font-size: 0.9rem;">${description}</p>
+                </div>
+                <p>Pour partager sur Instagram :</p>
+                <ol style="margin-left: 15px;">
+                    <li>Prenez une capture d'écran du cadre coloré ci-dessus</li>
+                    <li>Ouvrez Instagram sur votre téléphone</li>
+                    <li>Créez une story ou un post avec votre capture d'écran</li>
+                    <li>Copiez et collez la description</li>
+                    <li>Ajoutez des hashtags comme #TerraNav #Environmental</li>
+                </ol>
+                <div class="mt-3 d-grid gap-2">
+                    <button class="btn btn-primary" onclick="copyToClipboard('${description}')">
+                        <i class="far fa-copy me-2"></i>Copier la description
+                    </button>
+                    ${image ? `
+                        <a href="${image}" class="btn btn-outline-primary" download="terraNav_post.jpg">
+                            <i class="fas fa-download me-2"></i>Télécharger l'image
+                        </a>
+                    ` : ''}
+                </div>
+            </div>
+        `,
+        showCloseButton: true,
+        showConfirmButton: false,
+        width: '500px',
+        customClass: {
+            container: 'instagram-share-modal'
+        }
+    });
+}
+
+function shareToWhatsapp(url, description, image) {
+    // Créer le texte du message
+    let message = '🌍 *Publication TerraNav*\n\n';
+    message += description + '\n\n';
+    message += '➡️ Voir le post : ' + url;
+
+    // Sur mobile, tenter de partager directement avec l'image
+    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && image) {
+        // Télécharger l'image d'abord
+        fetch(image)
+            .then(response => response.blob())
+            .then(blob => {
+                const file = new File([blob], "terraNav_post.jpg", { type: "image/jpeg" });
+                
+                if (navigator.share) {
+                    navigator.share({
+                        files: [file],
+                        text: message,
+                        url: url
+                    }).catch(() => {
+                        // Fallback si le partage avec fichier échoue
+                        fallbackWhatsappShare(message);
+                    });
+                } else {
+                    fallbackWhatsappShare(message);
+                }
+            })
+            .catch(() => {
+                fallbackWhatsappShare(message);
+            });
+    } else {
+        fallbackWhatsappShare(message);
+    }
+}
+
+function fallbackWhatsappShare(message) {
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
 }
 
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text)
         .then(() => {
-            showSuccessMessage('Lien copié dans le presse-papiers!');
+            Swal.fire({
+                icon: 'success',
+                title: 'Copié !',
+                text: 'Le lien a été copié dans le presse-papiers',
+                timer: 2000,
+                showConfirmButton: false
+            });
         })
         .catch(() => {
-            showErrorMessage('Erreur lors de la copie du lien');
+            Swal.fire({
+                icon: 'error',
+                title: 'Erreur',
+                text: 'Impossible de copier le lien',
+                timer: 2000,
+                showConfirmButton: false
+            });
         });
-}
-
-function showSuccessMessage(message) {
-    Swal.fire({
-        icon: 'success',
-        title: 'Succès!',
-        text: message,
-        timer: 2000,
-        showConfirmButton: false
-    });
-}
-
-function showErrorMessage(message) {
-    Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: message,
-        timer: 2000,
-        showConfirmButton: false
-    });
 }
     </script>
 
@@ -1114,8 +1192,14 @@ body {
     font-size: 0.9rem;
 }
 /* Ajoutez ces styles dans votre section style */
-.share-options {
-    padding: 15px;
+.btn-outline-instagram {
+    color: #C13584;
+    border-color: #C13584;
+}
+
+.btn-outline-instagram:hover {
+    background: linear-gradient(45deg, #405DE6, #5851DB, #833AB4, #C13584, #E1306C, #FD1D1D);
+    color: white;
 }
 
 .share-btn-social {
@@ -1126,15 +1210,7 @@ body {
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
+    margin: 0 5px;
 }
-
-.share-btn-social:hover {
-    transform: translateY(-2px);
-}
-
-.btn-outline-primary:hover { background-color: #1877f2; color: white; }
-.btn-outline-info:hover { background-color: #1da1f2; color: white; }
-.btn-outline-success:hover { background-color: #25d366; color: white; }
-.btn-outline-secondary:hover { background-color: #6c757d; color: white; }
     </style>
 {% endblock %}

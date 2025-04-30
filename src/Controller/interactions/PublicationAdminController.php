@@ -44,7 +44,36 @@ public function exportExcel(EntityManagerInterface $em): Response
     $spreadsheet = new Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
 
-    // Styles avancés
+    // Ajouter le logo
+    $logoPath = $this->getParameter('kernel.project_dir') . '/public/img/TerraNav.png';
+    if (file_exists($logoPath)) {
+        $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
+        $drawing->setName('Logo');
+        $drawing->setDescription('TerraNav Logo');
+        $drawing->setPath($logoPath);
+        $drawing->setHeight(60); // Ajustez la hauteur selon vos besoins
+        $drawing->setCoordinates('A1');
+        $drawing->setWorksheet($sheet);
+
+        // Décaler les données pour faire de la place au logo
+        $sheet->insertNewRowBefore(1, 4);
+    }
+
+    // Titre du document
+    $sheet->setCellValue('A5', 'Liste des Publications TerraNav');
+    $sheet->mergeCells('A5:E5');
+    $sheet->getStyle('A5')->applyFromArray([
+        'font' => [
+            'bold' => true,
+            'size' => 16,
+            'color' => ['rgb' => '4F81BD']
+        ],
+        'alignment' => [
+            'horizontal' => Alignment::HORIZONTAL_CENTER
+        ]
+    ]);
+
+    // En-têtes (maintenant à la ligne 7)
     $headerStyle = [
         'font' => [
             'bold' => true,
@@ -67,17 +96,16 @@ public function exportExcel(EntityManagerInterface $em): Response
         ]
     ];
 
-    // En-têtes
-    $sheet->setCellValue('A1', 'ID')
-          ->setCellValue('B1', 'Auteur')
-          ->setCellValue('C1', 'Description')
-          ->setCellValue('D1', 'Statut')
-          ->setCellValue('E1', 'Date Publication');
+    $sheet->setCellValue('A7', 'ID')
+          ->setCellValue('B7', 'Auteur')
+          ->setCellValue('C7', 'Description')
+          ->setCellValue('D7', 'Statut')
+          ->setCellValue('E7', 'Date Publication');
     
-    $sheet->getStyle('A1:E1')->applyFromArray($headerStyle);
+    $sheet->getStyle('A7:E7')->applyFromArray($headerStyle);
 
-    // Données
-    $row = 2;
+    // Données (commencent à la ligne 8)
+    $row = 8;
     foreach ($posts as $post) {
         $sheet->setCellValue('A'.$row, $post->getId())
               ->setCellValue('B'.$row, $post->getId_User()->getUsername())
@@ -108,13 +136,20 @@ public function exportExcel(EntityManagerInterface $em): Response
         $row++;
     }
 
-    // Formatage
+    // Ajuster les dimensions des colonnes
     $sheet->getColumnDimension('A')->setWidth(10);
     $sheet->getColumnDimension('B')->setWidth(20);
     $sheet->getColumnDimension('C')->setWidth(40);
     $sheet->getColumnDimension('D')->setWidth(15);
     $sheet->getColumnDimension('E')->setWidth(20);
-    $sheet->getStyle('E2:E'.$row)->getNumberFormat()->setFormatCode('dd/mm/yyyy hh:mm');
+
+    // Date d'export
+    $sheet->setCellValue('A6', 'Exporté le : ' . (new \DateTime())->format('d/m/Y H:i'));
+    $sheet->mergeCells('A6:E6');
+    $sheet->getStyle('A6')->applyFromArray([
+        'font' => ['italic' => true],
+        'alignment' => ['horizontal' => Alignment::HORIZONTAL_RIGHT]
+    ]);
 
     // Export
     try {
