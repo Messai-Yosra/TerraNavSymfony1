@@ -24,25 +24,35 @@ use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Knp\Snappy\Pdf;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use App\Service\CityAutocompleter;
 use Symfony\Component\HttpClient\HttpClient;
-
-
+use Symfony\Component\Security\Core\Security;
 
 final class TransportClientController extends AbstractController
 {
-   
+    private $httpClient;
+    private $logger;
+    private $security;
+
+    // Inject Security along with existing dependencies
+    public function __construct(HttpClientInterface $httpClient, LoggerInterface $logger, Security $security)
+    {
+        $this->httpClient = $httpClient;
+        $this->logger = $logger;
+        $this->security = $security;
+    }
+
     #[Route('/transports', name: 'app_transports')]
     public function index(Request $request): Response
     {
+        // No changes needed; this method doesn't use user ID
         $form = $this->createFormBuilder(null, [
             'constraints' => [
-                new DistanceConstraint(), // Appliquer la contrainte au niveau du formulaire
+                new DistanceConstraint(),
             ],
         ])
             ->add('departure', TextType::class, [
@@ -80,7 +90,6 @@ final class TransportClientController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
-            
             return $this->redirectToRoute('app_transport_search', [
                 'departure' => $data['departure'],
                 'destination' => $data['destination'],
@@ -91,13 +100,20 @@ final class TransportClientController extends AbstractController
 
         return $this->render('transports/transportClient.html.twig', [
             'form' => $form->createView(),
-            'mapbox_access_token' => $this->getParameter('mapbox_access_token'), // Pass the token
+            'mapbox_access_token' => $this->getParameter('mapbox_access_token'),
         ]);
     }
 
     #[Route('/transports/liste', name: 'client_transports_list', methods: ['GET'])]
     public function list(Request $request, EntityManagerInterface $entityManager): Response
     {
+        // Get the logged-in user
+        $user = $this->security->getUser();
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour voir vos transports.');
+            return $this->redirectToRoute('app_login');
+        }
+
         $searchTerm = $request->query->get('search', '');
         $isAjax = $request->isXmlHttpRequest();
 
@@ -106,7 +122,7 @@ final class TransportClientController extends AbstractController
             ->where('t.id_user = :user')
             ->andWhere('t.id IS NOT NULL')
             ->andWhere('t.id > 0')
-            ->setParameter('user', $entityManager->getReference(Utilisateur::class, 251));
+            ->setParameter('user', $entityManager->getReference(Utilisateur::class, $user->getId()));
 
         if ($searchTerm) {
             $queryBuilder->andWhere('t.nom LIKE :searchTerm')
@@ -119,12 +135,12 @@ final class TransportClientController extends AbstractController
             $transportData = array_map(function ($transport) {
                 $id = $transport->getId();
                 if (!$id || !is_int($id) || $id <= 0) {
-                    error_log('Invalid transport ID detected: ' . json_encode([
+                    $this->logger->error('Invalid transport ID detected: ' . json_encode([
                         'id' => $id,
                         'nom' => $transport->getNom(),
                         'type' => $transport->getType(),
                     ]));
-                    return null; // Exclude invalid transport
+                    return null;
                 }
                 return [
                     'id' => $id,
@@ -139,7 +155,6 @@ final class TransportClientController extends AbstractController
                 ];
             }, $transports);
 
-            // Filter out null entries
             $transportData = array_filter($transportData);
 
             return new JsonResponse([
@@ -157,16 +172,19 @@ final class TransportClientController extends AbstractController
     #[Route('/transports/ajouter', name: 'client_transport_new')]
     public function new(Request $request, EntityManagerInterface $em, IpCountryService $ipCountryService): Response
     {
+        // Get the logged-in user
+        $user = $this->security->getUser();
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour ajouter un transport.');
+            return $this->redirectToRoute('app_login');
+        }
+
         $transport = new Transport();
 
-        // Récupérer l'adresse IP du client
         $clientIp = $request->getClientIp();
-
-        // Obtenir le code du pays et l'indicatif téléphonique
         $countryCode = $ipCountryService->getCountryCodeFromIp($clientIp);
         $phoneCode = $countryCode ? $ipCountryService->getPhoneCodeFromCountryCode($countryCode) : '';
 
-        // Créer le formulaire
         $form = $this->createFormBuilder($transport, [
             'attr' => ['id' => 'transport-form'],
             'data_class' => Transport::class
@@ -296,7 +314,7 @@ final class TransportClientController extends AbstractController
                 }
 
                 try {
-                    $transport->setId_User($em->getReference(Utilisateur::class, 251));
+                    $transport->setId_User($em->getReference(Utilisateur::class, $user->getId()));
                     $transport->setId_Trajet($em->getReference(Trajet::class, 4));
 
                     $imageFile = $form->get('imagePath')->getData();
@@ -327,10 +345,9 @@ final class TransportClientController extends AbstractController
                 }
             }
 
-            // Non-AJAX handling
             if ($form->isValid()) {
                 try {
-                    $transport->setId_User($em->getReference(Utilisateur::class, 251));
+                    $transport->setId_User($em->getReference(Utilisateur::class, $user->getId()));
                     $transport->setId_Trajet($em->getReference(Trajet::class, 4));
 
                     $imageFile = $form->get('imagePath')->getData();
@@ -363,9 +380,15 @@ final class TransportClientController extends AbstractController
     #[Route('/transports/modifier/{id}', name: 'client_transport_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, string $id, EntityManagerInterface $em): Response
     {
-        // Validate ID as integer
+        // Get the logged-in user
+        $user = $this->security->getUser();
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour modifier un transport.');
+            return $this->redirectToRoute('app_login');
+        }
+
         if (!is_numeric($id) || (int)$id <= 0) {
-            error_log("Invalid transport ID provided: $id");
+            $this->logger->error("Invalid transport ID provided: $id");
             $this->addFlash('error', 'ID de transport invalide.');
             return $this->redirectToRoute('client_transports_list');
         }
@@ -374,6 +397,12 @@ final class TransportClientController extends AbstractController
 
         if (!$transport) {
             $this->addFlash('error', 'Transport non trouvé pour l\'ID ' . $id);
+            return $this->redirectToRoute('client_transports_list');
+        }
+
+        // Check if the transport belongs to the logged-in user
+        if ($transport->getId_User()->getId() !== $user->getId()) {
+            $this->addFlash('error', 'Vous ne pouvez modifier que vos propres transports.');
             return $this->redirectToRoute('client_transports_list');
         }
 
@@ -394,7 +423,7 @@ final class TransportClientController extends AbstractController
                     ]),
                     new Assert\Regex([
                         'pattern' => '/^[a-zA-Z0-9\s\-]+$/',
-                        'message' => 'Le nom ne peut contenir que des lettres, chiffres, espaces ou tirets',
+                        'message' => 'Le nom ne peut contenir que des lettres recettes, chiffres, espaces ou tirets',
                     ]),
                 ],
             ])
@@ -494,12 +523,12 @@ final class TransportClientController extends AbstractController
                     try {
                         $imageFile = $form->get('imagePath')->getData();
                         if ($imageFile) {
-                            $newFilename = uniqid().'.'.$imageFile->guessExtension();
+                            $newFilename = uniqid() . '.' . $imageFile->guessExtension();
                             $imageFile->move(
-                                $this->getParameter('kernel.project_dir').'/public/uploads/transports',
+                                $this->getParameter('kernel.project_dir') . '/public/uploads/transports',
                                 $newFilename
                             );
-                            $transport->setImagePath('uploads/transports/'.$newFilename);
+                            $transport->setImagePath('uploads/transports/' . $newFilename);
                         }
 
                         $em->flush();
@@ -532,12 +561,12 @@ final class TransportClientController extends AbstractController
                     try {
                         $imageFile = $form->get('imagePath')->getData();
                         if ($imageFile) {
-                            $newFilename = uniqid().'.'.$imageFile->guessExtension();
+                            $newFilename = uniqid() . '.' . $imageFile->guessExtension();
                             $imageFile->move(
-                                $this->getParameter('kernel.project_dir').'/public/uploads/transports',
+                                $this->getParameter('kernel.project_dir') . '/public/uploads/transports',
                                 $newFilename
                             );
-                            $transport->setImagePath('uploads/transports/'.$newFilename);
+                            $transport->setImagePath('uploads/transports/' . $newFilename);
                         }
 
                         $em->flush();
@@ -559,7 +588,21 @@ final class TransportClientController extends AbstractController
     #[Route('/transports/supprimer/{id}', name: 'client_transport_delete')]
     public function delete(Request $request, Transport $transport, EntityManagerInterface $em): Response
     {
-        if ($transport->getId_User()->getId() !== 251) {
+        // Get the logged-in user
+        $user = $this->security->getUser();
+        if (!$user) {
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Vous devez être connecté pour supprimer un transport.'
+                ], 403);
+            }
+            $this->addFlash('error', 'Vous devez être connecté pour supprimer un transport.');
+            return $this->redirectToRoute('app_login');
+        }
+
+        // Check if the transport belongs to the logged-in user
+        if ($transport->getId_User()->getId() !== $user->getId()) {
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse([
                     'success' => false,
@@ -570,7 +613,7 @@ final class TransportClientController extends AbstractController
             return $this->redirectToRoute('client_transports_list');
         }
 
-        if (!$this->isCsrfTokenValid('delete'.$transport->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('delete' . $transport->getId(), $request->request->get('_token'))) {
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse([
                     'success' => false,
@@ -584,7 +627,7 @@ final class TransportClientController extends AbstractController
         try {
             $em->remove($transport);
             $em->flush();
-            
+
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse([
                     'success' => true,
@@ -592,7 +635,7 @@ final class TransportClientController extends AbstractController
                     'redirect' => $this->generateUrl('client_transports_list')
                 ]);
             }
-            
+
             $this->addFlash('success', 'Transport supprimé avec succès');
         } catch (\Exception $e) {
             if ($request->isXmlHttpRequest()) {
@@ -610,46 +653,39 @@ final class TransportClientController extends AbstractController
     #[Route('/transports/search', name: 'app_transport_search')]
     public function search(Request $request, EntityManagerInterface $entityManager): Response
     {
-        // Récupération des paramètres
+        // No changes needed; this method doesn't use user ID
         $departure = $request->query->get('departure');
         $minPrice = $request->query->get('minPrice', 0);
         $maxPrice = $request->query->get('maxPrice', 1000);
         $minCapacity = $request->query->get('minCapacity', null);
         $type = $request->query->get('type', 'all');
 
-        // Construction de la requête
         $queryBuilder = $entityManager->getRepository(Transport::class)
             ->createQueryBuilder('t')
             ->join('t.id_trajet', 'tr');
 
-        // Filtre par point de départ
         if ($departure) {
             $queryBuilder->where('tr.pointDepart LIKE :departure')
                          ->setParameter('departure', '%' . $departure . '%');
         }
 
-        // Filtre par prix
         $queryBuilder->andWhere('t.prix >= :minPrice')
                      ->andWhere('t.prix <= :maxPrice')
                      ->setParameter('minPrice', $minPrice)
                      ->setParameter('maxPrice', $maxPrice);
 
-        // Filtre par capacité
         if ($minCapacity !== null && $minCapacity !== '') {
             $queryBuilder->andWhere('t.capacite >= :minCapacity')
                          ->setParameter('minCapacity', $minCapacity);
         }
 
-        // Filtre par type
         if ($type !== 'all') {
             $queryBuilder->andWhere('t.type = :type')
                          ->setParameter('type', $type);
         }
 
-        // Exécution de la requête
         $transports = $queryBuilder->getQuery()->getResult();
 
-        // Paramètres de filtre pour le template
         $filterParams = [
             'minPrice' => $minPrice,
             'maxPrice' => $maxPrice,
@@ -664,20 +700,10 @@ final class TransportClientController extends AbstractController
         ]);
     }
 
-
-    private $httpClient;
-    private $logger;
-    private $mapboxApiKey;
-    // Injection des dépendances via le constructeur
-    public function __construct(HttpClientInterface $httpClient, LoggerInterface $logger)
-    {
-        $this->httpClient = $httpClient;
-        $this->logger = $logger;
-    }
-
     #[Route('/check-distance', name: 'app_check_distance', methods: ['POST'])]
     public function checkDistance(Request $request, LoggerInterface $logger): JsonResponse
     {
+        // No changes needed; this method doesn't use user ID
         $departure = $request->request->get('departure');
         $destination = $request->request->get('destination');
 
@@ -720,11 +746,9 @@ final class TransportClientController extends AbstractController
 
         $client = HttpClient::create();
 
-        // Get coordinates for departure and destination
         $startCoords = $this->getCoordinates($departure);
         $endCoords = $this->getCoordinates($destination);
 
-        // Request to OpenRouteService for distance
         $response = $client->request('GET', 'https://api.openrouteservice.org/v2/directions/driving-car', [
             'query' => [
                 'api_key' => $apiKey,
@@ -734,7 +758,7 @@ final class TransportClientController extends AbstractController
         ]);
 
         $data = $response->toArray();
-        return $data['features'][0]['properties']['segments'][0]['distance'] / 1000; // Convert to km
+        return $data['features'][0]['properties']['segments'][0]['distance'] / 1000;
     }
 
     private function getCoordinates(string $location): string
@@ -758,7 +782,7 @@ final class TransportClientController extends AbstractController
             $data = $response->toArray();
             if (!empty($data['features'])) {
                 $coords = $data['features'][0]['center'];
-                return "{$coords[0]},{$coords[1]}"; // [longitude, latitude]
+                return "{$coords[0]},{$coords[1]}";
             }
             throw new \RuntimeException('Could not geocode location: ' . $location . '. Please specify a more precise location (e.g., a city).');
         } catch (\Exception $e) {
@@ -770,18 +794,15 @@ final class TransportClientController extends AbstractController
         }
     }
 
-
-
     #[Route('/cities/autocomplete', name: 'app_cities_autocomplete', methods: ['GET'])]
     public function autocomplete(Request $request, CityAutocompleter $cityAutocompleter, LoggerInterface $logger): JsonResponse
     {
+        // No changes needed; this method doesn't use user ID
         $query = $request->query->get('q', '');
-    
+
         try {
-            // Récupérer les suggestions
             $cities = $cityAutocompleter->getCitySuggestions($query);
-    
-            // Formatter les résultats pour l'autocomplétion
+
             $suggestions = array_map(function ($city) {
                 return [
                     'label' => sprintf('%s, %s', $city['name'], $city['country']),
@@ -789,23 +810,31 @@ final class TransportClientController extends AbstractController
                     'coordinates' => $city['coordinates'],
                 ];
             }, $cities);
-    
+
             return new JsonResponse($suggestions);
         } catch (\Exception $e) {
             $logger->error('Autocomplete failed: {message}', [
                 'message' => $e->getMessage(),
                 'query' => $query,
             ]);
-            return new JsonResponse([], 200); // Return empty array to avoid client-side error
+            return new JsonResponse([], 200);
         }
     }
+
     #[Route('/transports/exporter/pdf', name: 'client_transports_export_pdf', methods: ['GET'])]
     public function exportPdf(EntityManagerInterface $entityManager, LoggerInterface $logger): Response
     {
+        // Get the logged-in user
+        $user = $this->security->getUser();
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour exporter vos transports.');
+            return $this->redirectToRoute('app_login');
+        }
+
         $transports = $entityManager->getRepository(Transport::class)
             ->createQueryBuilder('t')
             ->where('t.id_user = :user')
-            ->setParameter('user', $entityManager->getReference(Utilisateur::class, 251))
+            ->setParameter('user', $entityManager->getReference(Utilisateur::class, $user->getId()))
             ->getQuery()
             ->getResult();
 
@@ -816,12 +845,10 @@ final class TransportClientController extends AbstractController
         try {
             $logger->info('Generating PDF with Dompdf');
 
-            // Configure Dompdf options
             $options = new Options();
             $options->set('isHtml5ParserEnabled', true);
-            $options->set('isRemoteEnabled', true); // Enable if your template includes external resources like images
+            $options->set('isRemoteEnabled', true);
 
-            // Instantiate Dompdf
             $dompdf = new Dompdf($options);
             $dompdf->loadHtml($html);
             $dompdf->setPaper('A4', 'portrait');
@@ -844,74 +871,106 @@ final class TransportClientController extends AbstractController
             );
         } catch (\Exception $e) {
             $logger->error('PDF generation failed: ' . $e->getMessage());
-            throw $e; // Remove this in production; redirect with flash message instead
+            throw $e; // Consider redirecting with a flash message in production
         }
     }
-    
+
     #[Route('/transports/affecter/{transportId}', name: 'client_transport_affect_trajet', methods: ['GET'])]
-public function affectTrajet(int $transportId, EntityManagerInterface $entityManager): Response
-{
-    // Validate transport existence
-    $transport = $entityManager->getRepository(Transport::class)->find($transportId);
-    if (!$transport) {
-        $this->addFlash('error', 'Transport non trouvé.');
+    public function affectTrajet(int $transportId, EntityManagerInterface $entityManager): Response
+    {
+        // Get the logged-in user
+        $user = $this->security->getUser();
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour affecter un trajet.');
+            return $this->redirectToRoute('app_login');
+        }
+
+        $transport = $entityManager->getRepository(Transport::class)->find($transportId);
+        if (!$transport) {
+            $this->addFlash('error', 'Transport non trouvé.');
+            return $this->redirectToRoute('client_transports_list');
+        }
+
+        // Check if the transport belongs to the logged-in user
+        if ($transport->getId_User()->getId() !== $user->getId()) {
+            $this->addFlash('error', 'Vous ne pouvez affecter un trajet qu’à vos propres transports.');
+            return $this->redirectToRoute('client_transports_list');
+        }
+
+        return $this->redirectToRoute('client_trajet_affect', ['transportId' => $transportId]);
+    }
+
+    #[Route('/transports/assigner/{transportId}/{trajetId}', name: 'client_transport_assign_trajet', methods: ['GET'])]
+    public function assignTrajet(int $transportId, int $trajetId, EntityManagerInterface $entityManager): Response
+    {
+        // Get the logged-in user
+        $user = $this->security->getUser();
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour assigner un trajet.');
+            return $this->redirectToRoute('app_login');
+        }
+
+        $transport = $entityManager->getRepository(Transport::class)->find($transportId);
+        if (!$transport) {
+            $this->addFlash('error', 'Transport non trouvé.');
+            return $this->redirectToRoute('client_transports_list');
+        }
+
+        // Check if the transport belongs to the logged-in user
+        if ($transport->getId_User()->getId() !== $user->getId()) {
+            $this->addFlash('error', 'Vous ne pouvez assigner un trajet qu’à vos propres transports.');
+            return $this->redirectToRoute('client_transports_list');
+        }
+
+        $trajet = $entityManager->getRepository(Trajet::class)->find($trajetId);
+        if (!$trajet) {
+            $this->addFlash('error', 'Trajet non trouvé.');
+            return $this->redirectToRoute('client_transports_list');
+        }
+
+        try {
+            $transport->setId_Trajet($trajet);
+            $entityManager->flush();
+            $this->addFlash('success', 'Trajet affecté avec succès au transport.');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Erreur lors de l\'affectation du trajet : ' . $e->getMessage());
+        }
+
         return $this->redirectToRoute('client_transports_list');
     }
 
-    // Redirect to the new trajet selection page
-    return $this->redirectToRoute('client_trajet_affect', ['transportId' => $transportId]);
-}
+    #[Route('/client/transport/{id}', name: 'client_transport_details')]
+    public function details(Transport $transport, EntityManagerInterface $entityManager): Response
+    {
+        // Get the logged-in user
+        $user = $this->security->getUser();
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour voir les détails d’un transport.');
+            return $this->redirectToRoute('app_login');
+        }
 
-#[Route('/transports/assigner/{transportId}/{trajetId}', name: 'client_transport_assign_trajet', methods: ['GET'])]
-public function assignTrajet(int $transportId, int $trajetId, EntityManagerInterface $entityManager): Response
-{
-    // Validate transport
-    $transport = $entityManager->getRepository(Transport::class)->find($transportId);
-    if (!$transport) {
-        $this->addFlash('error', 'Transport non trouvé.');
-        return $this->redirectToRoute('client_transports_list');
+        // Check if the transport belongs to the logged-in user
+        if ($transport->getId_User()->getId() !== $user->getId()) {
+            $this->addFlash('error', 'Vous ne pouvez voir les détails que de vos propres transports.');
+            return $this->redirectToRoute('client_transports_list');
+        }
+
+        $trajet = $transport->getId_Trajet();
+
+        $autresTransports = $entityManager->getRepository(Transport::class)->findBy(
+            [
+                'type' => $transport->getType(),
+                'id_user' => $entityManager->getReference(Utilisateur::class, $user->getId()),
+            ],
+            ['id' => 'DESC'],
+            6
+        );
+        $autresTransports = array_filter($autresTransports, fn($t) => $t->getId() !== $transport->getId());
+
+        return $this->render('transports/transport_details.html.twig', [
+            'transport' => $transport,
+            'trajet' => $trajet,
+            'autresTransports' => $autresTransports,
+        ]);
     }
-
-    // Validate trajet
-    $trajet = $entityManager->getRepository(Trajet::class)->find($trajetId);
-    if (!$trajet) {
-        $this->addFlash('error', 'Trajet non trouvé.');
-        return $this->redirectToRoute('client_transports_list');
-    }
-
-    // Assign trajet to transport
-    try {
-        $transport->setId_Trajet($trajet);
-        $entityManager->flush();
-        $this->addFlash('success', 'Trajet affecté avec succès au transport.');
-    } catch (\Exception $e) {
-        $this->addFlash('error', 'Erreur lors de l\'affectation du trajet : ' . $e->getMessage());
-    }
-
-    return $this->redirectToRoute('client_transports_list');
-}
-
-#[Route('/client/transport/{id}', name: 'client_transport_details')]
-public function details(Transport $transport, EntityManagerInterface $entityManager): Response
-{
-    // Get associated trajet
-    $trajet = $transport->getId_Trajet();
-
-    // Get similar transports (same type, excluding the current transport)
-    $autresTransports = $entityManager->getRepository(Transport::class)->findBy(
-        [
-            'type' => $transport->getType(),
-            'id_user' => $transport->getId_User(),
-        ],
-        ['id' => 'DESC'],
-        6
-    );
-    $autresTransports = array_filter($autresTransports, fn($t) => $t->getId() !== $transport->getId());
-
-    return $this->render('transports/transport_details.html.twig', [
-        'transport' => $transport,
-        'trajet' => $trajet,
-        'autresTransports' => $autresTransports,
-    ]);
-}
 }
