@@ -185,7 +185,7 @@ class Post
     {
         if (!$this->reactions->contains($reaction)) {
             $this->reactions[] = $reaction;
-            $reaction->setId_post($this);
+            $reaction->setIdPost($this);
         }
         return $this;
     }
@@ -193,10 +193,23 @@ class Post
     public function removeReaction(Reaction $reaction): self
     {
         if ($this->reactions->removeElement($reaction)) {
-            if ($reaction->getId_post() === $this) {
-                $reaction->setId_post(null);
+            if ($reaction->getIdPost() === $this) {
+                $reaction->setIdPost(null);
             }
         }
         return $this;
     }
+    public function isLikedByUser(?Utilisateur $user): bool
+{
+    if (!$user) {
+        return false;
+    }
+    
+    foreach ($this->reactions as $reaction) {
+        if ($reaction->getIdUser()->getId() === $user->getId()) {
+            return true;
+        }
+    }
+    return false;
+}
 }

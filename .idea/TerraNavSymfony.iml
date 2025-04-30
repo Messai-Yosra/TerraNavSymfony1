@@ -175,5 +175,6 @@
     <orderEntry type="library" name="jquery-3.6.0" level="application" />
     <orderEntry type="library" name="mapbox-gl" level="application" />
     <orderEntry type="library" name="mapbox-gl-geocoder" level="application" />
+    <orderEntry type="library" name="emoji-toolkit" level="application" />
   </component>
 </module>

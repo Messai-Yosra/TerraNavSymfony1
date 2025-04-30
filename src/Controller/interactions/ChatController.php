@@ -9,16 +9,29 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\Post;
 use App\Entity\Utilisateur;
+use App\Entity\Reaction;
 use App\Form\AddPostFormType;
-use App\Repository\PostRepository;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\String\Slugger\SluggerInterface;
+use App\Entity\Story; 
+use App\Service\interactions\PostDescriptionGenerator;
+use App\Service\interactions\ProfanityFilter; 
+use App\Form\StoryType;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+
 final class ChatController extends AbstractController
 {
     private $entityManager;
+    private $contentGenerationService;
+    private $profanityFilter;
 
-    // Injecter l'EntityManager dans le contrôleur
-    public function __construct(EntityManagerInterface $entityManager)
-    {
+    public function __construct(
+        EntityManagerInterface $entityManager,
+        ProfanityFilter $profanityFilter
+    ) {
         $this->entityManager = $entityManager;
+        $this->profanityFilter = $profanityFilter;
     }
 
     #[Route('/new', name: 'app_post_new')]
@@ -29,6 +42,29 @@ final class ChatController extends AbstractController
         $form->handleRequest($request);
     
         if ($form->isSubmitted() && $form->isValid()) {
+            // Récupérer et filtrer la description
+            $description = $form->get('description')->getData();
+            
+            // Vérifier si la description est vide
+            if (empty(trim($description))) {
+                $this->addFlash('error', 'La description ne peut pas être vide.');
+                return $this->render('interactions/new.html.twig', [
+                    'form' => $form->createView(),
+                ]);
+            }
+
+            // Filtrer le contenu inapproprié
+            $filteredDescription = $this->profanityFilter->filter($description);
+            
+            // Vérifier si le contenu a été modifié par le filtre
+            if ($filteredDescription !== $description) {
+                $this->addFlash('warning', 'Votre description contenait du contenu inapproprié qui a été filtré.');
+            }
+
+            // Mettre à jour la description filtrée
+            $post->setDescription($filteredDescription);
+
+            // Gestion de l'image
             $image = $form->get('image')->getData();
             if ($image) {
                 $filename = uniqid() . '.' . $image->guessExtension();
@@ -39,15 +75,16 @@ final class ChatController extends AbstractController
                 $post->setImage($filename);
             }
     
-            $user = $this->entityManager->getRepository(Utilisateur::class)->find(1);
+            $user = $this->getUser(); 
             if (!$user) {
-                throw $this->createNotFoundException('Utilisateur avec ID 1 non trouvé.');
+                throw $this->createNotFoundException('Utilisateur non trouvé.');
             }
             $post->setId_user($user);
     
             $this->entityManager->persist($post);
             $this->entityManager->flush();
-    
+
+            $this->addFlash('success', 'Votre post a été créé avec succès.');
             return $this->redirectToRoute('app_chat');
         }
     
@@ -59,44 +96,46 @@ final class ChatController extends AbstractController
 
 
     #[Route('/ChatClient', name: 'app_chat')]
-public function index(): Response
-{
-    $posts = $this->entityManager->getRepository(Post::class)->findAll();
-    
-    dump($posts);
+    public function index(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        // Get page number from request
+        $page = $request->query->getInt('page', 1);
+        $limit = 5; // Number of posts per page
 
-    return $this->render('interactions/chatClient.html.twig', [
-        'posts' => $posts, 
-    ]);
-}
-#[Route('/post/{id}/like', name: 'app_post_like', methods: ['POST'])]
-public function likePost(Post $post): JsonResponse
-{
-    // Example logic for liking a post
-    $user = $this->getUser();
-    if (!$user) {
-        return new JsonResponse(['success' => false, 'message' => 'User not authenticated'], 403);
+        // Get post repository
+        $postRepository = $entityManager->getRepository(Post::class);
+        
+        // Get total number of posts
+        $totalPosts = $postRepository->count(['statut' => 'traitée']);
+        
+        // Calculate offset
+        $offset = ($page - 1) * $limit;
+        
+        // Get paginated posts
+        $posts = $postRepository->createQueryBuilder('p')
+            ->where('p.statut = :statut')
+            ->setParameter('statut', 'traitée')
+            ->orderBy('p.date', 'DESC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        // Calculate total pages
+        $totalPages = ceil($totalPosts / $limit);
+
+        // Get active stories
+        $storyRepository = $entityManager->getRepository(Story::class);
+        $activeStories = $storyRepository->findActiveStories();
+
+        return $this->render('interactions/chatClient.html.twig', [
+            'posts' => $posts,
+            'activeStories' => $activeStories,
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
+            'limit' => $limit
+        ]);
     }
-
-    // Toggle like logic (e.g., add/remove like)
-    $liked = false; // Replace with actual logic to check if the user already liked the post
-    if ($liked) {
-        // Remove like
-        $post->removeLike($user);
-    } else {
-        // Add like
-        $post->addLike($user);
-    }
-
-    // Save changes
-    $this->getDoctrine()->getManager()->flush();
-
-    return new JsonResponse([
-        'success' => true,
-        'newLikeCount' => $post->getLikes()->count(), // Replace with actual like count logic
-    ]);
-}
-
 
 #[Route('/{id}/edit', name: 'app_post_edit')]
 public function editPost(int $id, Request $request): Response
@@ -161,4 +200,165 @@ public function editPost(int $id, Request $request): Response
             'post' => $post,
         ]);
     }
+
+
+#[Route('/post/{id}/like', name: 'app_post_like', methods: ['POST'])]
+public function toggleLike(Post $post): JsonResponse
+{
+    $user = $this->getUser();
+    if (!$user) {
+        return $this->json([
+            'success' => false,
+            'message' => 'Vous devez être connecté pour aimer une publication'
+        ], 403);
+    }
+
+    try {
+        $reactionRepo = $this->entityManager->getRepository(Reaction::class);
+        $existingReaction = $reactionRepo->findOneBy([
+            'id_post' => $post,
+            'id_user' => $user
+        ]);
+
+        if ($existingReaction) {
+            // Si l'utilisateur a déjà liké, on retire son like
+            $this->entityManager->remove($existingReaction);
+            $post->setNbReactions($post->getNbReactions() - 1);
+            $isLiked = false;
+        } else {
+            // Si l'utilisateur n'a pas encore liké, on ajoute son like
+            $reaction = new Reaction();
+            $reaction->setIdUser($user);
+            $reaction->setIdPost($post);
+            $this->entityManager->persist($reaction);
+            $post->setNbReactions($post->getNbReactions() + 1);
+            $isLiked = true;
+        }
+
+        $this->entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'isLiked' => $isLiked,
+            'likes' => $post->getNbReactions()
+        ]);
+
+    } catch (\Exception $e) {
+        return $this->json([
+            'success' => false,
+            'message' => 'Une erreur est survenue'
+        ], 500);
+    }
+}
+// src/Controller/PostController.php
+
+
+#[Route('/post/generate-description', name: 'post_generate_description', methods: ['POST'])]
+public function generateDescription(
+    Request $request,
+    PostDescriptionGenerator $descriptionGenerator
+): JsonResponse {
+    $data = json_decode($request->getContent(), true);
+    $context = $data['context'] ?? '';
+
+    try {
+        $description = $descriptionGenerator->generatePostDescription(
+            $context,
+            $data['type'] ?? 'general',
+            $data['style'] ?? 'convivial',
+            true
+        );
+
+        return $this->json([
+            'success' => true,
+            'content' => $description
+        ]);
+    } catch (\Exception $e) {
+        return $this->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 400);
+    }
+}
+#[Route('/story/new', name: 'app_story_new')]
+public function addStory(
+    Request $request, 
+    ValidatorInterface $validator,
+    SluggerInterface $slugger
+): Response
+{
+    // Vérification de l'utilisateur
+    $user = $this->getUser();
+    if (!$user) {
+        $this->addFlash('error', 'Vous devez être connecté pour ajouter une story.');
+        return $this->redirectToRoute('app_login');
+    }
+
+    $story = new Story();
+    $form = $this->createForm(StoryType::class, $story);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+        try {
+            /** @var UploadedFile $mediaFile */
+            $mediaFile = $form->get('media')->getData();
+            
+            // Vérification du fichier média
+            if (!$mediaFile) {
+                throw new \Exception('Veuillez sélectionner un média (image ou vidéo).');
+            }
+
+            // Validation du type de fichier
+            $mimeType = $mediaFile->getMimeType();
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/quicktime'];
+            if (!in_array($mimeType, $allowedTypes)) {
+                throw new \Exception('Type de fichier non autorisé. Utilisez JPG, PNG, GIF ou MP4.');
+            }
+
+            // Création d'un nom de fichier unique
+            $originalFilename = pathinfo($mediaFile->getClientOriginalName(), PATHINFO_FILENAME);
+            $safeFilename = $slugger->slug($originalFilename);
+            $newFilename = $safeFilename.'-'.uniqid().'.'.$mediaFile->guessExtension();
+
+            // Déplacement du fichier
+            try {
+                $mediaFile->move(
+                    $this->getParameter('stories_directory'),
+                    $newFilename
+                );
+            } catch (FileException $e) {
+                throw new \Exception('Une erreur est survenue lors du téléchargement du fichier.');
+            }
+
+            // Configuration de la story
+            $story->setMedia($newFilename);
+            $story->setIdUser($user);
+            $story->setCreatedAt(new \DateTime());
+            $story->setIsActive(true);
+
+            // Validation de l'entité
+            $errors = $validator->validate($story);
+            if (count($errors) > 0) {
+                throw new \Exception($errors[0]->getMessage());
+            }
+
+            // Persistence des données
+            $this->entityManager->persist($story);
+            $this->entityManager->flush();
+
+            $this->addFlash('success', 'Votre story a été publiée avec succès!');
+            return $this->redirectToRoute('app_chat');
+
+        } catch (\Exception $e) {
+            $this->addFlash('error', $e->getMessage());
+            return $this->render('interactions/newStory.html.twig', [
+                'form' => $form->createView(),
+            ]);
+        }
+    }
+
+    return $this->render('interactions/newStory.html.twig', [
+        'form' => $form->createView(),
+    ]);
+}
 }

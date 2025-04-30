@@ -394,4 +394,27 @@
     }
 ]
 }
+``````json
+{
+"activities": [
+    {
+        "name": "Osaka Castle",
+        "description": "Iconic 16th-century castle surrounded by moats and gardens. Offers historical exhibits and panoramic city views from the top.",
+        "longitude": 135.525517,
+        "latitude": 34.687314
+    },
+    {
+        "name": "Dotonbori District",
+        "description": "Vibrant entertainment district known for neon lights, street food, and the Glico Running Man sign. Bustling nightlife and canal-side dining.",
+        "longitude": 135.502165,
+        "latitude": 34.669987
+    },
+    {
+        "name": "Universal Studios Japan",
+        "description": "Popular theme park featuring attractions like Harry Potter, Super Nintendo World, and thrilling roller coasters. Fun for all ages.",
+        "longitude": 135.432194,
+        "latitude": 34.665429
+    }
+]
+}
 ```
