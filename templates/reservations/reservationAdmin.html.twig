@@ -159,6 +159,8 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script src="{{ asset('js/reservations/reservationAdmin.js') }}"></script>
     <script>
         // Store reservations data for JavaScript access
@@ -250,9 +252,9 @@
 
                         userData.reservations.forEach(reservation => {
                             const iconClass =
-                                reservation.type === 'voyage' ? 'fa-suitcase-rolling' :
+                                reservation.type === 'voyage' ? 'fa-plane' :
                                     reservation.type === 'chambre' ? 'fa-hotel' :
-                                        reservation.type === 'transport' ? 'fa-plane' : 'fa-calendar-check';
+                                        reservation.type === 'transport' ? 'fa-car-side' : 'fa-calendar-check';
 
                             const statusClass = reservation.status === 'Confirmée' ? 'confirmed' : 'pending';
 

@@ -1,0 +1,125 @@
+{# templates/reservations/calendar.html.twig #}
+{% extends 'baseClient.html.twig' %}
+
+{% block title %}Calendrier des Réservations{% endblock %}
+
+{% block content %}
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+                <h6 class="section-title text-center text-primary text-uppercase">Vos Réservations</h6>
+                <h1 class="mb-5">Calendrier des <span class="text-primary text-uppercase">Réservations</span></h1>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Légende</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <span class="badge text-white" style="background-color: #3498db">Voyages</span>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <span class="badge bg-success">Hébergements</span>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <span class="badge bg-danger">Transports</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Details Modal -->
+    <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="eventModalLabel">Détails de la Réservation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="eventModalBody">
+                    <!-- Content will be filled by JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.8/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.8/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.8/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@6.1.8/index.global.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                events: '{{ path('api_calendar_events') }}',
+                eventClick: function(info) {
+                    const event = info.event;
+                    const modal = new bootstrap.Modal(document.getElementById('eventModal'));
+
+                    // Build modal content
+                    let content = `
+                        <div class="mb-3">
+                            <h6>${event.title}</h6>
+                            <p class="mb-1"><strong>Date:</strong> ${event.start.toLocaleDateString()}</p>
+                            <p class="mb-1"><strong>Type:</strong> ${event.extendedProps.type}</p>
+                            <p class="mb-1"><strong>Statut:</strong> <span class="badge ${event.extendedProps.status === 'CONFIRMED' ? 'bg-success' : 'bg-warning'}">${event.extendedProps.status}</span></p>
+                            <p class="mb-1"><strong>Prix:</strong> ${event.extendedProps.price} TND</p>
+                            <p class="mb-1"><strong>Référence:</strong> ${event.extendedProps.reference}</p>
+                    `;
+
+                    // Add type-specific details
+                    if (event.extendedProps.destination) {
+                        content += `<p class="mb-1"><strong>Destination:</strong> ${event.extendedProps.destination}</p>`;
+                    }
+                    if (event.extendedProps.hebergement) {
+                        content += `<p class="mb-1"><strong>Hébergement:</strong> ${event.extendedProps.hebergement}</p>`;
+                    }
+                    if (event.extendedProps.vehicule) {
+                        content += `<p class="mb-1"><strong>Véhicule:</strong> ${event.extendedProps.vehicule}</p>`;
+                    }
+
+                    content += `</div>`;
+
+                    document.getElementById('eventModalBody').innerHTML = content;
+                    document.getElementById('eventModalLabel').textContent = `Détails: ${event.title}`;
+                    modal.show();
+                },
+                eventDidMount: function(info) {
+                    // Add tooltip
+                    if (info.event.extendedProps.type) {
+                        info.el.setAttribute('data-bs-toggle', 'tooltip');
+                        info.el.setAttribute('title', `${info.event.title} - ${info.event.extendedProps.status}`);
+                    }
+                }
+            });
+
+            calendar.render();
+
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+{% endblock %}
