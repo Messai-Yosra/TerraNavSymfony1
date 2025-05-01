@@ -23,95 +23,199 @@
                 <div class="col-lg-12">
                     <div class="wow fadeInUp" data-wow-delay="0.2s">
                         {{ form_start(form) }}
-
-                        {# Affichage des erreurs globales du formulaire #}
-                        {% if not form.vars.valid and form.vars.submitted %}
-                            <div class="alert alert-danger">
-                                {{ form_errors(form) }}
-                            </div>
-                        {% endif %}
-                        
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <div class="form-floating">
-                                    {{ form_label(form.nom, null, {'label_attr': {'class': 'form-label'}}) }}
-                                    {{ form_widget(form.nom, {
-                                        'attr': {'class': 'form-control' ~ (not form.nom.vars.valid and form.vars.submitted ? ' is-invalid' : '')}
-                                    }) }}
-                                    {% if not form.nom.vars.valid and form.vars.submitted %}
-                                        <div class="invalid-feedback">
-                                            {% for error in form.nom.vars.errors %}
-                                                {{ error.message }}<br>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                </div>
+                                {{ form_row(form.nom, {'attr': {'class': 'form-control'}}) }}
                             </div>
-
                             <div class="col-md-6">
-                                <div class="form-floating">
-                                    {{ form_row(form.type_hebergement, {'attr': {'class': 'form-control'}, 'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_row(form.type_hebergement, {'attr': {'class': 'form-control'}}) }}
+                            </div>
+                            <div class="col-12">
+                                {{ form_label(form.description) }}
+                                {{ form_widget(form.description, {'attr': {'class': 'form-control', 'maxlength': '1000', 'id': 'description_hebergement'}}) }}
+                                <small class="form-text text-muted"><span id="description-counter">0</span>/1000 caractères</small>
+                                
+                                <!-- Bouton IA -->
+                                <div class="mt-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" id="btn-ai-description">
+                                        ✨ Améliorer la description via l'IA
+                                    </button>
                                 </div>
                             </div>
-
-                            <div class="col-md-12">
-                                <div class="form-floating">
-                                    {{ form_row(form.description, {'attr': {'class': 'form-control', 'rows': 5}, 'label_attr': {'class': 'form-label'}}) }}
-                                </div>
-                            </div>
-
                             <div class="col-md-6">
-                                <div class="form-floating">
-                                    {{ form_row(form.adresse, {'attr': {'class': 'form-control'}, 'label_attr': {'class': 'form-label'}}) }}
-                                </div>
+                                {{ form_row(form.adresse, {'attr': {'class': 'form-control'}}) }}
                             </div>
-
                             <div class="col-md-3">
-                                <div class="form-floating">
-                                    {{ form_row(form.ville, {'attr': {'class': 'form-control'}, 'label_attr': {'class': 'form-label'}}) }}
-                                </div>
+                                {{ form_row(form.ville, {'attr': {'class': 'form-control'}}) }}
                             </div>
-
                             <div class="col-md-3">
-                                <div class="form-floating">
-                                    {{ form_row(form.pays, {'attr': {'class': 'form-control'}, 'label_attr': {'class': 'form-label'}}) }}
-                                </div>
+                                {{ form_row(form.pays, {'attr': {'class': 'form-control'}}) }}
                             </div>
-
                             <div class="col-md-6">
-                                <div class="form-floating">
-                                    {{ form_row(form.contact, {'attr': {'class': 'form-control'}, 'label_attr': {'class': 'form-label'}}) }}
+                                <div class="form-floating mb-3">
+                                    <input type="hidden" name="devise" value="{{ app.session.get('currency', 'TND') }}" id="current-currency">
                                 </div>
                             </div>
-
                             <div class="col-md-6">
-                                <div class="form-floating">
-                                    {{ form_row(form.nb_chambres, {'attr': {'class': 'form-control'}, 'label_attr': {'class': 'form-label'}}) }}
+                                <div class="form-floating mb-3">
+                                    <label class="form-label">Contact</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text phone-prefix">
+                                            {% set currency = app.session.get('currency', 'TND') %}
+                                            {% if currency == 'TND' %}
+                                                <img src="https://flagcdn.com/w40/tn.png" alt="Tunisia" class="flag-icon"> +216
+                                            {% elseif currency == 'EUR' %}
+                                                <img src="https://flagcdn.com/w40/fr.png" alt="France" class="flag-icon"> +33
+                                            {% elseif currency == 'USD' %}
+                                                <img src="https://flagcdn.com/w40/us.png" alt="USA" class="flag-icon"> +1
+                                            {% elseif currency == 'GBP' %}
+                                                <img src="https://flagcdn.com/w40/gb.png" alt="UK" class="flag-icon"> +44
+                                            {% else %}
+                                                <img src="https://flagcdn.com/w40/tn.png" alt="Tunisia" class="flag-icon"> +216
+                                            {% endif %}
+                                        </span>
+                                        {{ form_widget(form.contact, {
+                                            'attr': {
+                                                'class': 'form-control phone-input',
+                                                'placeholder': 'Numéro de téléphone'
+                                            }
+                                        }) }}
+                                    </div>
+                                    {{ form_errors(form.contact) }}
                                 </div>
                             </div>
-
-                            <div class="col-md-12">
-                                <div class="form-floating">
-                                    {{ form_row(form.services, {'attr': {'class': 'form-control', 'rows': 3}, 'label_attr': {'class': 'form-label'}}) }}
-                                </div>
+                            <div class="col-md-6">
+                                {{ form_row(form.nb_chambres, {'attr': {'class': 'form-control'}}) }}
                             </div>
-
-                            <div class="col-md-12">
-                                <div class="form-floating">
-                                    {{ form_row(form.politique_annulation, {'attr': {'class': 'form-control', 'rows': 3}, 'label_attr': {'class': 'form-label'}}) }}
-                                </div>
+                            <div class="col-12">
+                                {{ form_row(form.services, {'attr': {'class': 'form-control'}}) }}
                             </div>
-
-                            <div class="col-md-12 text-center mt-4">
+                            <div class="col-12">
+                                {{ form_row(form.politique_annulation, {'attr': {'class': 'form-control'}}) }}
+                            </div>
+                            <div class="col-12 text-center mt-4">
                                 <button class="btn btn-primary py-3 px-5" type="submit">Ajouter l'hébergement</button>
                                 <a href="{{ path('app_hebergement_index') }}" class="btn btn-secondary py-3 px-5 ms-2">Annuler</a>
                             </div>
                         </div>
-
                         {{ form_end(form) }}
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <script>
+        const btnAI = document.getElementById('btn-ai-description');
+        const description = document.getElementById('description_hebergement');
+        const API_KEY = 'AIzaSyCRrEnuk9oUbLaN9LA4VXvGrvmfeUM1YU8';
+
+        if (btnAI && description) {
+            description.addEventListener('input', () => {
+                document.getElementById('description-counter').textContent = description.value.length;
+            });
+
+            btnAI.addEventListener('click', async () => {
+                const originalText = description.value.trim();
+
+                if (!originalText) {
+                    alert("Veuillez d'abord écrire une description à améliorer.");
+                    return;
+                }
+
+                btnAI.disabled = true;
+                const originalContent = btnAI.innerHTML;
+                btnAI.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Amélioration en cours...';
+
+                try {
+                    const response = await fetch(
+                        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCRrEnuk9oUbLaN9LA4VXvGrvmfeUM1YU8`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                contents: [{
+                                    parts: [{
+                                        text: `Améliore cette description d'hébergement pour une plateforme de location touristique.
+                                        Garde un ton professionnel et marketing.
+                                        Fais une description attrayante en 3-4 phrases qui met en valeur :
+                                        - Le style et l'ambiance de l'établissement
+                                        - Les principaux services et commodités
+                                        - L'emplacement et les points d'intérêt à proximité
+                                        Ne mets pas de puces ni de titres.
+                                        Description à améliorer : ${originalText}`
+                                    }]
+                                }]
+                            })
+                        }
+                    );
+
+                    if (!response.ok) {
+                        throw new Error(`Erreur de requête : ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    const improvedText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    if (improvedText) {
+                        description.value = improvedText;
+                        document.getElementById('description-counter').textContent = improvedText.length;
+                    } else {
+                        throw new Error("La réponse de l'IA est vide.");
+                    }
+                } catch (error) {
+                    alert("Erreur : " + error.message);
+                } finally {
+                    btnAI.disabled = false;
+                    btnAI.innerHTML = originalContent;
+                }
+            });
+        }
+
+        // Gestion du numéro de téléphone
+        document.addEventListener('DOMContentLoaded', function() {
+            const phoneInput = document.querySelector('.phone-input');
+
+            if (phoneInput) {
+                // Formater le numéro de téléphone
+                phoneInput.addEventListener('input', function(e) {
+                    // Supprimer tous les caractères non numériques
+                    let value = e.target.value.replace(/\D/g, '');
+                    
+                    // Limiter à 8 chiffres
+                    if (value.length > 8) {
+                        value = value.slice(0, 8);
+                    }
+                    
+                    // Formater le numéro (XX XXX XXX)
+                    if (value.length > 0) {
+                        value = value.match(new RegExp('.{1,2}|.{1,3}|.{1,3}', 'g')).join(' ');
+                    }
+                    
+                    e.target.value = value;
+                });
+            }
+        });
+    </script>
+
+    <style>
+        .flag-icon {
+            width: 24px;
+            height: 16px;
+            margin-right: 5px;
+            vertical-align: middle;
+            border-radius: 2px;
+            box-shadow: 0 0 1px rgba(0,0,0,0.2);
+        }
+        .phone-prefix {
+            display: flex;
+            align-items: center;
+            padding: 6px 12px;
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            border-radius: 4px 0 0 4px;
+        }
+    </style>
 {% endblock %}

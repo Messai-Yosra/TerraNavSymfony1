@@ -131,8 +131,27 @@
 
         .currency-selector {
             padding: 8px;
-            height: calc(100% - 32px); /* Ajustement pour l'alignement avec le champ prix */
-            margin-top: 32px; /* Pour aligner avec le champ prix */
+            height: calc(100% - 32px);
+            margin-top: 32px;
+        }
+
+        .flag-icon {
+            width: 24px;
+            height: 16px;
+            margin-right: 5px;
+            vertical-align: middle;
+            border-radius: 2px;
+            box-shadow: 0 0 1px rgba(0,0,0,0.2);
+        }
+
+        .currency-option {
+            display: flex;
+            align-items: center;
+            padding: 4px 8px;
+        }
+
+        .currency-option img {
+            margin-right: 8px;
         }
 
         .form-control:focus,
@@ -212,8 +231,36 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Gestion du changement de devise
+            // Ajouter les drapeaux aux options de devise
             const deviseSelect = document.querySelector('.currency-selector');
+            if (deviseSelect) {
+                const options = deviseSelect.options;
+                for (let i = 0; i < options.length; i++) {
+                    const option = options[i];
+                    const value = option.value;
+                    let flagHtml = '';
+                    
+                    if (value === 'TND' || (value === 'auto' && option.text.includes('TND'))) {
+                        flagHtml = '<img src="https://flagcdn.com/w40/tn.png" alt="Tunisia" class="flag-icon">';
+                    } else if (value === 'EUR' || (value === 'auto' && option.text.includes('EUR'))) {
+                        flagHtml = '<img src="https://flagcdn.com/w40/fr.png" alt="France" class="flag-icon">';
+                    } else if (value === 'USD' || (value === 'auto' && option.text.includes('USD'))) {
+                        flagHtml = '<img src="https://flagcdn.com/w40/us.png" alt="USA" class="flag-icon">';
+                    } else if (value === 'GBP' || (value === 'auto' && option.text.includes('GBP'))) {
+                        flagHtml = '<img src="https://flagcdn.com/w40/gb.png" alt="UK" class="flag-icon">';
+                    }
+                    
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'currency-option';
+                    wrapper.innerHTML = flagHtml + option.text;
+                    option.innerHTML = wrapper.outerHTML;
+                }
+
+                // Mettre à jour le style du select pour accommoder les drapeaux
+                deviseSelect.style.minWidth = '150px';
+            }
+
+            // Gestion du changement de devise
             const priceInput = document.getElementById('{{ form.prix.vars.id }}');
             const priceLabel = priceInput.closest('.col-8').querySelector('label');
 
