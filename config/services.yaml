@@ -58,4 +58,9 @@ services:
     App\Twig\PriceExtension:
         tags: ['twig.extension']
 
+    # Configuration spécifique pour ExcelExportService
+    App\Service\ExcelExportService:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
 

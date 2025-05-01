@@ -4,18 +4,39 @@ namespace App\Controller\hebergements;
 
 use App\Entity\Chambre;
 use App\Entity\Hebergement;
+use App\Service\ExcelImportService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 class ChambreAdminController extends AbstractController
 {
     #[Route('/chambresAdmin', name: 'admin_chambres')]
-    public function index(EntityManagerInterface $em): Response
+    public function index(EntityManagerInterface $em, Request $request, ExcelImportService $excelImportService): Response
     {
-        $chambres = $em->getRepository(Chambre::class)->findBy([], ['numero' => 'ASC']);
+        // Gérer l'import Excel si un fichier est soumis
+        if ($request->isMethod('POST')) {
+            $file = $request->files->get('excel_file');
+            if ($file) {
+                $result = $excelImportService->importHebergements($file);
+                
+                if ($result['success'] > 0) {
+                    $this->addFlash('success', sprintf('%d hébergements et leurs chambres ont été importés avec succès', $result['success']));
+                }
+                
+                if (!empty($result['errors'])) {
+                    foreach ($result['errors'] as $error) {
+                        $this->addFlash('error', $error);
+                    }
+                }
+                
+                return $this->redirectToRoute('admin_chambres');
+            }
+        }
 
+        $chambres = $em->getRepository(Chambre::class)->findBy([], ['numero' => 'ASC']);
         $hebergements = $em->getRepository(Hebergement::class)->findBy([], ['nom' => 'ASC']);
 
         $stats = [

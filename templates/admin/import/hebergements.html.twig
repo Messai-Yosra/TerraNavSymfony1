@@ -1,0 +1,48 @@
+{% extends 'baseAdmin.html.twig' %}
+
+{% block titre %}Import des hébergements{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h1>Import des hébergements</h1>
+
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        {% for message in app.flashes('error') %}
+            <div class="alert alert-danger">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Format du fichier Excel</h5>
+                <p class="card-text">
+                    Le fichier Excel doit contenir les colonnes suivantes dans l'ordre :
+                </p>
+                <ul>
+                    <li>Nom de l'hébergement</li>
+                    <li>Description</li>
+                    <li>Adresse</li>
+                    <li>Ville</li>
+                    <li>Pays</li>
+                    <li>Prix</li>
+                    <li>Email du propriétaire</li>
+                    <li>Chambres (format: numéro:type;numéro:type)</li>
+                </ul>
+
+                <form method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="excel_file" class="form-label">Sélectionner le fichier Excel</label>
+                        <input type="file" class="form-control" id="excel_file" name="excel_file" accept=".xlsx,.xls" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Importer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %} 

@@ -7,135 +7,142 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-3d@0.8.1/dist/chartjs-chart-3d.min.js"></script>
 
-    <div class="hebergements-container">
-        <div class="header">
-            <h1><i class="fas fa-hotel"></i> Gestion des Hébergements</h1>
-        </div>
-
-        <div class="hebergements-content">
-            <!-- Navigation Tabs -->
-            <div class="tabs-nav">
-                <button class="tab-btn active" data-tab="hebergements">Hébergements</button>
-                <button class="tab-btn" data-tab="stats">Statistiques</button>
+    <div class="container-fluid">
+        <div class="hebergements-container">
+            <div class="header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1><i class="fas fa-hotel"></i> Gestion des Hébergements</h1>
+                    <a href="{{ path('admin_export_hebergements') }}" class="btn btn-info">
+                        <i class="fas fa-file-excel"></i> Exporter Excel
+                    </a>
+                </div>
             </div>
 
-            <!-- Hébergements Tab -->
-            <div id="hebergements" class="tab-pane active">
-                <div class="table-header">
-                    <div class="search-filter">
-                        <div class="search-box">
-                            <input type="text" id="hebergementSearch" placeholder="Rechercher des hébergements...">
-                            <button class="search-btn"><i class="fas fa-search"></i></button>
-                        </div>
-                        <div class="filters">
-                            <select id="typeFilter">
-                                <option value="all">Tous les types</option>
-                                <option value="Hôtel">Hôtel</option>
-                                <option value="Appartement">Appartement</option>
-                                <option value="Maison">Maison</option>
-                                <option value="Auberge">Auberge</option>
-                            </select>
-                            <select id="villeFilter">
-                                <option value="all">Toutes les villes</option>
-                                {% for ville in villes %}
-                                    <option value="{{ ville }}">{{ ville }}</option>
-                                {% endfor %}
-                            </select>
-                            <select id="sortFilter">
-                                <option value="nom">Nom</option>
-                                <option value="note">Note</option>
-                                <option value="chambres">Nb Chambres</option>
-                            </select>
-                        </div>
-                    </div>
-
+            <div class="hebergements-content">
+                <!-- Navigation Tabs -->
+                <div class="tabs-nav">
+                    <button class="tab-btn active" data-tab="hebergements">Hébergements</button>
+                    <button class="tab-btn" data-tab="stats">Statistiques</button>
                 </div>
 
-                <div class="hebergements-list">
-                    {% for hebergement in hebergements %}
-                        <div class="hebergement-card"
-                             data-type="{{ hebergement.typeHebergement }}"
-                             data-ville="{{ hebergement.ville }}"
-                             data-note="{{ hebergement.noteMoyenne }}"
-                             data-chambres="{{ hebergement.nbChambres }}"
-                             data-hebergement-id="{{ hebergement.id }}">
-                            <div class="hebergement-image">
-                                {% set hasImage = false %}
-                                {% for chambre in hebergement.chambres %}
-                                    {% if chambre.images|length > 0 and not hasImage %}
-                                        {% set hasImage = true %}
-                                        <img src="{{ asset(chambre.images[0].url_image) }}" alt="{{ hebergement.nom }}">
+                <!-- Hébergements Tab -->
+                <div id="hebergements" class="tab-pane active">
+                    <div class="table-header">
+                        <div class="search-filter">
+                            <div class="search-box">
+                                <input type="text" id="hebergementSearch" placeholder="Rechercher des hébergements...">
+                                <button class="search-btn"><i class="fas fa-search"></i></button>
+                            </div>
+                            <div class="filters">
+                                <select id="typeFilter">
+                                    <option value="all">Tous les types</option>
+                                    <option value="Hôtel">Hôtel</option>
+                                    <option value="Appartement">Appartement</option>
+                                    <option value="Maison">Maison</option>
+                                    <option value="Auberge">Auberge</option>
+                                </select>
+                                <select id="villeFilter">
+                                    <option value="all">Toutes les villes</option>
+                                    {% for ville in villes %}
+                                        <option value="{{ ville }}">{{ ville }}</option>
+                                    {% endfor %}
+                                </select>
+                                <select id="sortFilter">
+                                    <option value="nom">Nom</option>
+                                    <option value="note">Note</option>
+                                    <option value="chambres">Nb Chambres</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="hebergements-list">
+                        {% for hebergement in hebergements %}
+                            <div class="hebergement-card"
+                                 data-type="{{ hebergement.typeHebergement }}"
+                                 data-ville="{{ hebergement.ville }}"
+                                 data-note="{{ hebergement.noteMoyenne }}"
+                                 data-chambres="{{ hebergement.nbChambres }}"
+                                 data-hebergement-id="{{ hebergement.id }}">
+                                <div class="hebergement-image">
+                                    {% set hasImage = false %}
+                                    {% for chambre in hebergement.chambres %}
+                                        {% if chambre.images|length > 0 and not hasImage %}
+                                            {% set hasImage = true %}
+                                            <img src="{{ asset(chambre.images[0].url_image) }}" alt="{{ hebergement.nom }}">
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if not hasImage %}
+                                        <div class="no-image">
+                                            <i class="fas fa-image"></i>
+                                        </div>
                                     {% endif %}
-                                {% endfor %}
-                                {% if not hasImage %}
-                                    <div class="no-image">
-                                        <i class="fas fa-image"></i>
+                                </div>
+                                <div class="hebergement-details">
+                                    <div class="hebergement-main-info">
+                                        <h3>{{ hebergement.nom }}</h3>
+                                        <div class="hebergement-meta">
+                                            <span class="location">
+                                                <i class="fas fa-map-marker-alt"></i> {{ hebergement.ville }}, {{ hebergement.pays }}
+                                            </span>
+                                            <span class="type">
+                                                <i class="fas fa-home"></i> {{ hebergement.typeHebergement }}
+                                            </span>
+                                        </div>
                                     </div>
-                                {% endif %}
-                            </div>
-                            <div class="hebergement-details">
-                                <div class="hebergement-main-info">
-                                    <h3>{{ hebergement.nom }}</h3>
-                                    <div class="hebergement-meta">
-                                        <span class="location">
-                                            <i class="fas fa-map-marker-alt"></i> {{ hebergement.ville }}, {{ hebergement.pays }}
-                                        </span>
-                                        <span class="type">
-                                            <i class="fas fa-home"></i> {{ hebergement.typeHebergement }}
-                                        </span>
+                                    <div class="hebergement-secondary-info">
+                                        <div class="hebergement-rating">
+                                            <span class="rating"><i class="fas fa-star"></i> {{ hebergement.noteMoyenne }}/5</span>
+                                        </div>
+                                        <div class="hebergement-chambres">
+                                            <i class="fas fa-bed"></i> {{ hebergement.nbChambres }} chambres
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="hebergement-secondary-info">
-                                    <div class="hebergement-rating">
-                                        <span class="rating"><i class="fas fa-star"></i> {{ hebergement.noteMoyenne }}/5</span>
-                                    </div>
-                                    <div class="hebergement-chambres">
-                                        <i class="fas fa-bed"></i> {{ hebergement.nbChambres }} chambres
-                                    </div>
+                                <div class="hebergement-actions">
+                                    <button class="action-btn view-btn" onclick="openHebergementModal({{ hebergement.id }})">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    
                                 </div>
                             </div>
-                            <div class="hebergement-actions">
-                                <button class="action-btn view-btn" onclick="openHebergementModal({{ hebergement.id }})">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                
+                        {% else %}
+                            <div class="no-hebergements">
+                                <i class="fas fa-info-circle"></i>
+                                <p>Aucun hébergement trouvé</p>
                             </div>
-                        </div>
-                    {% else %}
-                        <div class="no-hebergements">
-                            <i class="fas fa-info-circle"></i>
-                            <p>Aucun hébergement trouvé</p>
-                        </div>
-                    {% endfor %}
+                        {% endfor %}
+                    </div>
                 </div>
-            </div>
 
-            <!-- Statistiques Tab -->
-            <div id="stats" class="tab-pane">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <h3><i class="fas fa-map-marked-alt"></i> Top 10 Villes</h3>
-                        <canvas id="villesChart"></canvas>
-                    </div>
+                <!-- Statistiques Tab -->
+                <div id="stats" class="tab-pane">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3><i class="fas fa-map-marked-alt"></i> Top 10 Villes</h3>
+                            <canvas id="villesChart"></canvas>
+                        </div>
 
-                    <div class="stat-card">
-                        <h3><i class="fas fa-star"></i> Répartition des Notes</h3>
-                        <canvas id="notesChart"></canvas>
-                    </div>
+                        <div class="stat-card">
+                            <h3><i class="fas fa-star"></i> Répartition des Notes</h3>
+                            <canvas id="notesChart"></canvas>
+                        </div>
 
-                    <div class="stat-card">
-                        <h3><i class="fas fa-home"></i> Types d'Hébergements</h3>
-                        <canvas id="typesChart"></canvas>
-                    </div>
+                        <div class="stat-card">
+                            <h3><i class="fas fa-home"></i> Types d'Hébergements</h3>
+                            <canvas id="typesChart"></canvas>
+                        </div>
 
-                    <div class="stat-card">
-                        <h3><i class="fas fa-bed"></i> Capacité des Chambres</h3>
-                        <canvas id="capaciteChart"></canvas>
-                    </div>
+                        <div class="stat-card">
+                            <h3><i class="fas fa-bed"></i> Capacité des Chambres</h3>
+                            <canvas id="capaciteChart"></canvas>
+                        </div>
 
-                    <div class="stat-card">
-                        <h3><></i> Prix par Type</h3>
-                        <canvas id="prixChart"></canvas>
+                        <div class="stat-card">
+                            <h3><></i> Prix par Type</h3>
+                            <canvas id="prixChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
