@@ -22,6 +22,7 @@ final class ChambreController extends AbstractController
     public function index(EntityManagerInterface $entityManager, Request $request): Response
     {
         $page = $request->query->getInt('page', 1);
+        $itemsPerPage = 9;
         $hebergementId = $request->query->get('hebergement', '');
         $disponibilite = $request->query->get('disponibilite', '');
         $capacite = $request->query->get('capacite', '');
@@ -55,12 +56,16 @@ final class ChambreController extends AbstractController
                 ->setParameter('maxPrice', $maxPrice);
         }
 
-        // Pagination
-        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($queryBuilder);
-        $paginator
+        // Get total items
+        $totalItems = count($queryBuilder->getQuery()->getResult());
+        $totalPages = ceil($totalItems / $itemsPerPage);
+
+        // Add pagination
+        $paginator = $queryBuilder
+            ->setFirstResult(($page - 1) * $itemsPerPage)
+            ->setMaxResults($itemsPerPage)
             ->getQuery()
-            ->setFirstResult(($page - 1) * 9)
-            ->setMaxResults(9);
+            ->getResult();
 
         // Fetch filter options
         $hebergements = $entityManager->getRepository(Hebergement::class)->findBy([], ['nom' => 'ASC']);
@@ -75,9 +80,10 @@ final class ChambreController extends AbstractController
 
         return $this->render('hebergements/chambre/index.html.twig', [
             'chambres' => $paginator,
-            'totalItems' => count($paginator),
+            'totalItems' => $totalItems,
+            'itemsPerPage' => $itemsPerPage,
             'currentPage' => $page,
-            'itemsPerPage' => 9,
+            'totalPages' => $totalPages,
             'hebergements' => $hebergements,
             'capacites' => $capacites,
             'hebergement_selected' => $hebergementId,

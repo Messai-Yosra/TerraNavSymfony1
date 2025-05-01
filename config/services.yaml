@@ -63,4 +63,9 @@ services:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
+    # Configuration pour ExcelImportService
+    App\Service\ExcelImportService:
+        arguments:
+            $entityManager: '@doctrine.orm.entity_manager'
+
 
