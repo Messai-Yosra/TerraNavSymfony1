@@ -36,6 +36,27 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             opacity: 0.9;
         }
+
+        .btn-reserve {
+            background-color: #28a745;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-reserve:hover {
+            background-color: #218838;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-reserve.disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
     </style>
 
     <div class="container-xxl py-5">
@@ -103,11 +124,25 @@
                                     <p class="text-body mb-3">Équipements : {{ chambre.equipements|default('Non spécifié') }}</p>
 
                                     <div class="d-flex justify-content-between align-items-center">
-                                     <a href="{{ path('app_chambre_show', {'id': chambre.id}) }}"
+                                        <a href="{{ path('app_chambre_show', {'id': chambre.id}) }}"
                                            class="btn-icon btn-detail animate-btn"
                                            title="Voir détails">
                                             <i class="fas fa-eye"></i>
-                                        </a>   
+                                        </a>
+                                        {% if app.user %}
+                                            {% if app.user.role == 'AGENCE' %}
+                                                <a href="{{ path('app_chambre_edit', {'id': chambre.id}) }}"
+                                                   class="btn-icon btn-edit animate-btn"
+                                                   title="Modifier">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            {% elseif app.user.role == 'CLIENT' %}
+                                                <button class="btn btn-reserve {% if not chambre.disponibilite %}disabled{% endif %}"
+                                                        {% if chambre.disponibilite %}onclick="alert('Fonctionnalité de réservation à venir')"{% endif %}>
+                                                    <i class="fas fa-calendar-check me-2"></i>Réserver
+                                                </button>
+                                            {% endif %}
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
