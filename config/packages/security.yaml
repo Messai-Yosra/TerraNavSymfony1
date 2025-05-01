@@ -167,30 +167,31 @@ security:
 
 
         # Routes Gestion Transport
-        - { path: ^/TrajetsAdmin/liste, roles: PUBLIC_ACCESS }
-        - { path: ^/TrajetsAdmin/ajouter, roles: PUBLIC_ACCESS }
-        - { path: ^/TrajetsAdmin/modifier/[ 0-9 ]+, roles: PUBLIC_ACCESS }
-        - { path: ^/TrajetsAdmin/supprimer/[ 0-9 ]+, roles: PUBLIC_ACCESS }
-        - { path: ^/trajets, roles: PUBLIC_ACCESS }
-        - { path: ^/trajets/liste, roles: PUBLIC_ACCESS }
-        - { path: ^/trajets/ajouter, roles: PUBLIC_ACCESS }
-        - { path: ^/trajets/modifier/[ 0-9 ]+, roles: PUBLIC_ACCESS }
-        - { path: ^/trajets/supprimer/[ 0-9 ]+, roles: PUBLIC_ACCESS }
-        - { path: ^/TransportsAdmin, roles: PUBLIC_ACCESS }
-        - { path: ^/TransportsAdmin/liste, roles: PUBLIC_ACCESS }
-        - { path: ^/TransportsAdmin/ajouter, roles: PUBLIC_ACCESS }
-        - { path: ^/TransportsAdmin/modifier/[ 0-9 ]+, roles: PUBLIC_ACCESS }
-        - { path: ^/TransportsAdmin/supprimer/[ 0-9 ]+, roles: PUBLIC_ACCESS }
-        - { path: ^/transports, roles: PUBLIC_ACCESS }
-        - { path: ^/transports/liste, roles: PUBLIC_ACCESS }
-        - { path: ^/transports/ajouter, roles: PUBLIC_ACCESS }
-        - { path: ^/transports/modifier/[ 0-9 ]+, roles: PUBLIC_ACCESS }
-        - { path: ^/transports/supprimer/[ 0-9 ]+, roles: PUBLIC_ACCESS }
-        - { path: ^/cities/autocomplete, roles: PUBLIC_ACCESS }
-        - { path: ^/check-distance, roles: PUBLIC_ACCESS }
-        - { path: ^/transports/search, roles: PUBLIC_ACCESS }
-        - { path: ^/client/trajet/[ 0-9 ]+, roles: PUBLIC_ACCESS }
-        - { path: ^/client/transport/[ 0-9 ]+, roles: PUBLIC_ACCESS }
+        - { path: ^/TrajetsAdmin/liste, roles: ROLE_AGENCE_TRANSPORT }
+        - { path: ^/TrajetsAdmin/ajouter, roles: ROLE_AGENCE_TRANSPORT }
+        - { path: ^/TrajetsAdmin/modifier/[ 0-9 ]+, roles: ROLE_AGENCE_TRANSPORT }
+        - { path: ^/TrajetsAdmin/supprimer/[ 0-9 ]+, roles: ROLE_AGENCE_TRANSPORT }
+        - { path: ^/trajets, roles: PUBLIC_ACCESS } # Route de visualisation - reste accessible à tous
+        - { path: ^/trajets/liste, roles: PUBLIC_ACCESS } # Route de visualisation - reste accessible à tous
+        - { path: ^/trajets/ajouter, roles: ROLE_AGENCE_TRANSPORT }
+        - { path: ^/trajets/modifier/[ 0-9 ]+, roles: ROLE_AGENCE_TRANSPORT }
+        - { path: ^/trajets/supprimer/[ 0-9 ]+, roles: ROLE_AGENCE_TRANSPORT }
+        - { path: ^/TransportsAdmin, roles: ROLE_AGENCE_TRANSPORT }
+        - { path: ^/TransportsAdmin/liste, roles: ROLE_AGENCE_TRANSPORT }
+        - { path: ^/TransportsAdmin/ajouter, roles: ROLE_AGENCE_TRANSPORT }
+        - { path: ^/TransportsAdmin/modifier/[ 0-9 ]+, roles: ROLE_AGENCE_TRANSPORT }
+        - { path: ^/TransportsAdmin/supprimer/[ 0-9 ]+, roles: ROLE_AGENCE_TRANSPORT }
+        - { path: ^/transports, roles: PUBLIC_ACCESS } # Route de visualisation - reste accessible à tous
+        - { path: ^/transports/liste, roles: PUBLIC_ACCESS } # Route de visualisation - reste accessible à tous
+        - { path: ^/transports/ajouter, roles: ROLE_AGENCE_TRANSPORT }
+        - { path: ^/transports/modifier/[ 0-9 ]+, roles: ROLE_AGENCE_TRANSPORT }
+        - { path: ^/transports/supprimer/[ 0-9 ]+, roles: ROLE_AGENCE_TRANSPORT }
+        - { path: ^/cities/autocomplete, roles: PUBLIC_ACCESS } # Utilitaire - reste accessible à tous
+        - { path: ^/check-distance, roles: PUBLIC_ACCESS } # Utilitaire - reste accessible à tous
+        - { path: ^/transports/search, roles: PUBLIC_ACCESS } # Recherche - reste accessible à tous
+        - { path: ^/client/trajet/[ 0-9 ]+, roles: PUBLIC_ACCESS } # Visualisation - reste accessible à tous
+        - { path: ^/client/transport/[ 0-9 ]+, roles: PUBLIC_ACCESS } # Visualisation - reste accessible à tous
+
         # Routes Gestion Hebergement
         - { path: ^/hebergements/*, roles: PUBLIC_ACCESS }
         - { path: ^/chambre/*, roles: PUBLIC_ACCESS }

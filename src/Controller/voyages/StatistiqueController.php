@@ -29,7 +29,13 @@ class StatistiqueController extends AbstractController
     #[Route('/agence/statistiques/offres/pdf', name: 'app_export_offres_pdf')]
     public function exportOffresPdf(OffreRepository $offreRepository, UtilisateurRepository $userRepository): Response
     {
-        $user = $userRepository->find(1);
+        // Utiliser l'utilisateur connecté au lieu d'un ID statique
+        $user = $this->getUser();
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour accéder à cette page');
+            return $this->redirectToRoute('app_login');
+        }
+
         // Récupérer les offres de l'agence connectée
         $offres = $offreRepository->findOffresByAgence($user->getId());
 
@@ -71,7 +77,13 @@ class StatistiqueController extends AbstractController
     #[Route('/agence/statistiques/voyages/csv', name: 'app_export_voyages_csv')]
     public function exportVoyagesCsv(VoyageRepository $voyageRepository, UtilisateurRepository $userRepository): Response
     {
-        $user = $userRepository->find(1);
+        // Utiliser l'utilisateur connecté au lieu d'un ID statique
+        $user = $this->getUser();
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour accéder à cette page');
+            return $this->redirectToRoute('app_login');
+        }
+
         $voyages = $voyageRepository->findBy(['id_user' => $user]);
 
         $handle = fopen('php://memory', 'r+');
@@ -120,9 +132,10 @@ class StatistiqueController extends AbstractController
     #[Route('/agence/statistiques/voyages/excel', name: 'app_export_voyages_excel')]
     public function exportVoyagesExcel(VoyageRepository $voyageRepository, UtilisateurRepository $userRepository): Response
     {
-        $user = $userRepository->find(1);
+        // Utiliser l'utilisateur connecté au lieu d'un ID statique
+        $user = $this->getUser();
         if (!$user) {
-            $this->addFlash('error', 'Vous devez être connecté');
+            $this->addFlash('error', 'Vous devez être connecté pour accéder à cette page');
             return $this->redirectToRoute('app_login');
         }
 
@@ -325,7 +338,12 @@ ICS;
         UtilisateurRepository $userRepository,
         OpenRouterService $openRouterService
     ): Response {
-        $user = $userRepository->find(1); // À remplacer par l'utilisateur connecté
+        // Utiliser l'utilisateur connecté au lieu d'un ID statique
+        $user = $this->getUser();
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour accéder à cette page');
+            return $this->redirectToRoute('app_login');
+        }
 
         // Récupérer les données
         $offres = $offreRepository->findOffresByAgence($user->getId());

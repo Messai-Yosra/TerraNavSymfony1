@@ -1,4 +1,4 @@
-{% extends 'loginBase.html.twig' %}
+{% extends is_granted('ROLE_AGENCE_VOYAGE') ? 'baseAgenceVoyage.html.twig' : (is_granted('ROLE_AGENCE_TRANSPORT') ? 'BaseAgenceTransport.html.twig' : (is_granted('ROLE_AGENCE_HEBERGEMENT') ? 'baseAgenceHebergement.html.twig' : 'loginBase.html.twig')) %}
 
 {% block title %}Bienvenue sur TerraNav - Votre passeport pour l'aventure{% endblock %}
 

@@ -7,7 +7,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Validator\Constraints\DistanceConstraint;
-use App\Service\IpCountryService;
+use App\Service\transports\IpCountryService;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Psr\Log\LoggerInterface;
@@ -101,12 +101,26 @@ final class TransportClientController extends AbstractController
         $searchTerm = $request->query->get('search', '');
         $isAjax = $request->isXmlHttpRequest();
 
+        // Récupérer l'utilisateur actuellement connecté
+        $user = $this->getUser();
+        
+        if (!$user) {
+            if ($isAjax) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Vous devez être connecté pour accéder à cette fonctionnalité'
+                ], 403);
+            }
+            $this->addFlash('error', 'Vous devez être connecté pour accéder à cette fonctionnalité');
+            return $this->redirectToRoute('app_login');
+        }
+
         $queryBuilder = $entityManager->getRepository(Transport::class)
             ->createQueryBuilder('t')
             ->where('t.id_user = :user')
             ->andWhere('t.id IS NOT NULL')
             ->andWhere('t.id > 0')
-            ->setParameter('user', $entityManager->getReference(Utilisateur::class, 251));
+            ->setParameter('user', $user);
 
         if ($searchTerm) {
             $queryBuilder->andWhere('t.nom LIKE :searchTerm')
@@ -159,10 +173,7 @@ final class TransportClientController extends AbstractController
     {
         $transport = new Transport();
 
-        // Récupérer l'adresse IP du client
         $clientIp = $request->getClientIp();
-
-        // Obtenir le code du pays et l'indicatif téléphonique
         $countryCode = $ipCountryService->getCountryCodeFromIp($clientIp);
         $phoneCode = $countryCode ? $ipCountryService->getPhoneCodeFromCountryCode($countryCode) : '';
 
@@ -296,7 +307,17 @@ final class TransportClientController extends AbstractController
                 }
 
                 try {
-                    $transport->setId_User($em->getReference(Utilisateur::class, 251));
+                    // Récupérer l'utilisateur connecté
+                    $user = $this->getUser();
+                    if (!$user) {
+                        return $this->json([
+                            'success' => false,
+                            'title' => 'Erreur',
+                            'message' => 'Vous devez être connecté pour effectuer cette action'
+                        ], 403);
+                    }
+                    
+                    $transport->setId_User($user);
                     $transport->setId_Trajet($em->getReference(Trajet::class, 4));
 
                     $imageFile = $form->get('imagePath')->getData();
@@ -330,7 +351,14 @@ final class TransportClientController extends AbstractController
             // Non-AJAX handling
             if ($form->isValid()) {
                 try {
-                    $transport->setId_User($em->getReference(Utilisateur::class, 251));
+                    // Récupérer l'utilisateur connecté
+                    $user = $this->getUser();
+                    if (!$user) {
+                        $this->addFlash('error', 'Vous devez être connecté pour effectuer cette action');
+                        return $this->redirectToRoute('client_transport_new');
+                    }
+                    
+                    $transport->setId_User($user);
                     $transport->setId_Trajet($em->getReference(Trajet::class, 4));
 
                     $imageFile = $form->get('imagePath')->getData();
@@ -559,7 +587,22 @@ final class TransportClientController extends AbstractController
     #[Route('/transports/supprimer/{id}', name: 'client_transport_delete')]
     public function delete(Request $request, Transport $transport, EntityManagerInterface $em): Response
     {
-        if ($transport->getId_User()->getId() !== 251) {
+        $user = $this->getUser();
+        
+        // Vérifier que l'utilisateur est connecté
+        if (!$user) {
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Vous devez être connecté pour effectuer cette action'
+                ], 403);
+            }
+            $this->addFlash('error', 'Vous devez être connecté pour effectuer cette action');
+            return $this->redirectToRoute('app_login');
+        }
+        
+        // Vérifier que l'utilisateur est le propriétaire du transport
+        if ($transport->getId_User() !== $user) {
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse([
                     'success' => false,

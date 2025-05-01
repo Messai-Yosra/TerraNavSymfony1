@@ -26,7 +26,7 @@ class SignUpType extends AbstractType
             ])
             ->add('role', ChoiceType::class, [
                 'choices' => [
-                    'Client' => 'CLIENT',
+                    'Client' => 'Client',
                     'Agence' => 'Agence',
                 ],
                 'expanded' => false,
@@ -42,9 +42,9 @@ class SignUpType extends AbstractType
             ])
             ->add('typeAgence', ChoiceType::class, [
                 'choices' => [
-                    'Hébergement' => 'Hebergement',
-                    'Voyage' => 'Transport',
-                    'Transport' => 'Transport',
+                    'Hébergement' => 'HEBERGEMENT',
+                    'Voyage' => 'VOYAGE',
+                    'Transport' => 'TRANSPORT',
                     'Mixte' => 'Mixte',
                 ],
                 'required' => false,

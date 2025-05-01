@@ -24,10 +24,11 @@ class OffreController extends AbstractController
     #[Route('/AjoutOffre', name: 'app_ajout_offre', methods: ['GET', 'POST'])]
     public function ajoutOffre(Request $request, UtilisateurRepository $userRepository, ValidatorInterface $validator): Response
     {
-        $user = $userRepository->find(1);
+        // Utiliser l'utilisateur connecté au lieu d'un ID statique
+        $user = $this->getUser();
         if (!$user) {
-            $this->addFlash('error', 'Utilisateur non trouvé');
-            return $this->redirectToRoute('app_ajout_offre');
+            $this->addFlash('error', 'Vous devez être connecté pour accéder à cette page');
+            return $this->redirectToRoute('app_login');
         }
 
         if ($request->isMethod('POST')) {
@@ -166,12 +167,11 @@ class OffreController extends AbstractController
         }
 
         try {
-            // Récupérer l'utilisateur existant (id=1)
-            $user = $userRepository->find(1);
-
+            // Utiliser l'utilisateur connecté au lieu d'un ID statique
+            $user = $this->getUser();
             if (!$user) {
-                $this->addFlash('error', 'Utilisateur non trouvé');
-                return $this->redirectToRoute('app_ajout_offre');
+                $this->addFlash('error', 'Vous devez être connecté pour accéder à cette page');
+                return $this->redirectToRoute('app_login');
             }
 
             // Créez une nouvelle instance de Offre

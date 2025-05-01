@@ -139,7 +139,17 @@ final class TrajetClientController extends AbstractController
                 }
 
                 try {
-                    $trajet->setId_User($em->getReference(Utilisateur::class, 251));
+                    // Récupérer l'utilisateur connecté
+                    $user = $this->getUser();
+                    if (!$user) {
+                        return $this->json([
+                            'success' => false,
+                            'title' => 'Erreur',
+                            'message' => 'Vous devez être connecté pour effectuer cette action'
+                        ], 403);
+                    }
+                    
+                    $trajet->setId_User($user);
                     $em->persist($trajet);
                     $em->flush();
 
@@ -161,7 +171,14 @@ final class TrajetClientController extends AbstractController
             // Non-AJAX handling
             if ($form->isValid()) {
                 try {
-                    $trajet->setId_User($em->getReference(Utilisateur::class, 251));
+                    // Récupérer l'utilisateur connecté
+                    $user = $this->getUser();
+                    if (!$user) {
+                        $this->addFlash('error', 'Vous devez être connecté pour effectuer cette action');
+                        return $this->redirectToRoute('client_trajet_new');
+                    }
+                    
+                    $trajet->setId_User($user);
                     $em->persist($trajet);
                     $em->flush();
 
@@ -272,7 +289,23 @@ final class TrajetClientController extends AbstractController
     #[Route('/trajets/supprimer/{id}', name: 'client_trajet_delete')]
     public function delete(Request $request, Trajet $trajet, EntityManagerInterface $em): Response
     {
-        if ($trajet->getId_User()->getId() !== 251) {
+        // Récupérer l'utilisateur connecté
+        $user = $this->getUser();
+        
+        // Vérifier que l'utilisateur est connecté
+        if (!$user) {
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'Vous devez être connecté pour effectuer cette action'
+                ], 403);
+            }
+            $this->addFlash('error', 'Vous devez être connecté pour effectuer cette action');
+            return $this->redirectToRoute('app_login');
+        }
+        
+        // Vérifier que l'utilisateur est le propriétaire du trajet
+        if ($trajet->getId_User() !== $user) {
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse([
                     'success' => false,

@@ -25,14 +25,14 @@ class VoyageController extends AbstractController
         $form = $this->createForm(VoyageType::class, $voyage);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            // Récupérer l'utilisateur
-            $user = $userRepository->find(1);
-            if (!$user) {
-                $this->addFlash('error', 'Utilisateur non trouvé');
-                return $this->redirectToRoute('app_ajout_voyage');
-            }
+        // Récupérer l'utilisateur connecté
+        $user = $this->getUser();
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour ajouter un voyage');
+            return $this->redirectToRoute('app_login');
+        }
 
+        if ($form->isSubmitted() && $form->isValid()) {
             $voyage->setId_user($user);
 
             // Gestion des images
@@ -85,7 +85,8 @@ class VoyageController extends AbstractController
             return $this->redirectToRoute('app_confirmation_ajout');
         }
 
-        $offres = $offreRepository->findAll();
+        // Récupérer uniquement les offres de l'utilisateur connecté
+        $offres = $offreRepository->findBy(['id_user' => $user]);
         return $this->render('voyages/AjouterVoyage.html.twig', [
             'form' => $form->createView(),
             'offres' => $offres
@@ -124,12 +125,11 @@ class VoyageController extends AbstractController
         }
 
         try {
-            // Récupérer l'utilisateur existant (id=1)
-            $user = $userRepository->find(1);
-
+            // Récupérer l'utilisateur connecté au lieu d'utiliser un ID statique
+            $user = $this->getUser();
             if (!$user) {
-                $this->addFlash('error', 'Utilisateur non trouvé');
-                return $this->redirectToRoute('app_ajout_voyage');
+                $this->addFlash('error', 'Vous devez être connecté pour publier un voyage');
+                return $this->redirectToRoute('app_login');
             }
 
             // Créez une nouvelle instance de Voyage
@@ -236,7 +236,10 @@ class VoyageController extends AbstractController
 
         $form = $this->createForm(VoyageType::class, $voyage);
 
-        $offres = $offreRepository->findAll();
+        // Récupérer uniquement les offres de l'utilisateur connecté
+        $user = $this->getUser();
+        $offres = $offreRepository->findBy(['id_user' => $user]);
+
         return $this->render('voyages/AjouterVoyageIA.html.twig', [
             'form' => $form->createView(),
             'offres' => $offres,

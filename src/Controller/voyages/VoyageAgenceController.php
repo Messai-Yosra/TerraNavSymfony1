@@ -23,6 +23,13 @@ final class VoyageAgenceController extends AbstractController
     #[Route('/VoyagesAgence', name: 'app_voyages_agence')]
     public function index(Request $request, VoyageRepository $voyageRepository, UtilisateurRepository $userRepository): Response
     {
+        // Utiliser l'utilisateur connecté au lieu d'un ID statique
+        $user = $this->getUser();
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour accéder à cette page');
+            return $this->redirectToRoute('app_login');
+        }
+
         // Récupérer les paramètres de filtrage
         $searchTerm = $request->query->get('search');
         $minPrice = $request->query->get('minPrice');
@@ -31,9 +38,6 @@ final class VoyageAgenceController extends AbstractController
         $type = $request->query->get('type');
         $onSale = $request->query->get('onSale');
         $sortType = $request->query->get('sort');
-
-        // Récupérer l'utilisateur avec ID=1
-        $user = $userRepository->find(1);
 
         // Construire les critères de filtrage
         $criteria = [];

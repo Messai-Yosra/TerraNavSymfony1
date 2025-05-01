@@ -56,7 +56,7 @@ services:
             $httpClient: '@http_client'
             $logger: '@logger'
 
-    App\Service\IpCountryService:
+    App\Service\transports\IpCountryService:
         arguments:
             $httpClient: '@http_client'
             $logger: '@logger'
