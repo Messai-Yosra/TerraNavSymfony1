@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 #[Route('/chambre')]
 final class ChambreController extends AbstractController
@@ -158,5 +159,14 @@ final class ChambreController extends AbstractController
         }
 
         return $this->redirectToRoute('app_chambre_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    #[Route('/change-currency', name: 'app_change_currency', methods: ['POST'])]
+    public function changeCurrency(Request $request): JsonResponse
+    {
+        $currency = $request->request->get('currency', 'auto');
+        $request->getSession()->set('currency', $currency);
+        
+        return new JsonResponse(['success' => true]);
     }
 }

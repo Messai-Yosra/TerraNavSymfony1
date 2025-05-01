@@ -81,7 +81,8 @@
                                         </div>
                                     {% endif %}
                                     <small class="position-absolute start-0 top-100 translate-middle-y bg-primary text-white rounded py-1 px-3 ms-4">
-                                        {{ chambre.prix|number_format(2, ',', ' ') }}€/Nuit
+                                        {% set local_price = chambre.prix|local_price %}
+                                        {{ local_price.amount }} {{ local_price.currency }}/Nuit
                                     </small>
                                 </div>
 

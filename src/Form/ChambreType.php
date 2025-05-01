@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\Chambre;
 use App\Entity\Hebergement;
+use App\Service\hebergements\GeoLocationService;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -13,6 +14,7 @@ use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Validator\Constraints\All;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -20,8 +22,18 @@ use Symfony\Component\Validator\Constraints\Positive;
 
 class ChambreType extends AbstractType
 {
+    private $geoLocationService;
+
+    public function __construct(GeoLocationService $geoLocationService)
+    {
+        $this->geoLocationService = $geoLocationService;
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $countryInfo = $this->geoLocationService->getCurrentCountryInfo();
+        $defaultCurrency = $countryInfo['currency'];
+
         $builder
             ->add('numero', TextType::class, [
                 'label' => 'Numéro de chambre',
@@ -33,11 +45,30 @@ class ChambreType extends AbstractType
                 'label' => 'Disponible immédiatement',
                 'required' => false
             ])
+            ->add('devise', ChoiceType::class, [
+                'label' => 'Devise',
+                'mapped' => false,
+                'choices' => [
+                    'Auto ('. $defaultCurrency .')' => 'auto',
+                    'Euro (EUR)' => 'EUR',
+                    'Dollar (USD)' => 'USD',
+                    'Dinar Tunisien (TND)' => 'TND',
+                    'Livre Sterling (GBP)' => 'GBP'
+                ],
+                'data' => 'auto',
+                'attr' => [
+                    'class' => 'currency-selector',
+                    'onchange' => 'updatePriceLabel(this.value)'
+                ]
+            ])
             ->add('prix', NumberType::class, [
-                'label' => 'Prix par nuit (€)',
+                'label' => 'Prix par nuit (' . $defaultCurrency . ')',
                 'constraints' => [
                     new NotBlank(['message' => 'Le prix est obligatoire']),
                     new Positive(['message' => 'Le prix doit être positif'])
+                ],
+                'attr' => [
+                    'data-original-currency' => $defaultCurrency
                 ]
             ])
             ->add('description', TextareaType::class, [

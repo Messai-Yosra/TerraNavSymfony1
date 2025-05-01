@@ -120,7 +120,7 @@ final class HebergementController extends AbstractController
                 }
                 $hebergementImages[$hebergement->getId()] = $firstImage;
             }
-
+          
             return $this->render('hebergements/hebergement/index.html.twig', [
                 'hebergements' => $hebergements,
                 'hebergementImages' => $hebergementImages,
@@ -414,5 +414,14 @@ public function searchClient(Request $request, EntityManagerInterface $entityMan
         }
 
         return $this->redirectToRoute('app_hebergement_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    #[Route('/currency/change', name: 'app_change_currency', methods: ['POST'])]
+    public function changeCurrency(Request $request): Response
+    {
+        $currency = $request->request->get('currency', 'auto');
+        $request->getSession()->set('currency', $currency);
+        
+        return $this->redirectToRoute('app_hebergement_index');
     }
 }

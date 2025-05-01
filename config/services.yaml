@@ -48,4 +48,14 @@ services:
         tags:
             - { name: kernel.event_subscriber }
 
+    App\Service\hebergements\GeoLocationService:
+        arguments:
+            $client: '@http_client'
+            $requestStack: '@request_stack'
+
+    
+
+    App\Twig\PriceExtension:
+        tags: ['twig.extension']
+
 

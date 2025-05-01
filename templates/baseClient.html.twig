@@ -70,10 +70,25 @@
                                    class="nav-item nav-link {{ app.request.get('_route') == 'app_transports' ? 'active' : '' }}">
                                     Transports
                                 </a>
-                                <a href="{{ path('app_hebergement_index') }}"
-                                   class="nav-item nav-link {{ app.request.get('_route') == 'app_hebergements' ? 'active' : '' }}">
-                                    Hebergements
-                                </a>
+                                
+                                {% if app.user.role == 'AGENCE' %}
+                                    <a href="{{ path('app_hebergement_index') }}"
+                                    class="nav-item nav-link {{ app.request.get('_route') == 'app_hebergements' ? 'active' : '' }}">
+                                        Hebergements 
+                                    </a>
+                                 
+           
+                                {% elseif app.user.role == 'CLIENT' %}
+                                    <a href="{{ path('app_hebergements') }}"
+                                    class="nav-item nav-link {{ app.request.get('_route') == 'app_hebergements' ? 'active' : '' }}">
+                                    Hebergements 
+
+                                    </a>
+                                 
+                                
+                                
+                                {% endif %} 
+
                                 <a href="{{ path('app_chat') }}"
                                    class="nav-item nav-link {{ app.request.get('_route') == 'app_chat' ? 'active' : '' }}">
                                     Chat

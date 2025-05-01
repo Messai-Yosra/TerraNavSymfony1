@@ -58,8 +58,17 @@
 
                         <!-- Prix max -->
                         <div class="col-md-3">
-                            <label for="maxPrice" class="form-label fw-semibold">Prix Max (€)</label>
-                            <input type="number" name="maxPrice" id="maxPrice" class="form-control" placeholder="Ex: 200" value="{{ maxPrice_selected|default('') }}">
+                            <label for="maxPrice" class="form-label fw-semibold">Prix Max</label>
+                            <div class="input-group">
+                                <input type="number" name="maxPrice" id="maxPrice" class="form-control" placeholder="Ex: 200" value="{{ maxPrice_selected|default('') }}">
+                                <select name="currency" id="currency" class="form-select" style="max-width: 80px;">
+                                    <option value="auto" {% if app.session.get('currency', 'auto') == 'auto' %}selected{% endif %}>Auto</option>
+                                    <option value="EUR" {% if app.session.get('currency') == 'EUR' %}selected{% endif %}>€</option>
+                                    <option value="USD" {% if app.session.get('currency') == 'USD' %}selected{% endif %}>$</option>
+                                    <option value="TND" {% if app.session.get('currency') == 'TND' %}selected{% endif %}>TND</option>
+                                    <option value="GBP" {% if app.session.get('currency') == 'GBP' %}selected{% endif %}>£</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div class="col-12 text-end mt-3">
@@ -93,7 +102,12 @@
                                         <img class="img-fluid chambre-image" src="{{ asset('img/chambre-default.jpg') }}" alt="Chambre {{ chambre.numero }}">
                                     {% endif %}
                                     <small class="price-badge">
-                                        {{ chambre.prix is not null ? chambre.prix|number_format(2, '.', ',') ~ ' €/Nuit' : 'Prix non défini' }}
+                                        {% if chambre.prix is not null %}
+                                            {% set local_price = chambre.prix|local_price %}
+                                            {{ local_price.amount }} {{ local_price.currency }}/Nuit
+                                        {% else %}
+                                            Prix non défini
+                                        {% endif %}
                                     </small>
                                 </div>
                                 <div class="p-4 mt-2 d-flex flex-column card-content">
@@ -335,4 +349,26 @@
             }
         }
     </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const currencySelect = document.getElementById('currency');
+            if (currencySelect) {
+                currencySelect.addEventListener('change', function() {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '{{ path('app_change_currency') }}';
+
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'currency';
+                    input.value = this.value;
+
+                    form.appendChild(input);
+                    document.body.appendChild(form);
+                    form.submit();
+                });
+            }
+        });
+    </script>
 {% endblock %}
