@@ -2,15 +2,12 @@
 
 namespace App\Controller\transports;
 
-use App\Entity\Reservation;
-use App\Repository\Reservation\PanierRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Validator\Constraints\DistanceConstraint;
-use App\Service\transports\IpCountryService;
+use App\Service\IpCountryService;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Psr\Log\LoggerInterface;
@@ -31,7 +28,6 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Knp\Snappy\Pdf;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use App\Service\CityAutocompleter;
 use Symfony\Component\HttpClient\HttpClient;
@@ -40,7 +36,7 @@ use Symfony\Component\HttpClient\HttpClient;
 
 final class TransportClientController extends AbstractController
 {
-
+   
     #[Route('/transports', name: 'app_transports')]
     public function index(Request $request): Response
     {
@@ -84,7 +80,7 @@ final class TransportClientController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
-
+            
             return $this->redirectToRoute('app_transport_search', [
                 'departure' => $data['departure'],
                 'destination' => $data['destination'],
@@ -171,6 +167,8 @@ final class TransportClientController extends AbstractController
             'searchTerm' => $searchTerm,
         ]);
     }
+
+
 
     #[Route('/transports/ajouter', name: 'client_transport_new')]
     public function new(Request $request, EntityManagerInterface $em, IpCountryService $ipCountryService): Response
@@ -391,6 +389,8 @@ final class TransportClientController extends AbstractController
             'phoneCode' => $phoneCode,
         ]);
     }
+
+   
 
     #[Route('/transports/modifier/{id}', name: 'client_transport_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, string $id, EntityManagerInterface $em): Response
@@ -654,6 +654,7 @@ final class TransportClientController extends AbstractController
         return $this->redirectToRoute('client_transports_list');
     }
 
+
     #[Route('/transports/search', name: 'app_transport_search')]
     public function search(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -823,11 +824,11 @@ final class TransportClientController extends AbstractController
     public function autocomplete(Request $request, CityAutocompleter $cityAutocompleter, LoggerInterface $logger): JsonResponse
     {
         $query = $request->query->get('q', '');
-
+    
         try {
             // Récupérer les suggestions
             $cities = $cityAutocompleter->getCitySuggestions($query);
-
+    
             // Formatter les résultats pour l'autocomplétion
             $suggestions = array_map(function ($city) {
                 return [
@@ -836,7 +837,7 @@ final class TransportClientController extends AbstractController
                     'coordinates' => $city['coordinates'],
                 ];
             }, $cities);
-
+    
             return new JsonResponse($suggestions);
         } catch (\Exception $e) {
             $logger->error('Autocomplete failed: {message}', [
@@ -894,7 +895,7 @@ final class TransportClientController extends AbstractController
             throw $e; // Remove this in production; redirect with flash message instead
         }
     }
-
+    
     #[Route('/transports/affecter/{transportId}', name: 'client_transport_affect_trajet', methods: ['GET'])]
 public function affectTrajet(int $transportId, EntityManagerInterface $entityManager): Response
 {
@@ -961,79 +962,4 @@ public function details(Transport $transport, EntityManagerInterface $entityMana
         'autresTransports' => $autresTransports,
     ]);
 }
-
-    #[Route('/transport/reserve', name: 'app_transport_reserve', methods: ['POST'])]
-    public function reserveTransport(
-        Request $request,
-        EntityManagerInterface $em,
-        ValidatorInterface $validator,
-        Security $security,
-        PanierRepository $panierRepo
-    ): JsonResponse {
-        $transportId = $request->request->get('transportId');
-        $reservationDate = $request->request->get('reservationDate');
-
-        // Get transport
-        $transport = $em->getRepository(Transport::class)->find($transportId);
-        if (!$transport) {
-            return $this->json([
-                'success' => false,
-                'message' => 'Transport non trouvé',
-                'field' => null
-            ], 404);
-        }
-
-        // Get current user
-        $user = $security->getUser();
-        if (!$user) {
-            return $this->json([
-                'success' => false,
-                'message' => 'Vous devez être connecté pour effectuer une réservation',
-                'field' => null
-            ], 403);
-        }
-
-        $userId = $user->getId();
-        $panier = $panierRepo->findByUser($userId) ?? $panierRepo->createPanierForUser($userId);
-
-        // Create reservation
-        $reservation = new Reservation();
-        $reservation->setid_panier($panierRepo->findByUser($user->getId()) ?? $panierRepo->createPanierForUser($user->getId()));
-        $reservation->setid_Transport($transport);
-        $reservation->settype_service('Transport');
-        $reservation->setprix($transport->getPrix());
-        $reservation->setdate_reservation(new \DateTime($reservationDate));
-        $reservation->setdateAffectation(new \DateTime());
-        $reservation->setEtat('PENDING');
-        $reservation->setnb_places($transport->getCapacite());
-
-        // Validate against entity asserts
-        $errors = $validator->validate($reservation);
-
-        if (count($errors) > 0) {
-            $error = $errors[0];
-            return $this->json([
-                'success' => false,
-                'message' => $error->getMessage(),
-                'field' => $error->getPropertyPath()
-            ], 400);
-        }
-
-        try {
-            $em->persist($reservation);
-            $em->flush();
-            $panierRepo->updateTotalPrice($panier->getId());
-
-            return $this->json([
-                'success' => true,
-                'message' => 'Votre réservation a été confirmée avec succès!'
-            ]);
-        } catch (\Exception $e) {
-            return $this->json([
-                'success' => false,
-                'message' => 'Erreur lors de la réservation: ' . $e->getMessage(),
-                'field' => null
-            ], 500);
-        }
-    }
 }

@@ -1,105 +1,73 @@
 <?php
 
-namespace App\Service\transports;
+namespace App\Service;
 
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 class IpCountryService
 {
     private $httpClient;
     private $logger;
-    private $defaultPhoneCode = '+216'; // Code par défaut pour la Tunisie
+    private $cache;
 
-    public function __construct(HttpClientInterface $httpClient, LoggerInterface $logger)
+    public function __construct(HttpClientInterface $httpClient, LoggerInterface $logger, CacheInterface $cache)
     {
         $this->httpClient = $httpClient;
         $this->logger = $logger;
+        $this->cache = $cache;
     }
 
     public function getCountryCodeFromIp(string $ip): ?string
     {
-        // Si c'est une IP locale ou de développement, retourner directement TN
-        if ($this->isLocalIp($ip)) {
-            return 'TN';
+        if ($ip === '127.0.0.1' || $ip === '::1') {
+            return 'TN'; // Default to Tunisia for local development
         }
-        
-        try {
-            // Utilisation de HTTP pour la version gratuite de ip-api.com
-            $response = $this->httpClient->request('GET', 'http://ip-api.com/json/' . $ip, [
-                'timeout' => 2.0 // 2 secondes max
-            ]);
-            
-            $data = $response->toArray();
 
-            if (isset($data['status']) && $data['status'] === 'success') {
-                return $data['countryCode'] ?? 'TN';
-            }
+        $cacheKey = 'ip_country_' . md5($ip);
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($ip) {
+            $item->expiresAfter(3600); // Cache for 1 hour
+            try {
+                $response = $this->httpClient->request('GET', 'http://ip-api.com/json/' . $ip, ['timeout' => 5]);
+                $data = $response->toArray();
 
-            $this->logger->warning('Échec de la récupération du code pays pour l\'IP: ' . $ip);
-            return 'TN'; // Valeur par défaut en cas d'échec
-        } catch (\Exception $e) {
-            $this->logger->error('Erreur lors de la récupération du code pays: ' . $e->getMessage());
-            return 'TN'; // Valeur par défaut en cas d'erreur
-        }
-    }
-
-    public function getPhoneCodeFromCountryCode(string $countryCode): string
-    {
-        // Valeurs hardcodées pour les codes téléphoniques courants
-        $phoneCodes = [
-            'TN' => '+216', // Tunisie
-            'FR' => '+33',  // France
-            'US' => '+1',   // États-Unis
-            'CA' => '+1',   // Canada
-            'GB' => '+44',  // Royaume-Uni
-            'DE' => '+49',  // Allemagne
-            'IT' => '+39',  // Italie
-            'ES' => '+34',  // Espagne
-            'MA' => '+212', // Maroc
-            'DZ' => '+213', // Algérie
-            'EG' => '+20',  // Égypte
-        ];
-        
-        // Si nous avons déjà le code dans notre liste, l'utiliser directement
-        if (isset($phoneCodes[$countryCode])) {
-            return $phoneCodes[$countryCode];
-        }
-        
-        try {
-            $response = $this->httpClient->request('GET', 'https://restcountries.com/v3.1/alpha/' . $countryCode, [
-                'timeout' => 2.0 // 2 secondes max
-            ]);
-            
-            $data = $response->toArray();
-
-            if (!empty($data)) {
-                $countryData = $data[0];
-                if (isset($countryData['idd']['root']) && !empty($countryData['idd']['suffixes'])) {
-                    return $countryData['idd']['root'] . $countryData['idd']['suffixes'][0];
+                if ($data['status'] === 'success') {
+                    return $data['countryCode'] ?? null;
                 }
-            }
 
-            $this->logger->warning('Échec de la récupération de l\'indicatif téléphonique pour le code pays: ' . $countryCode);
-            return $this->defaultPhoneCode;
-        } catch (\Exception $e) {
-            $this->logger->error('Erreur lors de la récupération de l\'indicatif téléphonique: ' . $e->getMessage());
-            return $this->defaultPhoneCode;
-        }
+                $this->logger->warning('Échec de la récupération du code pays pour l\'IP: ' . $ip);
+                return null;
+            } catch (\Exception $e) {
+                $this->logger->error('Erreur lors de la récupération du code pays: ' . $e->getMessage());
+                return null;
+            }
+        });
     }
-    
-    /**
-     * Vérifie si une adresse IP est locale
-     */
-    private function isLocalIp(string $ip): bool
+
+    public function getPhoneCodeFromCountryCode(string $countryCode): ?string
     {
-        return (
-            $ip === '127.0.0.1' ||
-            $ip === '::1' ||
-            substr($ip, 0, 8) === '192.168.' ||
-            substr($ip, 0, 4) === '10.' ||
-            substr($ip, 0, 7) === '172.16.' ||
-            $ip === 'localhost'
-        );
+        $cacheKey = 'phone_code_' . $countryCode;
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($countryCode) {
+            $item->expiresAfter(86400); // Cache for 1 day
+            try {
+                $response = $this->httpClient->request('GET', 'https://restcountries.com/v3.1/alpha/' . $countryCode, ['timeout' => 5]);
+                $data = $response->toArray();
+
+                if (!empty($data)) {
+                    $countryData = $data[0];
+                    if (isset($countryData['idd']['root']) && !empty($countryData['idd']['suffixes'])) {
+                        return $countryData['idd']['root'] . $countryData['idd']['suffixes'][0];
+                    }
+                }
+
+                $this->logger->warning('Échec de la récupération de l\'indicatif téléphonique pour le code pays: ' . $countryCode);
+                return null;
+            } catch (\Exception $e) {
+                $this->logger->error('Erreur lors de la récupération de l\'indicatif téléphonique: ' . $e->getMessage());
+                return null;
+            }
+        });
     }
 }

@@ -1,4 +1,5 @@
 {% extends 'baseAgenceTransport.html.twig' %}
+
 {% block titre %}Ajouter un Trajet{% endblock %}
 
 {% block content %}
@@ -95,16 +96,16 @@
 
 {% block javascripts %}
     {{ parent() }}
-    
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('trajet-form');
-            form.addEventListener('submit', function() {
-                // Afficher spinner au clic sur "Enregistrer"
-                document.querySelector('.submit-text').style.display = 'none';
-                document.querySelector('.loading-spinner').style.display = 'inline-block';
+            form.addEventListener('submit', function(e) {
+                const submitButton = form.querySelector('.search-button');
+                submitButton.disabled = true;
+                submitButton.querySelector('.submit-text').style.display = 'none';
+                submitButton.querySelector('.loading-spinner').style.display = 'inline-block';
             });
 
             {% for message in app.flashes('success') %}
@@ -112,6 +113,16 @@
                     title: 'Succès !',
                     text: '{{ message }}',
                     icon: 'success',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    window.location.href = '{{ path('client_trajets_list') }}';
+                });
+            {% endfor %}
+            {% for message in app.flashes('error') %}
+                Swal.fire({
+                    title: 'Erreur !',
+                    text: '{{ message }}',
+                    icon: 'error',
                     confirmButtonText: 'OK'
                 });
             {% endfor %}

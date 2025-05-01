@@ -1,4 +1,5 @@
-{% extends 'baseAgenceTransport.html.twig' %}
+{% extends "baseClient.html.twig" %}
+
 {% block titre %}Ajouter un Transport{% endblock %}
 
 {% block content %}
@@ -106,7 +107,6 @@
 
 {% block javascripts %}
     {{ parent() }}
-    
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/intlTelInput.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/css/intlTelInput.css">
@@ -115,14 +115,29 @@
         document.addEventListener('DOMContentLoaded', function() {
             const input = document.querySelector("#{{ form.contact.vars.id }}");
             const iti = window.intlTelInput(input, {
-                initialCountry: "{{ phoneCode|slice(1)|replace({'+': ''})|default('tn') }}", // Ex: "+216" -> "tn"
-                utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/utils.js"
+                initialCountry: "{{ countryCode|default('tn') }}", // Use ISO alpha-2 country code (e.g., 'TN')
+                utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/utils.js",
+                separateDialCode: true
+            });
+
+            input.addEventListener('blur', function() {
+                if (iti.isValidNumber()) {
+                    input.value = iti.getNumber();
+                }
             });
 
             const form = document.getElementById('transport-form');
-            form.addEventListener('submit', function() {
-                document.querySelector('.submit-text').style.display = 'none';
-                document.querySelector('.loading-spinner').style.display = 'inline-block';
+            form.addEventListener('submit', function(e) {
+                const submitButton = form.querySelector('.search-button');
+                submitButton.disabled = true;
+                submitButton.querySelector('.submit-text').style.display = 'none';
+                submitButton.querySelector('.loading-spinner').style.display = 'inline-block';
+            });
+
+            const fileInput = document.querySelector('input[type="file"]');
+            const fileMsg = document.querySelector('.file-msg');
+            fileInput.addEventListener('change', function() {
+                fileMsg.textContent = this.files.length > 0 ? this.files[0].name : 'Aucun fichier sélectionné';
             });
 
             {% for message in app.flashes('success') %}
@@ -130,6 +145,16 @@
                     title: 'Succès !',
                     text: '{{ message }}',
                     icon: 'success',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    window.location.href = '{{ path('client_transports_list') }}';
+                });
+            {% endfor %}
+            {% for message in app.flashes('error') %}
+                Swal.fire({
+                    title: 'Erreur !',
+                    text: '{{ message }}',
+                    icon: 'error',
                     confirmButtonText: 'OK'
                 });
             {% endfor %}
