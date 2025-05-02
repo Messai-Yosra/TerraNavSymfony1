@@ -35,12 +35,12 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use App\Service\CityAutocompleter;
 use Symfony\Component\HttpClient\HttpClient;
-
-
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 final class TransportClientController extends AbstractController
 {
-   
     #[Route('/transports', name: 'app_transports')]
     public function index(Request $request): Response
     {
@@ -171,8 +171,6 @@ final class TransportClientController extends AbstractController
             'searchTerm' => $searchTerm,
         ]);
     }
-
-
 
     #[Route('/transports/ajouter', name: 'client_transport_new')]
     public function new(Request $request, EntityManagerInterface $em, IpCountryService $ipCountryService): Response
@@ -343,7 +341,7 @@ final class TransportClientController extends AbstractController
                         'success' => true,
                         'title' => 'Succès',
                         'message' => 'Transport créé avec succès',
-                        'redirect' => $this->generateUrl('client_transports_list')
+                        'redirect' => $this->generateUrl('client_transport_select_users', ['id' => $transport->getId()])
                     ]);
                 } catch (\Exception $e) {
                     return $this->json([
@@ -381,6 +379,7 @@ final class TransportClientController extends AbstractController
                     $em->flush();
 
                     $this->addFlash('success', 'Transport créé avec succès');
+                    return $this->redirectToRoute('client_transport_select_users', ['id' => $transport->getId()]);
                 } catch (\Exception $e) {
                     $this->addFlash('error', 'Une erreur est survenue lors de la création: ' . $e->getMessage());
                 }
@@ -393,8 +392,6 @@ final class TransportClientController extends AbstractController
             'phoneCode' => $phoneCode,
         ]);
     }
-
-   
 
     #[Route('/transports/modifier/{id}', name: 'client_transport_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, string $id, EntityManagerInterface $em): Response
@@ -658,7 +655,6 @@ final class TransportClientController extends AbstractController
         return $this->redirectToRoute('client_transports_list');
     }
 
-
     #[Route('/transports/search', name: 'app_transport_search')]
     public function search(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -715,7 +711,6 @@ final class TransportClientController extends AbstractController
             'filterParams' => $filterParams,
         ]);
     }
-
 
     private $httpClient;
     private $logger;
@@ -822,8 +817,6 @@ final class TransportClientController extends AbstractController
         }
     }
 
-
-
     #[Route('/cities/autocomplete', name: 'app_cities_autocomplete', methods: ['GET'])]
     public function autocomplete(Request $request, CityAutocompleter $cityAutocompleter, LoggerInterface $logger): JsonResponse
     {
@@ -851,6 +844,7 @@ final class TransportClientController extends AbstractController
             return new JsonResponse([], 200); // Return empty array to avoid client-side error
         }
     }
+
     #[Route('/transports/exporter/pdf', name: 'client_transports_export_pdf', methods: ['GET'])]
     public function exportPdf(EntityManagerInterface $entityManager, LoggerInterface $logger): Response
     {
@@ -901,71 +895,71 @@ final class TransportClientController extends AbstractController
     }
     
     #[Route('/transports/affecter/{transportId}', name: 'client_transport_affect_trajet', methods: ['GET'])]
-public function affectTrajet(int $transportId, EntityManagerInterface $entityManager): Response
-{
-    // Validate transport existence
-    $transport = $entityManager->getRepository(Transport::class)->find($transportId);
-    if (!$transport) {
-        $this->addFlash('error', 'Transport non trouvé.');
+    public function affectTrajet(int $transportId, EntityManagerInterface $entityManager): Response
+    {
+        // Validate transport existence
+        $transport = $entityManager->getRepository(Transport::class)->find($transportId);
+        if (!$transport) {
+            $this->addFlash('error', 'Transport non trouvé.');
+            return $this->redirectToRoute('client_transports_list');
+        }
+
+        // Redirect to the new trajet selection page
+        return $this->redirectToRoute('client_trajet_affect', ['transportId' => $transportId]);
+    }
+
+    #[Route('/transports/assigner/{transportId}/{trajetId}', name: 'client_transport_assign_trajet', methods: ['GET'])]
+    public function assignTrajet(int $transportId, int $trajetId, EntityManagerInterface $entityManager): Response
+    {
+        // Validate transport
+        $transport = $entityManager->getRepository(Transport::class)->find($transportId);
+        if (!$transport) {
+            $this->addFlash('error', 'Transport non trouvé.');
+            return $this->redirectToRoute('client_transports_list');
+        }
+
+        // Validate trajet
+        $trajet = $entityManager->getRepository(Trajet::class)->find($trajetId);
+        if (!$trajet) {
+            $this->addFlash('error', 'Trajet non trouvé.');
+            return $this->redirectToRoute('client_transports_list');
+        }
+
+        // Assign trajet to transport
+        try {
+            $transport->setId_Trajet($trajet);
+            $entityManager->flush();
+            $this->addFlash('success', 'Trajet affecté avec succès au transport.');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Erreur lors de l\'affectation du trajet : ' . $e->getMessage());
+        }
+
         return $this->redirectToRoute('client_transports_list');
     }
 
-    // Redirect to the new trajet selection page
-    return $this->redirectToRoute('client_trajet_affect', ['transportId' => $transportId]);
-}
+    #[Route('/client/transport/{id}', name: 'client_transport_details')]
+    public function details(Transport $transport, EntityManagerInterface $entityManager): Response
+    {
+        // Get associated trajet
+        $trajet = $transport->getId_Trajet();
 
-#[Route('/transports/assigner/{transportId}/{trajetId}', name: 'client_transport_assign_trajet', methods: ['GET'])]
-public function assignTrajet(int $transportId, int $trajetId, EntityManagerInterface $entityManager): Response
-{
-    // Validate transport
-    $transport = $entityManager->getRepository(Transport::class)->find($transportId);
-    if (!$transport) {
-        $this->addFlash('error', 'Transport non trouvé.');
-        return $this->redirectToRoute('client_transports_list');
+        // Get similar transports (same type, excluding the current transport)
+        $autresTransports = $entityManager->getRepository(Transport::class)->findBy(
+            [
+                'type' => $transport->getType(),
+                'id_user' => $transport->getId_User(),
+            ],
+            ['id' => 'DESC'],
+            6
+        );
+        $autresTransports = array_filter($autresTransports, fn($t) => $t->getId() !== $transport->getId());
+
+        return $this->render('transports/transport_details.html.twig', [
+            'transport' => $transport,
+            'trajet' => $trajet,
+            'autresTransports' => $autresTransports,
+        ]);
     }
-
-    // Validate trajet
-    $trajet = $entityManager->getRepository(Trajet::class)->find($trajetId);
-    if (!$trajet) {
-        $this->addFlash('error', 'Trajet non trouvé.');
-        return $this->redirectToRoute('client_transports_list');
-    }
-
-    // Assign trajet to transport
-    try {
-        $transport->setId_Trajet($trajet);
-        $entityManager->flush();
-        $this->addFlash('success', 'Trajet affecté avec succès au transport.');
-    } catch (\Exception $e) {
-        $this->addFlash('error', 'Erreur lors de l\'affectation du trajet : ' . $e->getMessage());
-    }
-
-    return $this->redirectToRoute('client_transports_list');
-}
-
-#[Route('/client/transport/{id}', name: 'client_transport_details')]
-public function details(Transport $transport, EntityManagerInterface $entityManager): Response
-{
-    // Get associated trajet
-    $trajet = $transport->getId_Trajet();
-
-    // Get similar transports (same type, excluding the current transport)
-    $autresTransports = $entityManager->getRepository(Transport::class)->findBy(
-        [
-            'type' => $transport->getType(),
-            'id_user' => $transport->getId_User(),
-        ],
-        ['id' => 'DESC'],
-        6
-    );
-    $autresTransports = array_filter($autresTransports, fn($t) => $t->getId() !== $transport->getId());
-
-    return $this->render('transports/transport_details.html.twig', [
-        'transport' => $transport,
-        'trajet' => $trajet,
-        'autresTransports' => $autresTransports,
-    ]);
-}
 
     #[Route('/transport/reserve', name: 'app_transport_reserve', methods: ['POST'])]
     public function reserveTransport(
@@ -1042,4 +1036,125 @@ public function details(Transport $transport, EntityManagerInterface $entityMana
         }
     }
 
+    #[Route('/transports/select-users/{id}', name: 'client_transport_select_users')]
+    public function selectUsersNotification(int $id, EntityManagerInterface $entityManager): Response
+    {
+        $transport = $entityManager->getRepository(Transport::class)->find($id);
+        
+        if (!$transport) {
+            $this->addFlash('error', 'Transport non trouvé');
+            return $this->redirectToRoute('client_transports_list');
+        }
+        
+        // Récupérer tous les utilisateurs, mais on filtrera par rôle dans le template
+        $users = $entityManager->getRepository(Utilisateur::class)->findAll();
+
+        return $this->render('transports/select_users_notification.html.twig', [
+            'transport' => $transport,
+            'users' => $users
+        ]);
+    }
+
+    #[Route('/transports/send-notifications', name: 'client_transport_send_notifications', methods: ['POST'])]
+    public function sendNotifications(
+        Request $request, 
+        EntityManagerInterface $entityManager, 
+        MailerInterface $mailer,
+        LoggerInterface $logger,
+        ParameterBagInterface $params
+    ): Response
+    {
+        // Récupérer l'ID du transport et les utilisateurs sélectionnés
+        $transportId = $request->request->get('transport_id');
+        $selectedUsers = $request->request->all('selected_users');
+
+        $logger->info('Début de l\'envoi des notifications pour le transport', [
+            'transport_id' => $transportId,
+            'selected_users' => $selectedUsers
+        ]);
+
+        // Trouver le transport
+        $transport = $entityManager->getRepository(Transport::class)->find($transportId);
+        if (!$transport) {
+            $this->addFlash('error', 'Transport non trouvé');
+            return $this->redirectToRoute('client_transports_list');
+        }
+
+        // Vérifier si des utilisateurs ont été sélectionnés
+        if (empty($selectedUsers)) {
+            $this->addFlash('warning', 'Aucun utilisateur sélectionné');
+            return $this->redirectToRoute('client_transport_select_users', ['id' => $transportId]);
+        }
+
+        $mailsSent = 0;
+        $mailsError = 0;
+
+        // Récupérer le chemin du logo
+        $logoPath = $params->get('kernel.project_dir') . '/public/img/TerraNav.png';
+        
+        // Récupérer l'image du transport (si disponible)
+        $transportImagePath = null;
+        if ($transport->getImagePath()) {
+            $transportImagePath = $params->get('kernel.project_dir') . '/public/' . $transport->getImagePath();
+        }
+
+        // Envoyer un email à chaque utilisateur sélectionné
+        foreach ($selectedUsers as $userId) {
+            $user = $entityManager->getRepository(Utilisateur::class)->find($userId);
+            
+            if ($user) {
+                try {
+                    $email = (new Email())
+                        ->from('terranav4@gmail.com')
+                        ->to($user->getEmail())
+                        ->subject('Nouveau transport disponible - TerraNav')
+                        ->html($this->renderView('transports/transport_notification_email.html.twig', [
+                            'transport' => $transport,
+                            'user' => $user,
+                            'trajet' => $transport->getId_Trajet()
+                        ]));
+
+                    // Ajouter le logo
+                    if (file_exists($logoPath)) {
+                        $email->embedFromPath($logoPath, 'logo');
+                    }
+                    
+                    // Ajouter l'image du transport si disponible
+                    if ($transportImagePath && file_exists($transportImagePath)) {
+                        $email->attachFromPath($transportImagePath, 'transport.jpg', 'image/jpeg');
+                    }
+
+                    // Envoyer l'email
+                    $mailer->send($email);
+                    $mailsSent++;
+
+                } catch (\Exception $e) {
+                    $mailsError++;
+                    $logger->error('Erreur lors de l\'envoi de l\'email', [
+                        'error' => $e->getMessage(),
+                        'to' => $user->getEmail(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                    $this->addFlash('error', 'Erreur envoi : ' . $e->getMessage());
+                }
+            }
+        }
+        
+        // Afficher des messages de réussite/échec
+        if ($mailsSent > 0) {
+            $this->addFlash('success', $mailsSent . ' notification(s) envoyée(s) avec succès');
+        }
+        
+        if ($mailsError > 0) {
+            $this->addFlash('warning', $mailsError . ' email(s) n\'ont pas pu être envoyés');
+        }
+        
+        $logger->info('Fin de l\'envoi des notifications pour le transport', [
+            'sent' => $mailsSent,
+            'errors' => $mailsError
+        ]);
+
+        // Rediriger vers la page d'ajout de transport au lieu de la liste
+        return $this->redirectToRoute('client_transport_new');
+    }
 }

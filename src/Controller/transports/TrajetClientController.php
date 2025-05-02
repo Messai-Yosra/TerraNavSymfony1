@@ -317,17 +317,7 @@ final class TrajetClientController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
         
-        // Vérifier que l'utilisateur est le propriétaire du trajet
-        if ($trajet->getId_User() !== $user) {
-            if ($request->isXmlHttpRequest()) {
-                return new JsonResponse([
-                    'success' => false,
-                    'message' => 'Vous ne pouvez supprimer que vos propres trajets'
-                ], 403);
-            }
-            $this->addFlash('error', 'Vous ne pouvez supprimer que vos propres trajets');
-            return $this->redirectToRoute('client_trajets_list');
-        }
+        // Note: Nous supprimons la vérification du propriétaire pour permettre à tout utilisateur connecté de supprimer des trajets
 
         if (!$this->isCsrfTokenValid('delete'.$trajet->getId(), $request->request->get('_token'))) {
             if ($request->isXmlHttpRequest()) {
@@ -357,10 +347,10 @@ final class TrajetClientController extends AbstractController
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse([
                     'success' => false,
-                    'message' => 'Erreur lors de la suppression'
+                    'message' => 'Erreur lors de la suppression: ' . $e->getMessage()
                 ], 500);
             }
-            $this->addFlash('error', 'Erreur lors de la suppression');
+            $this->addFlash('error', 'Erreur lors de la suppression: ' . $e->getMessage());
         }
 
         return $this->redirectToRoute('client_trajets_list');

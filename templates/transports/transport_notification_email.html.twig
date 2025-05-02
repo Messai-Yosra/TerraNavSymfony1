@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nouveau transport disponible</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .header img {
+            max-width: 180px;
+            height: auto;
+        }
+        .content {
+            padding: 20px;
+        }
+        .transport-info {
+            background: #f9f9f9;
+            border-left: 4px solid #4a90e2;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .detail-row {
+            margin-bottom: 10px;
+        }
+        .label {
+            font-weight: bold;
+            color: #555;
+        }
+        .value {
+            color: #333;
+        }
+        .button {
+            display: inline-block;
+            background: #4a90e2;
+            color: white;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .button:hover {
+            background: #3a80d2;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="cid:logo" alt="TerraNav Logo">
+            <h1>Nouveau Transport Disponible!</h1>
+        </div>
+        
+        <div class="content">
+            <p>Bonjour {{ user.prenom }},</p>
+            
+            <p>Une agence de transport sur TerraNav a ajouté un nouveau service de transport qui pourrait vous intéresser:</p>
+            
+            <div class="transport-info">
+                <div class="detail-row">
+                    <span class="label">Nom du transport:</span>
+                    <span class="value">{{ transport.nom }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Type:</span>
+                    <span class="value">{{ transport.type }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Capacité:</span>
+                    <span class="value">{{ transport.capacite }} personnes</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Prix:</span>
+                    <span class="value">{{ transport.prix }} DTN</span>
+                </div>
+                {% if trajet %}
+                <div class="detail-row">
+                    <span class="label">Départ:</span>
+                    <span class="value">{{ trajet.pointDepart }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Destination:</span>
+                    <span class="value">{{ trajet.destination }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Date de départ:</span>
+                    <span class="value">{{ trajet.dateDepart|date('d/m/Y H:i') }}</span>
+                </div>
+                {% endif %}
+                {% if transport.description %}
+                <div class="detail-row">
+                    <span class="label">Description:</span>
+                    <span class="value">{{ transport.description }}</span>
+                </div>
+                {% endif %}
+                <div class="detail-row">
+                    <span class="label">Contact:</span>
+                    <span class="value">{{ transport.contact }}</span>
+                </div>
+            </div>
+            
+            <p>Vous pouvez réserver ce transport directement sur notre site en cliquant sur le bouton ci-dessous:</p>
+            
+            <div style="text-align: center;">
+                <a href="http://localhost:8000/client/transport/{{ transport.id }}" class="button">Voir le transport</a>
+            </div>
+            
+            <p>Nous espérons que vous trouverez ce transport adapté à vos besoins.</p>
+            
+            <p>Merci de voyager avec TerraNav!</p>
+        </div>
+        
+        <div class="footer">
+            <p>© {{ "now"|date('Y') }} TerraNav. Tous droits réservés.</p>
+            <p>Cet email a été envoyé à {{ user.email }}</p>
+        </div>
+    </div>
+</body>
+</html>
