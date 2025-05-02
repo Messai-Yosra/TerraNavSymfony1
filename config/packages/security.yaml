@@ -145,6 +145,7 @@ security:
         - { path: ^/reservation/[ 0-9 ]+/qr-cod, roles: PUBLIC_ACCESS }
         - { path: ^/mes-reservations/calendrier, roles: PUBLIC_ACCESS }
         - { path: ^/api/calendar/events, roles: PUBLIC_ACCESS }
+        - { path: ^/transport/reserve, roles: PUBLIC_ACCESS }
 
 
         # Routes Gestion interactions
