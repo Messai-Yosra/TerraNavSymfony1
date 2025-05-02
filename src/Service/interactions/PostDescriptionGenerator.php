@@ -61,7 +61,7 @@ class PostDescriptionGenerator
         $prompt .= "La description doit :\n";
         $prompt .= "- Garder l'essence du message original\n";
         $prompt .= "- Être concise (1-3 phrases max)\n";
-        $prompt .= "- Captiver l'attention\n";
+        $prompt .= "- Captiver l'attention\n sans utiliser des emojis";
 
         if ($hashtags) {
             $prompt .= "- Inclure 3 hashtags pertinents à la fin\n";
