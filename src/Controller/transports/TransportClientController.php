@@ -962,4 +962,5 @@ public function details(Transport $transport, EntityManagerInterface $entityMana
         'autresTransports' => $autresTransports,
     ]);
 }
+
 }
