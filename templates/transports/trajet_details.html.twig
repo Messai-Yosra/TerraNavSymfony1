@@ -1,0 +1,179 @@
+{% extends 'baseAgenceTransport.html.twig' %}
+{% block title %}Détails du Trajet - {{ trajet.pointDepart }} → {{ trajet.destination }}{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    <div class="container-fluid page-header mb-5 p-0"
+         style="background-image: url({{ asset('img/voyages/5.avif') }});">
+        <div class="container-fluid page-header-inner py-5">
+            <div class="container text-center pb-5">
+                <h1 class="display-3 text-white mb-3 animated slideInDown">{{ trajet.pointDepart }} → {{ trajet.destination }}</h1>
+                <div class="badge bg-success fs-4 mb-3">{{ trajet.disponibilite ? 'Disponible' : 'Terminé' }}</div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center text-uppercase">
+                        <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+                        <li class="breadcrumb-item"><a href="{{ path('client_trajets_list') }}">Trajets</a></li>
+                        <li class="breadcrumb-item text-white active" aria-current="page">Détails Trajet</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+  
+    <!-- Détails du Trajet -->
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="row g-5 align-items-center">
+                <div class="col-lg-6">
+                    <h6 class="section-title text-start text-primary text-uppercase">Détails du Trajet</h6>
+                    <h1 class="mb-4">{{ trajet.pointDepart }} → {{ trajet.destination }}</h1>
+                    <p class="mb-4">{{ trajet.description|default('Aucune description disponible.') }}</p>
+
+                    <div class="row g-3 pb-4">
+                        <div class="col-md-6 wow fadeIn" data-wow-delay="0.1s">
+                            <div class="border rounded p-1 hover-effect">
+                                <div class="border rounded text-center p-4">
+                                    <i class="fas fa-clock fa-2x text-primary mb-2"></i>
+                                    <h3 class="h5 mb-1">{{ trajet.duree }} min</h3>
+                                    <p class="mb-0 text-muted">Durée</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 wow fadeIn" data-wow-delay="0.2s">
+                            <div class="border rounded p-1 hover-effect">
+                                <div class="border rounded text-center p-4">
+                                    <i class="fas fa-calendar-alt fa-2x text-primary mb-2"></i>
+                                    <h3 class="h5 mb-1">{{ trajet.dateDepart|date('d M Y H:i') }}</h3>
+                                    <p class="mb-0 text-muted">Date de Départ</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-success hover-effect">
+                        <h5><i class="fas fa-info-circle me-2"></i> Statut: {{ trajet.disponibilite ? 'Disponible' : 'Terminé' }}</h5>
+                        <p class="mb-0"><i class="fas fa-route me-2"></i> Ce trajet est géré par {{ trajet.idUser.nom|default('Agence Inconnue') }}</p>
+                    </div>
+
+                    <div class="d-flex gap-3 mt-4">
+                        <a href="{{ path('client_trajets_list') }}" class="btn btn-primary btn-hover py-3 px-5">
+                            <i class="fas fa-arrow-left me-2"></i> Voir tous les trajets
+                        </a>
+                        <a href="{{ path('client_transports_list') }}" class="btn btn-primary btn-hover py-3 px-5">
+                            <i class="fas fa-bus me-2"></i> Voir tous les transports
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="image-hover-container">
+                        <img class="img-fluid rounded wow zoomIn" data-wow-delay="0.1s"
+                             src="{{ asset('img/voyages/trajet-default.jpg') }}"
+                             alt="Image du trajet {{ trajet.pointDepart }} → {{ trajet.destination }}"
+                             style="width: 100%; height: 400px; object-fit: cover;"
+                             onerror="this.src='{{ asset('img/about-1.jpg') }}'">
+                        <div class="image-hover-overlay">
+                            <div class="image-hover-text">Trajet</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trajets Similaires -->
+    <div class="container-xxl py-5 bg-light">
+        <div class="container">
+            <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+                <h6 class="section-title text-center text-primary text-uppercase">Autres Trajets</h6>
+                <h1 class="mb-5">Découvrez d'autres <span class="text-primary text-uppercase">Trajets</span></h1>
+            </div>
+            <div class="row g-4">
+                {% for autreTrajet in autresTrajets %}
+                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="{{ 0.1 * loop.index }}s">
+                        <a class="service-item rounded" href="{{ path('client_trajet_details', {'id': autreTrajet.id}) }}">
+                            <div class="service-icon bg-transparent border rounded p-1">
+                                <div class="w-100 h-100 border rounded d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-route fa-2x text-primary"></i>
+                                </div>
+                            </div>
+                            <h5 class="mb-3">{{ autreTrajet.pointDepart }} → {{ autreTrajet.destination }}</h5>
+                            <p class="text-body mb-0">{{ autreTrajet.description|default('Aucune description.')|u.truncate(100, '...') }}</p>
+                            <small class="text-muted">Départ: {{ autreTrajet.dateDepart|date('d M Y') }}</small>
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="col-12 text-center">
+                        <p class="text-muted">Aucun autre trajet disponible pour le moment.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Styles -->
+    <style>
+        .hover-effect {
+            transition: all 0.3s ease;
+        }
+
+        .hover-effect:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .btn-hover {
+            transition: all 0.3s ease;
+        }
+
+        .btn-hover:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .image-hover-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .image-hover-overlay {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            width: 100%;
+            opacity: 0;
+            transition: .3s ease;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-hover-container:hover .image-hover-overlay {
+            opacity: 1;
+        }
+
+        .image-hover-text {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .service-item {
+            display: block;
+            background: white;
+            padding: 20px;
+            height: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .service-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+    </style>
+{% endblock %}

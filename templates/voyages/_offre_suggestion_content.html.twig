@@ -1,0 +1,35 @@
+{# templates/voyages/_offre_suggestion_content.html.twig #}
+<div class="ai-suggestion-content">
+    <div class="alert alert-info mb-4">
+        <i class="fas fa-robot me-2"></i>
+        {{ suggestion_text }}
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <i class="fas fa-percentage me-2"></i>Suggestion d'offre
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">{{ offre.titre }}</h5>
+            <p class="card-text">{{ offre.description }}</p>
+            <ul class="list-group list-group-flush mb-3">
+                <li class="list-group-item">
+                    <strong>Réduction:</strong> {{ offre.reduction }}%
+                </li>
+                <li class="list-group-item">
+                    <strong>Période:</strong>
+                    Du {{ offre.dateDebut|date('d/m/Y') }} au {{ offre.dateFin|date('d/m/Y') }}
+                </li>
+            </ul>
+            <a href="{{ path('app_ajout_offre_ia', {
+                'titre': offre_data.titre,
+                'description': offre_data.description,
+                'reduction': offre_data.reduction,
+                'dateDebut': offre_data.dateDebut,
+                'dateFin': offre_data.dateFin
+            }) }}" class="btn btn-primary">
+                Utiliser cette suggestion
+            </a>
+        </div>
+    </div>
+</div>

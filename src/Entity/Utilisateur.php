@@ -66,8 +66,8 @@ class Utilisateur implements PasswordAuthenticatedUserInterface, UserInterface
     #[ORM\Column(name: "role", type: "string", length: 20)]
     #[Assert\NotBlank(message: "Le rôle ne peut pas être vide")]
     #[Assert\Choice(
-        choices: ["admin", "CLIENT", "Agence"],
-        message: "Le rôle doit être 'admin', 'CLIENT' ou 'Agence'"
+        choices: ["admin", "Client", "Agence"],
+        message: "Le rôle doit être 'admin', 'Client' ou 'Agence'"
     )]
     private string $role;
 
@@ -98,8 +98,8 @@ class Utilisateur implements PasswordAuthenticatedUserInterface, UserInterface
 
     #[ORM\Column(name: "typeAgence", type: "string", length: 50, nullable: true)]
     #[Assert\Choice(
-        choices: ["Transport", "Hebergement", "Restaurant", "Mixte"],
-        message: "Le type d'agence doit être 'Transport', 'Hebergement', 'Restaurant' ou 'Mixte'",
+        choices: ["TRANSPORT", "HEBERGEMENT", "VOYAGE", "Mixte"],
+        message: "Le type d'agence doit être 'TRANSPORT', 'HEBERGEMENT', 'VOYAGE' ou 'Mixte'",
         multiple: false
     )]
     private ?string $typeAgence;
@@ -151,6 +151,12 @@ class Utilisateur implements PasswordAuthenticatedUserInterface, UserInterface
     #[ORM\OneToMany(mappedBy: "id_user", targetEntity: Voyage::class)]
     private Collection $voyages;
 
+    #[ORM\OneToMany(mappedBy: "idUser", targetEntity: Story::class)]
+    private Collection $stories;
+
+    #[ORM\Column(name: "has_facial_auth", type: "boolean", options: ["default" => false])]
+    private bool $hasFacialAuth = false;
+
     public function __construct()
     {
         $this->hebergements = new ArrayCollection();
@@ -163,6 +169,7 @@ class Utilisateur implements PasswordAuthenticatedUserInterface, UserInterface
         $this->reactions = new ArrayCollection();
         $this->transports = new ArrayCollection();
         $this->voyages = new ArrayCollection();
+        $this->stories = new ArrayCollection();
     }
 
     public function getId(): int
@@ -599,15 +606,30 @@ class Utilisateur implements PasswordAuthenticatedUserInterface, UserInterface
         // Utiliser le rôle directement de la base de données
         $dbRole = $this->getRole();
         
-        // Ajouter du débogage
-        dump("Rôle dans DB: " . $dbRole);
-        
         // Conversion selon votre convention
         if ($dbRole === 'admin') {
             $roles[] = 'ROLE_ADMIN';
         } elseif ($dbRole === 'Agence') {
             $roles[] = 'ROLE_AGENCE';
-        } elseif ($dbRole === 'CLIENT') {
+            
+            // Ajouter un rôle spécifique au type d'agence
+            if ($this->getTypeAgence()) {
+                switch ($this->getTypeAgence()) {
+                    case 'TRANSPORT':
+                        $roles[] = 'ROLE_AGENCE_TRANSPORT';
+                        break;
+                    case 'HEBERGEMENT':
+                        $roles[] = 'ROLE_AGENCE_HEBERGEMENT';
+                        break;
+                    case 'VOYAGE':
+                        $roles[] = 'ROLE_AGENCE_VOYAGE';
+                        break;
+                    case 'Mixte':
+                        $roles[] = 'ROLE_AGENCE_MIXTE';
+                        break;
+                }
+            }
+        } elseif ($dbRole === 'Client') {
             $roles[] = 'ROLE_CLIENT';
         }
         
@@ -638,4 +660,38 @@ class Utilisateur implements PasswordAuthenticatedUserInterface, UserInterface
     {
         return $this->email;
     }
+    
+    public function getHasFacialAuth(): bool
+    {
+        return $this->hasFacialAuth;
+    }
+    
+    public function setHasFacialAuth(bool $hasFacialAuth): self
+    {
+        $this->hasFacialAuth = $hasFacialAuth;
+        return $this;
+    }
+    public function getStories(): Collection
+{
+    return $this->stories;
+}
+
+public function addStory(Story $story): self
+{
+    if (!$this->stories->contains($story)) {
+        $this->stories[] = $story;
+        $story->setIdUser($this);
+    }
+    return $this;
+}
+
+public function removeStory(Story $story): self
+{
+    if ($this->stories->removeElement($story)) {
+        if ($story->getIdUser() === $this) {
+            $story->setIdUser(null);
+        }
+    }
+    return $this;
+}
 }

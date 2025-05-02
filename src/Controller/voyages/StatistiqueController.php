@@ -7,6 +7,7 @@ use App\Entity\Voyage;
 use App\Repository\Utilisateur\UtilisateurRepository;
 use App\Repository\Voyage\OffreRepository;
 use App\Repository\Voyage\VoyageRepository;
+use App\Service\OpenRouterService;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -15,6 +16,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\Request;
 
 class StatistiqueController extends AbstractController
 {
@@ -27,7 +29,13 @@ class StatistiqueController extends AbstractController
     #[Route('/agence/statistiques/offres/pdf', name: 'app_export_offres_pdf')]
     public function exportOffresPdf(OffreRepository $offreRepository, UtilisateurRepository $userRepository): Response
     {
-        $user = $userRepository->find(1);
+        // Utiliser l'utilisateur connecté au lieu d'un ID statique
+        $user = $this->getUser();
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour accéder à cette page');
+            return $this->redirectToRoute('app_login');
+        }
+
         // Récupérer les offres de l'agence connectée
         $offres = $offreRepository->findOffresByAgence($user->getId());
 
@@ -69,7 +77,13 @@ class StatistiqueController extends AbstractController
     #[Route('/agence/statistiques/voyages/csv', name: 'app_export_voyages_csv')]
     public function exportVoyagesCsv(VoyageRepository $voyageRepository, UtilisateurRepository $userRepository): Response
     {
-        $user = $userRepository->find(1);
+        // Utiliser l'utilisateur connecté au lieu d'un ID statique
+        $user = $this->getUser();
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour accéder à cette page');
+            return $this->redirectToRoute('app_login');
+        }
+
         $voyages = $voyageRepository->findBy(['id_user' => $user]);
 
         $handle = fopen('php://memory', 'r+');
@@ -118,9 +132,10 @@ class StatistiqueController extends AbstractController
     #[Route('/agence/statistiques/voyages/excel', name: 'app_export_voyages_excel')]
     public function exportVoyagesExcel(VoyageRepository $voyageRepository, UtilisateurRepository $userRepository): Response
     {
-        $user = $userRepository->find(1);
+        // Utiliser l'utilisateur connecté au lieu d'un ID statique
+        $user = $this->getUser();
         if (!$user) {
-            $this->addFlash('error', 'Vous devez être connecté');
+            $this->addFlash('error', 'Vous devez être connecté pour accéder à cette page');
             return $this->redirectToRoute('app_login');
         }
 
@@ -309,4 +324,171 @@ ICS;
                                         <i class="bi bi-calendar-plus"></i> Exporter vers calendrier
                                     </a>
     */
+
+
+    // Ajoutez ceci dans StatistiqueController.php
+
+
+
+    #[Route('/agence/statistiques/generer-rapport', name: 'app_generer_rapport_agence')]
+    public function genererRapport(
+        Request $request,
+        OffreRepository $offreRepository,
+        VoyageRepository $voyageRepository,
+        UtilisateurRepository $userRepository,
+        OpenRouterService $openRouterService
+    ): Response {
+        // Utiliser l'utilisateur connecté au lieu d'un ID statique
+        $user = $this->getUser();
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour accéder à cette page');
+            return $this->redirectToRoute('app_login');
+        }
+
+        // Récupérer les données
+        $offres = $offreRepository->findOffresByAgence($user->getId());
+        $voyages = $voyageRepository->findBy(['id_user' => $user]);
+
+        // Générer les analyses avec l'IA
+        $analyseVoyages = $this->genererAnalyseVoyages($voyages, $openRouterService);
+        $analyseOffres = $this->genererAnalyseOffres($offres, $openRouterService);
+        $recommandations = $this->genererRecommandations($voyages, $offres, $openRouterService);
+
+        // Configuration de Dompdf
+        $pdfOptions = new Options();
+        $pdfOptions->set('defaultFont', 'Arial');
+        $pdfOptions->set('isRemoteEnabled', true);
+
+        $dompdf = new Dompdf($pdfOptions);
+
+        // Générer le HTML
+        $html = $this->renderView('voyages/export/rapport_complet.html.twig', [
+            'offres' => $offres,
+            'voyages' => $voyages,
+            'agence' => $user->getNomagence(),
+            'date' => new \DateTime(),
+            'analyseVoyages' => $analyseVoyages,
+            'analyseOffres' => $analyseOffres,
+            'recommandations' => $recommandations
+        ]);
+
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        // Générer le nom du fichier
+        $filename = sprintf('rapport-complet-agence-%s-%s.pdf',
+            $user->getNomagence(),
+            date('Y-m-d')
+        );
+
+        return new Response(
+            $dompdf->output(),
+            Response::HTTP_OK,
+            [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => sprintf('attachment; filename="%s"', $filename)
+            ]
+        );
+    }
+
+    private function genererAnalyseVoyages(array $voyages, OpenRouterService $ia): string
+    {
+        $data = [
+            'total_voyages' => count($voyages),
+            'destinations' => [],
+            'prix_moyen' => 0,
+            'types' => []
+        ];
+
+        $totalPrix = 0;
+        foreach ($voyages as $voyage) {
+            $totalPrix += $voyage->getPrix();
+
+            // Compter les destinations
+            if (!isset($data['destinations'][$voyage->getDestination()])) {
+                $data['destinations'][$voyage->getDestination()] = 0;
+            }
+            $data['destinations'][$voyage->getDestination()]++;
+
+            // Compter les types
+            if (!isset($data['types'][$voyage->getType()])) {
+                $data['types'][$voyage->getType()] = 0;
+            }
+            $data['types'][$voyage->getType()]++;
+        }
+
+        $data['prix_moyen'] = $totalPrix / max(1, count($voyages));
+
+        $question = "En tant qu'expert en analyse de données touristiques, analysez ces statistiques sur les voyages d'une agence et fournissez une analyse concise en français (max 150 mots):\n\n".
+            "Nombre total de voyages: {$data['total_voyages']}\n".
+            "Destinations: ".implode(', ', array_keys($data['destinations']))."\n".
+            "Prix moyen: ".number_format($data['prix_moyen'], 2)." DT\n".
+            "Types de voyages: ".implode(', ', array_keys($data['types']))."\n\n".
+            "Fournissez une analyse professionnelle avec des insights utiles.";
+
+        return $ia->askQuestion($question);
+    }
+
+    private function genererAnalyseOffres(array $offres, OpenRouterService $ia): string
+    {
+        $data = [
+            'total_offres' => count($offres),
+            'reduction_moyenne' => 0,
+            'offres_actives' => 0
+        ];
+
+        $totalReduction = 0;
+        $now = new \DateTime();
+
+        foreach ($offres as $offre) {
+            $totalReduction += $offre->getReduction();
+
+            if ($offre->getDateDebut() <= $now && $offre->getDateFin() >= $now) {
+                $data['offres_actives']++;
+            }
+        }
+
+        $data['reduction_moyenne'] = $totalReduction / max(1, count($offres));
+
+        $question = "En tant qu'expert en marketing touristique, analysez ces statistiques sur les offres promotionnelles d'une agence et fournissez une analyse concise en français (max 150 mots):\n\n".
+            "Nombre total d'offres: {$data['total_offres']}\n".
+            "Réduction moyenne: ".number_format($data['reduction_moyenne'], 2)."%\n".
+            "Offres actuellement actives: {$data['offres_actives']}\n\n".
+            "Fournissez une analyse professionnelle avec des recommandations potentielles.";
+
+        return $ia->askQuestion($question);
+    }
+
+    private function genererRecommandations(array $voyages, array $offres, OpenRouterService $ia): string
+    {
+        $stats = [
+            'nb_voyages' => count($voyages),
+            'nb_offres' => count($offres),
+            'destinations' => [],
+            'types' => []
+        ];
+
+        foreach ($voyages as $voyage) {
+            if (!isset($stats['destinations'][$voyage->getDestination()])) {
+                $stats['destinations'][$voyage->getDestination()] = 0;
+            }
+            $stats['destinations'][$voyage->getDestination()]++;
+
+            if (!isset($stats['types'][$voyage->getType()])) {
+                $stats['types'][$voyage->getType()] = 0;
+            }
+            $stats['types'][$voyage->getType()]++;
+        }
+
+        $question = "En tant que consultant expert en stratégie touristique, basé sur ces données, fournissez 3-5 recommandations concrètes et personnalisées en français pour améliorer la performance d'une agence de voyage (max 200 mots):\n\n".
+            "Statistiques clés:\n".
+            "- Nombre de voyages: {$stats['nb_voyages']}\n".
+            "- Nombre d'offres: {$stats['nb_offres']}\n".
+            "- Destinations principales: ".implode(', ', array_keys($stats['destinations']))."\n".
+            "- Types de voyages: ".implode(', ', array_keys($stats['types']))."\n\n".
+            "Les recommandations doivent être pratiques, réalisables et spécifiques au contexte.";
+
+        return $ia->askQuestion($question);
+    }
 }

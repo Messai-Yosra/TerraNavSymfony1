@@ -1,45 +1,305 @@
-{# templates/emails/nouveau_voyage.html.twig #}
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Nouveau voyage disponible</title>
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #f8f9fa; padding: 20px; text-align: center; }
-        .content { padding: 20px; }
-        .voyage-image { max-width: 100%; height: auto; margin: 10px 0; }
-        .button {
-            display: inline-block; padding: 10px 20px; background-color: #0d6efd;
-            color: white; text-decoration: none; border-radius: 5px; margin-top: 15px;
+        /* Base Styles */
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
         }
-        .footer { margin-top: 20px; text-align: center; font-size: 12px; color: #777; }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+            padding: 30px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        /* Content */
+        .content {
+            padding: 25px;
+        }
+
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #495057;
+        }
+
+        /* Offer Card */
+        .offer-card {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .offer-header {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .offer-header h3 {
+            margin: 0;
+            color: #212529;
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .offer-body {
+            padding: 20px;
+        }
+
+        .offer-description {
+            color: #6c757d;
+            margin-bottom: 20px;
+            font-size: 15px;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .badge-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        /* Dates */
+        .dates {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #0d6efd;
+        }
+
+        .dates i {
+            font-size: 20px;
+            color: #0d6efd;
+            margin-right: 15px;
+        }
+
+        .dates-text {
+            flex: 1;
+        }
+
+        .dates-text h4 {
+            margin: 0 0 5px 0;
+            font-size: 16px;
+            color: #212529;
+        }
+
+        .dates-text p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        /* Attachment */
+        .attachment-notice {
+            background-color: #e9ecef;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        .attachment-notice i {
+            margin-right: 10px;
+            font-size: 18px;
+            color: #6c757d;
+        }
+
+        /* CTA Button */
+        .cta-button {
+            display: block;
+            background-color: #0d6efd;
+            color: white !important;
+            text-align: center;
+            padding: 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 25px 0;
+            transition: all 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background-color: #0b5ed7;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+        .footer-logo {
+            width: 150px;
+            height: auto;
+            margin: 15px auto;
+            display: block;
+        }
+
+        .social-icons {
+            margin: 15px 0;
+        }
+
+        .social-icons a {
+            display: inline-block;
+            margin: 0 8px;
+            color: #6c757d;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .social-icons a:hover {
+            color: #0d6efd;
+            transform: translateY(-3px);
+        }
+
+        /* Responsive */
+        @media only screen and (max-width: 600px) {
+            .container {
+                border-radius: 0;
+            }
+
+            .header {
+                padding: 25px 15px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .content {
+                padding: 20px 15px;
+            }
+        }
     </style>
 </head>
 <body>
 <div class="container">
+    <!-- Header -->
     <div class="header">
         <h1>Nouveau voyage disponible !</h1>
     </div>
 
+    <!-- Content -->
     <div class="content">
-        <h2>{{ voyage.titre }}</h2>
-        <p><strong>Destination:</strong> {{ voyage.destination }}</p>
-        <p><strong>Départ:</strong> {{ voyage.pointDepart }}</p>
-        <p><strong>Date de départ:</strong> {{ voyage.dateDepart|date('d/m/Y H:i') }}</p>
-        <p><strong>Prix:</strong> {{ voyage.prix }} DT</p>
+        <h2 class="greeting">Bonjour {{ user.prenom }},</h2>
 
-        <p>{{ voyage.description }}</p>
+        <p>Nous sommes ravis de vous présenter notre nouveau voyage, spécialement conçu pour vous !</p>
 
-        <a href="{{ absolute_url(path('app_voyage_details', {'id': voyage.id})) }}" class="button">
-            Voir les détails du voyage
+        <!-- Voyage Card -->
+        <div class="voyage-card">
+            <div class="voyage-header">
+                <h3>{{ voyage.titre }}</h3>
+            </div>
+            <div class="voyage-body">
+                <div class="voyage-description">
+                    {{ voyage.description }}
+                </div>
+
+                <!-- Dates -->
+                <div class="dates">
+                    <i class="fas fa-calendar-alt"></i>
+                    <div class="dates-text">
+                        <h4>Dates du voyage</h4>
+                        <p>Du {{ voyage.dateDepart|date('d/m/Y') }} au {{ voyage.dateRetour|date('d/m/Y') }}</p>
+                    </div>
+                </div>
+
+                <!-- Prix -->
+                <div class="price">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <div class="price-text">
+                        <h4>Prix</h4>
+                        <p>{{ voyage.prix }} DT</p>
+                        {% if voyage.id_offre %}
+                            <p class="discount">Après réduction: {{ (voyage.prix * (1 - voyage.id_offre.reduction/100))|number_format(2) }} DT</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attachment Notice -->
+        <div class="attachment-notice">
+            <i class="fas fa-paperclip"></i>
+            <p>📎 Les images de ce voyage sont disponibles en pièces jointes.</p>
+        </div>
+
+        <div style="text-align: center; margin: 20px 0;">
+            <h3 style="color: #0d6efd;">Scanner ce code pour accéder directement au voyage</h3>
+            <img src="{{ qrCodeUrl }}" alt="QR Code du voyage" style="border: 1px solid #ddd; padding: 10px; background: white;">
+            <p style="font-size: 12px; color: #6c757d;">Scannez ce code avec votre smartphone</p>
+        </div>
+
+        <!-- CTA Button -->
+        <a href="{{ absolute_url(path('app_voyages_agence')) }}" class="cta-button">
+            Découvrir ce voyage sur notre site
         </a>
     </div>
 
+    <!-- Footer -->
     <div class="footer">
-        <p>Cet email vous a été envoyé parce que vous êtes inscrit sur notre plateforme.</p>
-        <p>© {{ "now"|date("Y") }} TerraNav. Tous droits réservés.</p>
+        <img src="cid:logo" alt="Logo TerraNava" class="footer-logo">
+
+        <div class="social-icons">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+
+        <p>Cordialement,<br>L'équipe TerraNava</p>
+
+        <p style="font-size: 12px; color: #adb5bd; margin-top: 15px;">
+            Cet email vous a été envoyé car vous êtes inscrit à notre newsletter.
+        </p>
+
+        <p style="font-size: 11px; color: #adb5bd; margin-top: 10px;">
+            © {{ "now"|date('Y') }} TerraNava. Tous droits réservés.
+        </p>
     </div>
 </div>
 </body>

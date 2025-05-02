@@ -8,12 +8,28 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 final class VoyageAgenceController extends AbstractController
 {
+    private EntityManagerInterface $entityManager;
+
+    public function __construct(EntityManagerInterface $entityManager)
+    {
+        $this->entityManager = $entityManager;
+    }
     #[Route('/VoyagesAgence', name: 'app_voyages_agence')]
     public function index(Request $request, VoyageRepository $voyageRepository, UtilisateurRepository $userRepository): Response
     {
+        // Utiliser l'utilisateur connecté au lieu d'un ID statique
+        $user = $this->getUser();
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour accéder à cette page');
+            return $this->redirectToRoute('app_login');
+        }
+
         // Récupérer les paramètres de filtrage
         $searchTerm = $request->query->get('search');
         $minPrice = $request->query->get('minPrice');
@@ -22,9 +38,6 @@ final class VoyageAgenceController extends AbstractController
         $type = $request->query->get('type');
         $onSale = $request->query->get('onSale');
         $sortType = $request->query->get('sort');
-
-        // Récupérer l'utilisateur avec ID=1
-        $user = $userRepository->find(1);
 
         // Construire les critères de filtrage
         $criteria = [];
@@ -46,8 +59,19 @@ final class VoyageAgenceController extends AbstractController
         // Récupérer les voyages filtrés
         $voyages = $voyageRepository->findByFiltersAgence($criteria);
 
+        $expiredVoyages = $voyageRepository->findExpiredVoyages();
+        $expiredVoyagesData = array_map(function($voyage) {
+            return [
+                'id' => $voyage->getId(),
+                'titre' => $voyage->getTitre(),
+                'dateRetour' => $voyage->getDateRetour()->format('Y-m-d H:i:s')
+            ];
+        }, $expiredVoyages);
+
         return $this->render('voyages/voyageAgence.html.twig', [
             'voyages' => $voyages,
+            'expiredVoyages' => $expiredVoyages,
+            'expiredVoyagesData' => $expiredVoyagesData, // Données pour le JS
             'filterParams' => [
                 'search' => $searchTerm,
                 'minPrice' => $minPrice,
@@ -69,5 +93,29 @@ final class VoyageAgenceController extends AbstractController
             'similarVoyages' => $similarVoyages,
         ]);
     }
+
+
+
+    #[Route('/agence/voyages/expired', name: 'app_voyages_expired')]
+    public function getExpiredVoyages(VoyageRepository $voyageRepository, CsrfTokenManagerInterface $csrfTokenManager): JsonResponse
+    {
+        $voyages = $voyageRepository->findExpiredVoyages();
+
+        $data = [];
+        foreach ($voyages as $voyage) {
+            $data[] = [
+                'id' => $voyage->getId(),
+                'titre' => $voyage->getTitre(),
+                'destination' => $voyage->getDestination(),
+                'dateRetour' => $voyage->getDateRetour()->format('Y-m-d'),
+                'type' => $voyage->getType(),
+                'csrf_token' => $csrfTokenManager->getToken('delete' . $voyage->getId())->getValue(),
+            ];
+        }
+
+        return $this->json($data);
+    }
+
+
 
 }

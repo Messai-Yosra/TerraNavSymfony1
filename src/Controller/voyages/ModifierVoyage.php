@@ -17,7 +17,16 @@ class ModifierVoyage extends AbstractController
     #[Route('/ModifierVoyage/{id}', name: 'app_modifier_voyage')]
     public function ModifierVoyage(Voyage $voyage, OffreRepository $offreRepository): Response
     {
-        $offres = $offreRepository->findOffresByAgence(1);
+        // Récupérer l'utilisateur actuellement connecté
+        $user = $this->getUser();
+        
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour modifier un voyage');
+            return $this->redirectToRoute('app_login');
+        }
+        
+        // Utiliser l'ID de l'utilisateur connecté au lieu d'un ID statique
+        $offres = $offreRepository->findOffresByAgence($user->getId());
 
         return $this->render('voyages/ModifierVoyage.html.twig', [
             'voyage' => $voyage,
@@ -63,7 +72,9 @@ class ModifierVoyage extends AbstractController
                         $errorMessages[$field] = $error->getMessage();
                     }
 
-                    $offres = $offreRepository->findOffresByAgence(1);
+                    // Récupérer l'utilisateur connecté
+                    $user = $this->getUser();
+                    $offres = $offreRepository->findOffresByAgence($user->getId());
                     return $this->render('voyages/ModifierVoyage.html.twig', [
                         'voyage' => $voyage,
                         'offres' => $offres,

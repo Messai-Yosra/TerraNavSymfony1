@@ -30,9 +30,27 @@
 
     <!-- Template Stylesheet -->
     <link href="{{ asset('css/styleClient.css') }}" rel="stylesheet">
+
+    {% block stylesheets %}
+        {# Child templates can add additional stylesheets here #}
+    {% endblock %}
+
+    <!-- Google Translate Element -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'fr',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+            }, 'google_translate_element');
+        }
+    </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </head>
 
 <body>
+    <!-- Add the Google Translate Element div right after body tag -->
+    <div id="google_translate_element" style="position: fixed; top: 20px; right: 20px; z-index: 1000;"></div>
+
 {# In your base template or a separate macro file #}
 {% macro is_active_route(current_route, target_route) %}
     {% if current_route == target_route %}active{% endif %}
@@ -43,7 +61,7 @@
         <!-- Header Start -->
         <div class="container-fluid bg-dark px-0 ">
             <div class="row gx-0 nav p-lg-3">
-                <div class="col-lg-3 bg-dark d-none d-lg-block ">
+                <div class="col-lg-3 bg-dark d-none d-lg-block">
                     <a href="{{ path('app_home') }}" class="navbar-brand w-100 h-100 m-0 p-0 d-flex align-items-center justify-content-center">
                         <h1 class="m-0 text-primary text-uppercase">TerraNav</h1>
                     </a>
@@ -181,19 +199,20 @@
         <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
 
         <!-- JavaScript Libraries -->
-        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="{{ asset('lib/wow/wow.min.js') }}"></script>
-        <script src="{{ asset('lib/easing/easing.min.js') }}"></script>
-        <script src="{{ asset('lib/waypoints/waypoints.min.js') }}"></script>
-        <script src="{{ asset('lib/counterup/counterup.min.js') }}"></script>
-        <script src="{{ asset('lib/owlcarousel/owl.carousel.min.js') }}"></script>
-        <script src="{{ asset('lib/tempusdominus/js/moment.min.js') }}"></script>
-        <script src="{{ asset('lib/tempusdominus/js/moment-timezone.min.js') }}"></script>
-        <script src="{{ asset('lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js') }}"></script>
-
-        <!-- Template Javascript -->
-        <script src="{{ asset('js/mainClient.js') }}"></script>
+        {% block javascripts %}
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+            <script src="{{ asset('lib/wow/wow.min.js') }}"></script>
+            <script src="{{ asset('lib/easing/easing.min.js') }}"></script>
+            <script src="{{ asset('lib/waypoints/waypoints.min.js') }}"></script>
+            <script src="{{ asset('lib/counterup/counterup.min.js') }}"></script>
+            <script src="{{ asset('lib/owlcarousel/owl.carousel.min.js') }}"></script>
+            <script src="{{ asset('lib/tempusdominus/js/moment.min.js') }}"></script>
+            <script src="{{ asset('lib/tempusdominus/js/moment-timezone.min.js') }}"></script>
+            <script src="{{ asset('lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js') }}"></script>
+            <!-- Template Javascript -->
+            <script src="{{ asset('js/mainClient.js') }}"></script>
+        {% endblock %}
     {% endblock %}
 </div>
 </body>

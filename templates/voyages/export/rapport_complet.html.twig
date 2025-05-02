@@ -1,0 +1,103 @@
+{# templates/voyages/export/rapport_complet.html.twig #}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Rapport Complet - {{ agence }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .header h1 { color: #3498db; margin-bottom: 5px; }
+        .section { margin-bottom: 30px; }
+        .section-title { color: #3498db; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 15px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        table, th, td { border: 1px solid #ddd; }
+        th, td { padding: 10px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .analysis-box { background-color: #f9f9f9; border-left: 4px solid #3498db; padding: 15px; margin-bottom: 20px; }
+        .highlight { background-color: #e6f7ff; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; font-size: 0.8em; color: #777; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>Rapport Complet - {{ agence }}</h1>
+    <p>Généré le {{ date|date('d/m/Y à H:i') }}</p>
+</div>
+
+<div class="section">
+    <h2 class="section-title"> Aperçu Général</h2>
+    <div class="highlight">
+        <p><strong>Nombre total de voyages:</strong> {{ voyages|length }}</p>
+        <p><strong>Nombre total d'offres:</strong> {{ offres|length }}</p>
+    </div>
+</div>
+
+<div class="section">
+    <h2 class="section-title">✈ Analyse des Voyages</h2>
+
+    <h3>Statistiques</h3>
+    <table>
+        <tr>
+            <th>Destination</th>
+            <th>Nombre de voyages</th>
+        </tr>
+        {% set destinations = {} %}
+        {% for voyage in voyages %}
+            {% if not destinations[voyage.destination] is defined %}
+                {% set destinations = destinations|merge({(voyage.destination): 1}) %}
+            {% else %}
+                {% set destinations = destinations|merge({(voyage.destination): destinations[voyage.destination] + 1}) %}
+            {% endif %}
+        {% endfor %}
+        {% for destination, count in destinations %}
+            <tr>
+                <td>{{ destination }}</td>
+                <td>{{ count }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h3>Analyse par l'IA</h3>
+    <div class="analysis-box">
+        {{ analyseVoyages|raw }}
+    </div>
+</div>
+
+<div class="section">
+    <h2 class="section-title">🏷 Analyse des Offres Promotionnelles</h2>
+
+    <h3>Statistiques</h3>
+    <table>
+        <tr>
+            <th>Offre</th>
+            <th>Réduction</th>
+            <th>Période</th>
+        </tr>
+        {% for offre in offres %}
+            <tr>
+                <td>{{ offre.titre }}</td>
+                <td>{{ offre.reduction }}%</td>
+                <td>{{ offre.dateDebut|date('d/m/Y') }} - {{ offre.dateFin|date('d/m/Y') }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h3>Analyse par l'IA</h3>
+    <div class="analysis-box">
+        {{ analyseOffres|raw }}
+    </div>
+</div>
+
+<div class="section">
+    <h2 class="section-title"> Recommandations Stratégiques</h2>
+    <div class="analysis-box">
+        {{ recommandations|raw }}
+    </div>
+</div>
+
+<div class="footer">
+    <p>Rapport généré automatiquement par le système de gestion de voyages</p>
+</div>
+</body>
+</html>

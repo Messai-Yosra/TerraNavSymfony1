@@ -17,13 +17,19 @@ class OffreAgence extends AbstractController
     #[Route('/offresAgence', name: 'app_offres_agence')]
     public function index(Request $request, OffreRepository $offreRepository, UtilisateurRepository $userRepository): Response
     {
+        // Utiliser l'utilisateur connecté au lieu d'un ID statique
+        $user = $this->getUser();
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour accéder à cette page');
+            return $this->redirectToRoute('app_login');
+        }
+
         $searchTerm = $request->query->get('search');
         $minReduction = $request->query->get('minReduction');
         $dateDebut = $request->query->get('dateDebut');
         $dateFin = $request->query->get('dateFin');
         $sortType = $request->query->get('sort');
 
-        $user = $userRepository->find(1);
         $criteria = [];
 
         // Si l'utilisateur a un nom d'agence, filtrer par ce nom

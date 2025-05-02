@@ -1,4 +1,4 @@
-{% extends "baseClient.html.twig" %}
+{% extends "baseAgenceVoyage.html.twig" %}
 
 {% block title %}Statistique - Agence{% endblock %}
 
@@ -53,8 +53,8 @@
                         </ul>
                     </div>
 
-                    <a href="#" class="btn btn-success hover-scale">
-                        <i class="fas fa-chart-line me-2"></i>Voir Statistiques
+                    <a href="{{ path('app_generer_rapport_agence') }}" class="btn btn-primary hover-scale">
+                        <i class="fas fa-file-alt me-2"></i>Générer Rapport
                     </a>
                 </div>
             </div>

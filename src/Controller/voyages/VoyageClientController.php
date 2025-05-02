@@ -9,6 +9,8 @@ use App\Repository\Reservation\PanierRepository;
 use App\Repository\Reservation\ReservationRepository;
 use App\Repository\Voyage\OffreRepository;
 use App\Repository\Voyage\VoyageRepository;
+use App\Service\AmadeusService;
+use App\Service\WeatherService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -55,16 +57,7 @@ final class VoyageClientController extends AbstractController
         ]);
     }
 
-    #[Route('/voyage/{id}', name: 'app_voyage_show')]
-    public function show(Voyage $voyage, VoyageRepository $voyageRepository): Response
-    {
-        $similarVoyages = $voyageRepository->findSimilarVoyages($voyage);
 
-        return $this->render('voyages/DetailsVoyage.html.twig', [
-            'voyage' => $voyage,
-            'similarVoyages' => $similarVoyages,
-        ]);
-    }
 
     #[Route('/voyages/suggestions', name: 'app_voyages_suggestions')]
     public function suggestions(Request $request, VoyageRepository $voyageRepository): JsonResponse
@@ -93,7 +86,7 @@ final class VoyageClientController extends AbstractController
             $user = $security->getUser();
 
             if (!$user) {
-                // Handle case where user is not logged in (redirect to login or show error)
+
                 return $this->redirectToRoute('app_login');
             }
 
@@ -158,5 +151,78 @@ final class VoyageClientController extends AbstractController
             'voyage' => $voyage
         ]);
     }
+    #[Route('/voyage/weather/{destination}', name: 'app_voyage_weather')]
+    public function getWeather(string $destination, WeatherService $weatherService): JsonResponse
+    {
+        try {
+            $weatherData = $weatherService->getWeatherForDestination($destination);
+
+            if (!$weatherData) {
+                return $this->json([
+                    'error' => 'weather_data_unavailable',
+                    'message' => 'Données météo non disponibles pour cette destination'
+                ], 404);
+            }
+
+            return $this->json($weatherData);
+        } catch (\Exception $e) {
+            return $this->json([
+                'error' => 'api_error',
+                'message' => 'Erreur technique lors de la récupération des données météo',
+                'details' => $e->getMessage() // En dev seulement
+            ], 500);
+        }
+    }
+    // src/Controller/VoyageClientController.php
+
+    #[Route('/search-amadeus', name: 'app_search_amadeus', methods: ['GET'])]
+    public function searchAmadeus(
+        Request $request,
+        AmadeusService $amadeusService
+    ): JsonResponse {
+        $searchTerm = trim($request->query->get('search', ''));
+
+        if (empty($searchTerm)) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Veuillez saisir une destination'
+            ], 400);
+        }
+
+        try {
+            // 1. D'abord on cherche les aéroports correspondant à la destination
+            $airports = $amadeusService->searchAirports($searchTerm);
+
+            // 2. Si on trouve des aéroports, on cherche des vols pour chacun
+            $allResults = [];
+            foreach ($airports as $airport) {
+                $results = $amadeusService->searchFlights([
+                    'originLocationCode' => 'TUN', // Départ de Tunis
+                    'destinationLocationCode' => $airport['iataCode'],
+                    'departureDate' => date('Y-m-d', strtotime('+1 week')),
+                    'adults' => 1,
+                    'max' => 3 // Limite par aéroport
+                ]);
+
+                if (!empty($results['data'])) {
+                    $allResults = array_merge($allResults, $results['data']);
+                }
+            }
+
+            return $this->json([
+                'success' => true,
+                'results' => $allResults
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Erreur lors de la recherche : ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+
+
 
 }

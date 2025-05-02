@@ -1,90 +1,119 @@
+
 {% extends "baseClient.html.twig" %}
 
 {% block titre %}Voyagez en toute sérénité | Réservation de Transport{% endblock %}
 
 {% block content %}
-    <link rel="stylesheet" href="{{ asset('css/transports/ClientTransport.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<div class="transport-booking-container">
-    <!-- Hero Section -->
-    <section class="hero-section">
-    <div class="hero-content" >
+    <div class="transport-booking-container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1>Voyagez en toute sérénité</h1>
+                <p>Trouvez et réservez le transport parfait pour votre prochain voyage</p>
+            </div>
+        </section>
 
-        <h1>Voyagez en toute sérénité</h1>
-        <p>Trouvez et réservez le transport parfait pour votre prochain voyage</p>
-    </div>
-</section>
-
-    <!-- Search Form -->
-    <div class="search-container">
-       <form action="{{ path('app_transport_search') }}" method="get" class="search-form">
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="departure"><i class="fas fa-map-marker-alt"></i> Départ</label>
-                    <input type="text" id="departure" name="departure" placeholder="Ville ou gare de départ" required>
+        <!-- Search Form -->
+        <div class="search-container">
+            {{ form_start(form, {'attr': {'class': 'search-form', 'novalidate': 'novalidate'}}) }}
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="form_departure"><i class="fas fa-map-marker-alt"></i> Départ</label>
+                        {{ form_widget(form.departure, {
+                            'attr': {
+                                'class': 'form-control' ~ (form.departure.vars.errors|length ? ' is-invalid' : ''),
+                                'id': 'form_departure',
+                                'autocomplete': 'off',
+                                'placeholder': 'Entrez une ville'
+                            }
+                        }) }}
+                        {% if form.departure.vars.errors|length %}
+                            <div class="invalid-feedback">
+                                {% for error in form.departure.vars.errors %}
+                                    {{ error.message }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div id="form_departure-suggestions" class="suggestions-container"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="form_destination"><i class="fas fa-map-marker"></i> Destination</label>
+                        {{ form_widget(form.destination, {
+                            'attr': {
+                                'class': 'form-control' ~ (form.destination.vars.errors|length ? ' is-invalid' : ''),
+                                'id': 'form_destination',
+                                'autocomplete': 'off',
+                                'placeholder': 'Entrez une ville'
+                            }
+                        }) }}
+                        {% if form.destination.vars.errors|length %}
+                            <div class="invalid-feedback">
+                                {% for error in form.destination.vars.errors %}
+                                    {{ error.message }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div id="form_destination-suggestions" class="suggestions-container"></div>
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="destination"><i class="fas fa-map-marker"></i> Destination</label>
-                    <input type="text" id="destination" name="destination" placeholder="Ville ou gare d'arrivée" required>
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="date"><i class="fas fa-calendar"></i> Date</label>
-                    <input type="date" id="date" name="date" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="form_date"><i class="fas fa-calendar"></i> Date</label>
+                        {{ form_widget(form.date, {
+                            'attr': {
+                                'class': 'form-control' ~ (form.date.vars.errors|length ? ' is-invalid' : ''),
+                                'min': 'now'|date('Y-m-d')
+                            }
+                        }) }}
+                        {% if form.date.vars.errors|length %}
+                            <div class="invalid-feedback">
+                                {% for error in form.date.vars.errors %}
+                                    {{ error.message }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="form_passagers"><i class="fas fa-users"></i> Passagers</label>
+                        {{ form_widget(form.passagers, {
+                            'attr': {
+                                'class': 'form-control' ~ (form.passagers.vars.errors|length ? ' is-invalid' : ''),
+                                'min': 1
+                            }
+                        }) }}
+                        {% if form.passagers.vars.errors|length %}
+                            <div class="invalid-feedback">
+                                {% for error in form.passagers.vars.errors %}
+                                    {{ error.message }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="passengers"><i class="fas fa-users"></i> Passagers</label>
-                    <select id="passengers" name="passengers">
-                        <option value="1">1 passager</option>
-                        <option value="2">2 passagers</option>
-                        <option value="3">3 passagers</option>
-                        <option value="4">4 passagers</option>
-                        <option value="5">5 passagers</option>
-                        <option value="6">6 passagers</option>
-                    </select>
-                </div>
-            </div>
-            
-            <button type="submit" class="search-button">
-                <i class="fas fa-search"></i> Rechercher
-            </button>
-        </form>
-    </div>
-
-    <!-- Why Choose Us Section -->
-    <section class="why-us-section">
-        <h2>Pourquoi nous choisir ?</h2>
-        <div class="benefits-grid">
-            <div class="benefit-card">
-                <i class="fas fa-bolt"></i>
-                <h3>Réservation instantanée</h3>
-                <p>Confirmations immédiates et e-billets disponibles en quelques clics</p>
-            </div>
-            
-            <div class="benefit-card">
-                <i class="fas fa-tag"></i>
-                <h3>Prix garantis</h3>
-                <p>Les meilleurs tarifs sans frais cachés ni suppléments</p>
-            </div>
-            
-            <div class="benefit-card">
-                <i class="fas fa-shield-alt"></i>
-                <h3>Assurance incluse</h3>
-                <p>Voyagez l'esprit tranquille avec notre assurance comprise</p>
-            </div>
-            
-            <div class="benefit-card">
-                <i class="fas fa-headset"></i>
-                <h3>Support 24/7</h3>
-                <p>Notre équipe est à votre disposition à tout moment</p>
-            </div>
+                <button type="submit" class="search-button">
+                    <i class="fas fa-search"></i> Rechercher
+                </button>
+            {{ form_end(form) }}
         </div>
-    </section>
+
+        <div class="map-selection-info mt-5">
+            <p class="map-instruction"><strong>Ou sélectionnez sur la carte :</strong></p>
+            <button id="openMap" class="btn-map-select">Sélectionner sur la carte</button>
+        </div>
+
+        <div id="mapContainer" style="display: none; height: 500px; margin-top: 20px; position: relative;">
+            <input id="mapSearch" type="text" placeholder="Rechercher un lieu..." style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1000; width: 300px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+            <div class="map-buttons" style="position: absolute; top: 50px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; gap: 10px;">
+                <button id="changeDeparture" class="btn-map-action">Changer le point de départ</button>
+                <button id="changeDestination" class="btn-map-action">Changer la destination</button>
+            </div>
+            <div id="map" style="width: 100%; height: 100%;"></div>
+        </div>
+    </div>
 
     <!-- Popular Routes -->
     <section class="popular-routes">
@@ -94,7 +123,7 @@
                 <img src="{{ asset('img/paris.jpg') }}" alt="Paris">
                 <div class="route-info">
                     <h3>Paris</h3>
-                    <p>À partir de 25DTN</p>
+                    <p>À partir de 750DTN</p>
                     <a href="#" class="btn-view">Voir les options</a>
                 </div>
             </div>
@@ -103,7 +132,7 @@
                 <img src="{{ asset('img/egypte.jpg') }}" alt="Egypte">
                 <div class="route-info">
                     <h3>Egypte</h3>
-                    <p>À partir de 35DTN</p>
+                    <p>À partir de 350DTN</p>
                     <a href="#" class="btn-view">Voir les options</a>
                 </div>
             </div>
@@ -112,7 +141,7 @@
                 <img src="{{ asset('img/espagne.jpg') }}" alt="Espagne">
                 <div class="route-info">
                     <h3>Espagne</h3>
-                    <p>À partir de 40DTN</p>
+                    <p>À partir de 550DTN</p>
                     <a href="#" class="btn-view">Voir les options</a>
                 </div>
             </div>
@@ -121,7 +150,7 @@
                 <img src="{{ asset('img/japon.jpg') }}" alt="Japon">
                 <div class="route-info">
                     <h3>Japon</h3>
-                    <p>À partir de 38DTN</p>
+                    <p>À partir de 2350DTN</p>
                     <a href="#" class="btn-view">Voir les options</a>
                 </div>
             </div>
@@ -139,7 +168,7 @@
                 <img src="{{ asset('img/bresil.jpg') }}" alt="Bresil">
                 <div class="route-info">
                     <h3>Bresil</h3>
-                    <p>À partir de 132DTN</p>
+                    <p>À partir de 1500DTN</p>
                     <a href="#" class="btn-view">Voir les options</a>
                 </div>
             </div>
@@ -157,14 +186,14 @@
             </div>
             
             <div class="type-card">
-                <i class="fas fa-train"></i>
-                <h3>Train</h3>
+                <i class="fas fa-taxi"></i>
+                <h3>Taxi</h3>
                 <p>Rapide et pratique, idéal pour les longues distances</p>
             </div>
             
             <div class="type-card">
                 <i class="fas fa-shuttle-van"></i>
-                <h3>Navette</h3>
+                <h3>Voiture privée</h3>
                 <p>Service direct et sans arrêts pour plus de commodité</p>
             </div>
         </div>
@@ -179,9 +208,9 @@
                     "Service impeccable ! J'ai pu réserver mon billet de train en quelques minutes. L'interface est intuitive et le processus est très simple. Je recommande vivement."
                 </div>
                 <div class="testimonial-author">
-                    <img src="{{ asset('images/transport/testimonial1.jpg') }}" alt="Sophie Martin" class="author-img">
+                    <img src="{{ asset('images/transport/testimonial1.jpg') }}" alt="Rayen Souissi" class="author-img">
                     <div class="author-info">
-                        <h4>Sophie Martin</h4>
+                        <h4>Rayen Souissi</h4>
                         <p>Paris</p>
                         <div class="rating">
                             <i class="fas fa-star"></i>
@@ -193,8 +222,6 @@
                     </div>
                 </div>
             </div>
-            
-            <!-- More testimonials would be added here and controlled by JS -->
         </div>
     </section>
     
@@ -209,50 +236,745 @@
             </div>
         </div>
     </section>
-</div>
 {% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/transports/ClientTransport.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css" type="text/css">
+
+    <style>
+        /* Styles pour l'autocomplétion */
+        .ui-autocomplete {
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            padding: 0;
+        }
+        .ui-menu-item {
+            padding: 12px 15px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            color: #333;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .ui-menu-item:last-child {
+            border-bottom: none;
+        }
+        .ui-menu-item:hover {
+            background-color: #f5faff;
+        }
+        .ui-state-active {
+            background-color: #e6f0fa;
+            color: #0052cc;
+        }
+        .ui-state-disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .autocomplete-suggestion {
+            display: flex;
+            align-items: center;
+        }
+        .form-group {
+            position: relative;
+        }
+        .suggestions-container {
+            position: absolute;
+            width: 100%;
+            z-index: 1000;
+        }
+        .btn-map-select {
+            display: block;
+            margin: 15px auto;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .btn-map-select:hover {
+            background: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        .map-selection-info {
+            text-align: center;
+        }
+        .map-instruction {
+            margin-top: 30px;
+            font-size: 1.2rem;
+            font-weight: 500;
+            text-align: center;
+            color: #333;
+            font-family: 'Montserrat', sans-serif;
+        }
+        #mapContainer {
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            background: #f9f9f9;
+        }
+        #mapSearch {
+            font-family: 'Poppins', sans-serif;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            font-size: 1rem;
+        }
+        .mapboxgl-ctrl-geocoder {
+            min-width: 100%;
+        }
+        .search-button {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .search-button:hover {
+            background: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        .form-control {
+            border-radius: 6px;
+            padding: 10px;
+            font-family: 'Poppins', sans-serif;
+        }
+        .form-control.is-invalid {
+            border-color: #dc3545;
+        }
+        .invalid-feedback {
+            font-size: 0.875rem;
+            color: #dc3545;
+        }
+        /* Styles pour les boutons de la carte */
+        .map-buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .btn-map-action {
+            background: linear-gradient(135deg, #4a90e2 0%, #50c9c3 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        .btn-map-action:hover {
+            background: linear-gradient(135deg, #50c9c3 0%, #4a90e2 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        .btn-map-action:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+{% endblock %}
 {% block javascripts %}
     {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
+
     <script>
-        // Set minimum date to today
-        document.getElementById('date').min = new Date().toISOString().split('T')[0];
-        
-        // Auto-complete for departure/destination (to be implemented)
-        
-        // Testimonial slider functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            // Here you would add testimonial slider functionality
-            // This is a placeholder for where you'd implement a carousel
-            
-            // Add subtle animations on scroll
-            const animateOnScroll = function() {
-                const elements = document.querySelectorAll('.benefit-card, .route-card, .type-card, .testimonial-item');
-                
-                elements.forEach(element => {
-                    const elementPosition = element.getBoundingClientRect().top;
-                    const windowHeight = window.innerHeight;
-                    
-                    if (elementPosition < windowHeight - 100) {
-                        element.style.opacity = '1';
-                        element.style.transform = 'translateY(0)';
+        jQuery(document).ready(function($) {
+            // Variables globales pour la carte et les marqueurs
+            let map = null;
+            let departureMarker = null;
+            let destinationMarker = null;
+            let isMapVisible = false;
+            let isSelectingDeparture = true;
+            let departureCity = null;
+            let departureCoords = null;
+            let destinationCity = null;
+            let destinationCoords = null;
+            let geocoder = null;
+
+            // Fonction de debounce pour limiter les requêtes AJAX
+            function debounce(func, wait) {
+                let timeout;
+                return function(...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+
+            // Configuration de l'autocomplétion
+            $("#form_departure, #form_destination").autocomplete({
+                source: debounce(function(request, response) {
+                    $.ajax({
+                        url: "{{ path('app_cities_autocomplete') }}",
+                        dataType: "json",
+                        data: { q: request.term },
+                        success: function(data) {
+                            console.log("Suggestions reçues:", data);
+                            if (!Array.isArray(data)) {
+                                console.error("Response is not an array:", data);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Erreur',
+                                    text: 'Format de réponse invalide.'
+                                });
+                                response([]);
+                                return;
+                            }
+                            if (data.length === 0) {
+                                console.warn("No suggestions for query:", request.term);
+                                response([{ label: "Aucune ville trouvée", value: "", disabled: true }]);
+                                return;
+                            }
+                            response(data);
+                        },
+                        error: function(xhr, status, error) {
+                            console.error("Erreur AJAX:", { status, error, responseText: xhr.responseText, statusCode: xhr.status });
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Erreur',
+                                text: 'Impossible de récupérer les suggestions de villes.'
+                            });
+                            response([]);
+                        }
+                    });
+                }, 300),
+                minLength: 2,
+                select: function(event, ui) {
+                    if (ui.item.disabled) {
+                        event.preventDefault();
+                        return;
+                    }
+
+                    console.log("Ville sélectionnée:", ui.item.value, "Coordonnées:", ui.item.coordinates);
+                    const fieldId = this.id;
+                    const city = ui.item.value;
+                    const coords = ui.item.coordinates;
+
+                    // Set input value
+                    $(this).val(city);
+
+                    // Update global variables
+                    if (fieldId === "form_departure") {
+                        departureCity = city;
+                        departureCoords = coords;
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Départ sélectionné',
+                            text: `Point de départ: ${city}`
+                        });
+                    } else if (fieldId === "form_destination") {
+                        destinationCity = city;
+                        destinationCoords = coords;
+                        const departureInput = $("#form_departure").val().trim();
+                        const destinationInput = $("#form_destination").val().trim();
+                        if (departureInput && destinationInput) {
+                            checkDistance(departureInput, destinationInput, departureCoords, destinationCoords, function(response) {
+                                if (response.success) {
+                                    if (response.exceedsLimit) {
+                                        Swal.fire({
+                                            icon: 'warning',
+                                            title: 'Distance trop grande',
+                                            text: 'La distance entre le point de départ et la destination est supérieure à 500 km. Veuillez choisir une autre destination ou réserver un voyage.',
+                                            showCancelButton: true,
+                                            confirmButtonText: 'Réserver un voyage',
+                                            cancelButtonText: 'Choisir une autre destination'
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                window.location.href = '/VoyagesClient';
+                                            } else {
+                                                $("#form_destination").val('');
+                                                destinationCity = null;
+                                                destinationCoords = null;
+                                                if (destinationMarker) destinationMarker.remove();
+                                            }
+                                        });
+                                    } else {
+                                        Swal.fire({
+                                            icon: 'success',
+                                            title: 'Destination sélectionnée',
+                                            text: `Distance: ${response.distance.toFixed(2)} km`
+                                        });
+                                    }
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Erreur',
+                                        text: response.message || 'Erreur lors du calcul de la distance.'
+                                    });
+                                }
+                            });
+                        }
+                    }
+
+                    // Update map
+                    if (isMapVisible && map && coords) {
+                        const [lon, lat] = coords;
+                        map.flyTo({ center: [lon, lat], zoom: 10 });
+                        const markerColor = fieldId === "form_departure" ? 'blue' : 'red';
+                        const marker = new mapboxgl.Marker({ color: markerColor })
+                            .setLngLat([lon, lat])
+                            .addTo(map);
+
+                        if (fieldId === "form_departure") {
+                            if (departureMarker) departureMarker.remove();
+                            departureMarker = marker;
+                        } else {
+                            if (destinationMarker) destinationMarker.remove();
+                            destinationMarker = marker;
+                        }
+                    }
+                },
+                open: function() {
+                    $(this).autocomplete('widget').css({
+                        'z-index': 1000,
+                        'width': $(this).outerWidth()
+                    });
+                },
+                response: function(event, ui) {
+                    if (ui.content.length === 0) {
+                        ui.content.push({
+                            label: "Aucune ville trouvée",
+                            value: "",
+                            disabled: true
+                        });
+                    }
+                }
+            }).data("ui-autocomplete")._renderItem = function(ul, item) {
+                if (!item.label || !item.value) {
+                    console.error("Invalid suggestion item:", item);
+                    return $("<li>").text("Erreur: suggestion invalide").appendTo(ul);
+                }
+                const li = $("<li>")
+                    .append($("<div>")
+                        .addClass("autocomplete-suggestion")
+                        .text(item.label)
+                        .css({
+                            'padding': '10px',
+                            'font-family': "'Poppins', sans-serif",
+                            'font-size': '1rem'
+                        })
+                    );
+
+                if (item.disabled) {
+                    li.addClass("ui-state-disabled").css({
+                        'background-color': '#f7f7f7',
+                        'cursor': 'default'
+                    });
+                }
+                return li.appendTo(ul);
+            };
+
+            // Initialisation de la carte Mapbox
+            $('#openMap').on('click', function() {
+                const mapContainer = $('#mapContainer');
+                if (mapContainer.is(':visible')) {
+                    mapContainer.fadeOut(300);
+                    isMapVisible = false;
+                    $(this).text('Sélectionner sur la carte');
+                } else {
+                    mapContainer.fadeIn(300);
+                    isMapVisible = true;
+                    $(this).text('Masquer la carte');
+
+                    if (!mapContainer.data('map-initialized')) {
+                        const mapboxToken = '{{ mapbox_access_token|e('js')|default('') }}';
+                        if (!mapboxToken) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Erreur',
+                                text: 'Clé Mapbox manquante. La carte ne peut pas être chargée.'
+                            });
+                            return;
+                        }
+
+                        mapboxgl.accessToken = mapboxToken;
+                        try {
+                            map = new mapboxgl.Map({
+                                container: 'map',
+                                style: 'mapbox://styles/mapbox/streets-v11',
+                                center: [10.1658, 36.8065],
+                                zoom: 5
+                            });
+
+                            map.addControl(new mapboxgl.NavigationControl());
+
+                            geocoder = new MapboxGeocoder({
+                                accessToken: mapboxgl.accessToken,
+                                mapboxgl: mapboxgl,
+                                marker: false,
+                                placeholder: 'Rechercher une ville...',
+                                types: 'place',
+                                language: 'fr'
+                            });
+
+                            map.addControl(geocoder);
+                            document.querySelector('.mapboxgl-ctrl-geocoder').style.display = 'none';
+
+                            const searchInput = document.getElementById('mapSearch');
+                            searchInput.addEventListener('keydown', function(e) {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    if (this.value.length > 0) {
+                                        geocoder.query(this.value);
+                                    }
+                                }
+                            });
+
+                            geocoder.on('result', function(e) {
+                                const coords = e.result.center;
+                                const city = e.result.text;
+                                const placeName = e.result.place_name;
+                                searchInput.value = placeName;
+                                handleLocationSelection(city, coords);
+                            });
+
+                            map.on('click', function(e) {
+                                const lngLat = e.lngLat;
+                                fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${mapboxgl.accessToken}&types=place&language=fr`)
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.features && data.features.length > 0) {
+                                            const cityFeature = data.features.find(f => f.place_type.includes('place'));
+                                            const city = cityFeature ? cityFeature.text : data.features[0].text;
+                                            const placeName = cityFeature ? cityFeature.place_name : data.features[0].place_name;
+                                            document.getElementById('mapSearch').value = placeName;
+                                            handleLocationSelection(city, [lngLat.lng, lngLat.lat]);
+                                        } else {
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: 'Erreur',
+                                                text: 'Aucune ville trouvée à cet emplacement'
+                                            });
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Erreur de géocodage inversé:', error);
+                                        Swal.fire({
+                                            icon: 'error',
+                                            title: 'Erreur',
+                                            text: 'Impossible de récupérer le nom du lieu'
+                                        });
+                                    });
+                            });
+
+                            mapContainer.data('map-initialized', true);
+                        } catch (error) {
+                            console.error("Erreur d'initialisation de Mapbox:", error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Erreur',
+                                text: 'Échec de l\'initialisation de la carte.'
+                            });
+                        }
+                    }
+                }
+            });
+
+            // Gestion des boutons pour changer le point de départ et la destination
+            $('#changeDeparture').on('click', function() {
+                isSelectingDeparture = true;
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Changement du point de départ',
+                    text: 'Veuillez sélectionner un nouveau point de départ.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                if (map.getLayer('route')) {
+                    map.removeLayer('route');
+                    map.removeSource('route');
+                }
+            });
+
+            $('#changeDestination').on('click', function() {
+                isSelectingDeparture = false;
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Changement de la destination',
+                    text: 'Veuillez sélectionner une nouvelle destination.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                if (map.getLayer('route')) {
+                    map.removeLayer('route');
+                    map.removeSource('route');
+                }
+            });
+
+            // Fonction pour vérifier la distance
+            function checkDistance(departure, destination, departureCoords, destinationCoords, callback) {
+                if (!departure || !destination) {
+                    console.warn('checkDistance: Missing departure or destination', { departure, destination });
+                    callback({
+                        success: false,
+                        message: 'Veuillez sélectionner une ville de départ et une destination.'
+                    });
+                    return;
+                }
+
+                console.log('Checking distance:', { departure, destination, departureCoords, destinationCoords });
+
+                $.ajax({
+                    url: "{{ path('app_check_distance') }}",
+                    method: 'POST',
+                    data: {
+                        departure: departure,
+                        destination: destination,
+                        departure_coords: departureCoords ? departureCoords.join(',') : null,
+                        destination_coords: destinationCoords ? destinationCoords.join(',') : null
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        console.log('Distance response:', response);
+                        callback(response);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Distance check error:', { status, error, response: xhr.responseText });
+                        callback({
+                            success: false,
+                            message: xhr.responseJSON?.message || 'Erreur lors du calcul de la distance.'
+                        });
                     }
                 });
-            };
-            
-            // Set initial state for animation elements
-            const elementsToAnimate = document.querySelectorAll('.benefit-card, .route-card, .type-card, .testimonial-item');
-            elementsToAnimate.forEach(element => {
-                element.style.opacity = '0';
-                element.style.transform = 'translateY(20px)';
-                element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            }
+
+            // Gestion de la sélection d'emplacement sur la carte
+            function handleLocationSelection(city, coords) {
+                Swal.fire({
+                    title: isSelectingDeparture ? "Confirmer le point de départ" : "Confirmer la destination",
+                    text: `Êtes-vous sûr de vouloir sélectionner ${city} comme ${isSelectingDeparture ? "point de départ" : "destination"} ?`,
+                    icon: "question",
+                    showCancelButton: true,
+                    confirmButtonText: "Oui, confirmer",
+                    cancelButtonText: "Annuler"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        if (isSelectingDeparture) {
+                            if (departureMarker) departureMarker.remove();
+                            departureMarker = new mapboxgl.Marker({ color: 'blue' })
+                                .setLngLat(coords)
+                                .addTo(map);
+                            departureCity = city;
+                            departureCoords = coords;
+                            $("#form_departure").val(city);
+                            map.flyTo({ center: coords, zoom: 12 });
+                            Swal.fire({
+                                title: "Point de départ sélectionné",
+                                text: `Vous avez sélectionné ${city} comme point de départ.`,
+                                icon: "success",
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                            isSelectingDeparture = false;
+                        } else {
+                            if (destinationMarker) destinationMarker.remove();
+                            destinationMarker = new mapboxgl.Marker({ color: 'red' })
+                                .setLngLat(coords)
+                                .addTo(map);
+                            destinationCity = city;
+                            destinationCoords = coords;
+                            $("#form_destination").val(city);
+
+                            checkDistance(departureCity, city, departureCoords, coords, function(response) {
+                                if (response.success) {
+                                    const distance = response.distance;
+                                    if (response.exceedsLimit) {
+                                        Swal.fire({
+                                            icon: 'warning',
+                                            title: 'Distance trop grande',
+                                            text: 'La distance entre le point de départ et la destination est supérieure à 500 km. Veuillez choisir une autre destination ou réserver un voyage.',
+                                            showCancelButton: true,
+                                            confirmButtonText: 'Réserver un voyage',
+                                            cancelButtonText: 'Choisir une autre destination'
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                window.location.href = '/VoyagesClient';
+                                            } else {
+                                                $("#form_destination").val('');
+                                                destinationCity = null;
+                                                destinationCoords = null;
+                                                if (destinationMarker) destinationMarker.remove();
+                                            }
+                                        });
+                                        return;
+                                    }
+
+                                    fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${departureCoords.join(',')};${coords.join(',')}?access_token=${mapboxgl.accessToken}&geometries=geojson&overview=full`)
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            if (data.routes && data.routes.length > 0) {
+                                                if (map.getLayer('route')) {
+                                                    map.removeLayer('route');
+                                                    map.removeSource('route');
+                                                }
+
+                                                map.addLayer({
+                                                    id: 'route',
+                                                    type: 'line',
+                                                    source: {
+                                                        type: 'geojson',
+                                                        data: {
+                                                            type: 'Feature',
+                                                            properties: {},
+                                                            geometry: data.routes[0].geometry
+                                                        }
+                                                    },
+                                                    layout: {
+                                                        'line-join': 'round',
+                                                        'line-cap': 'round'
+                                                    },
+                                                    paint: {
+                                                        'line-color': '#3b82f6',
+                                                        'line-width': 3
+                                                    }
+                                                });
+
+                                                const bounds = new mapboxgl.LngLatBounds();
+                                                bounds.extend(departureCoords);
+                                                bounds.extend(coords);
+                                                map.fitBounds(bounds, { padding: 50 });
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error('Erreur lors de la récupération de l\'itinéraire:', error);
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: 'Erreur',
+                                                text: 'Impossible de charger l\'itinéraire sur la carte.'
+                                            });
+                                        });
+
+                                    Swal.fire({
+                                        title: "Destination sélectionnée",
+                                        text: `Vous avez sélectionné ${city} comme destination. Distance: ${distance.toFixed(2)} km`,
+                                        icon: "success",
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    });
+                                    isSelectingDeparture = true;
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Erreur',
+                                        text: response.message || 'Erreur lors du calcul de la distance.'
+                                    });
+                                }
+                            });
+                        }
+                    } else {
+                        Swal.fire({
+                            title: "Sélection annulée",
+                            text: `La sélection de ${city} a été annulée.`,
+                            icon: "info",
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    }
+                });
+            }
+
+            // Validation de la date
+            $("#form_date").attr("min", new Date().toISOString().split("T")[0]);
+
+            // Gestion de la soumission du formulaire
+            $(".search-form").on("submit", function(e) {
+                e.preventDefault();
+                const departure = $("#form_departure").val().trim();
+                const destination = $("#form_destination").val().trim();
+                const date = $("#form_date").val();
+                const passengers = $("#form_passagers").val();
+
+                if (!departure || !destination) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Champs manquants',
+                        text: 'Veuillez saisir une ville de départ et une destination.'
+                    });
+                    return;
+                }
+
+                if (!date) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Date manquante',
+                        text: 'Veuillez sélectionner une date de voyage.'
+                    });
+                    return;
+                }
+
+                if (!passengers || passengers < 1) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Passagers invalides',
+                        text: 'Veuillez spécifier un nombre de passagers valide.'
+                    });
+                    return;
+                }
+
+                checkDistance(departure, destination, departureCoords, destinationCoords, function(response) {
+                    if (response.success) {
+                        if (response.exceedsLimit) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Distance trop grande',
+                                text: 'La distance entre le point de départ et la destination est supérieure à 500 km. Veuillez choisir une autre destination ou réserver un voyage.',
+                                showCancelButton: true,
+                                confirmButtonText: 'Réserver un voyage',
+                                cancelButtonText: 'Choisir une autre destination'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.location.href = '/VoyagesClient';
+                                } else {
+                                    $("#form_destination").val('');
+                                    destinationCity = null;
+                                    destinationCoords = null;
+                                    if (destinationMarker) destinationMarker.remove();
+                                }
+                            });
+                        } else {
+                            const formData = {
+                                departure: departure,
+                                destination: destination,
+                                date: date,
+                                passengers: passengers
+                            };
+                            // Corrected route to match controller
+                            window.location.href = `/transports/search?departure=${encodeURIComponent(departure)}&passengers=${encodeURIComponent(passengers)}`;
+                        }
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erreur',
+                            text: response.message || 'Erreur lors du calcul de la distance.'
+                        });
+                    }
+                });
             });
-            
-            // Run once on load
-            animateOnScroll();
-            
-            // Add scroll event listener
-            window.addEventListener('scroll', animateOnScroll);
         });
     </script>
 {% endblock %}

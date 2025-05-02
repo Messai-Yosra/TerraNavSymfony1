@@ -68,7 +68,30 @@
                     <h6 class="section-title text-start text-primary text-uppercase">Détails du Voyage</h6>
                     <h1 class="mb-4">{{ voyage.titre }}</h1>
                     <div class="mb-4">
-                        <p>{{ voyage.description }}</p>
+                        <p id="voyageDescription">{{ voyage.description }}</p>
+
+                        <!-- Sélecteur de langue pour la traduction -->
+                        <div class="mt-3">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <label for="languageSelect" class="small text-muted">Traduire la description :</label>
+                                <select id="languageSelect" class="form-select form-select-sm border-primary" style="width: auto;">
+                                    <option value="" selected disabled>Choisir une langue</option>
+                                    <option value="en" data-icon="{{ asset('img/us.png') }}">Anglais</option>
+                                    <option value="es" data-icon="{{ asset('img/es.png') }}">Espagnol</option>
+                                    <option value="de" data-icon="{{ asset('img/de.png') }}">Allemand</option>
+                                    <option value="it" data-icon="{{ asset('img/it.png') }}">Italien</option>
+                                    <option value="ar" data-icon="{{ asset('img/rs.png') }}">Arabe</option>
+                                    <option value="tr" data-icon="{{ asset('img/tr.png') }}">Turc</option>
+                                </select>
+                            </div>
+                            <div id="translationResult" class="d-flex align-items-center gap-2 small">
+                                <span id="translationFlag"></span>
+                                <span id="translationText" class="text-muted">Sélectionnez une langue</span>
+                                <button id="resetTranslation" class="btn btn-sm btn-outline-secondary ms-auto" style="display: none;">
+                                    <i class="fas fa-undo me-1"></i>Revenir au français
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Section Principale d'Informations -->
@@ -136,13 +159,55 @@
                             </div>
                         </div>
 
-                        <!-- Prix -->
+                        <!-- Prix avec Conversion - Version avec drapeaux -->
                         <div class="col-sm-4 wow fadeIn" data-wow-delay="0.6s">
                             <div class="border rounded p-1 h-100 hover-effect">
-                                <div class="border rounded text-center p-4 h-100">
-                                    <i class="fas fa-money-bill-wave fa-2x text-primary mb-2"></i>
-                                    <h3 class="h5 mb-1">{{ voyage.prix }} DT</h3>
-                                    <p class="mb-0 text-muted">Prix par personne</p>
+                                <div class="border rounded text-center p-4 h-100 d-flex flex-column">
+                                    <!-- Prix principal -->
+                                    <div class="mb-3">
+                                        <i class="fas fa-money-bill-wave fa-2x text-primary mb-2"></i>
+                                        <h3 class="h5 mb-1">{{ voyage.prix }} DT</h3>
+                                        <p class="mb-0 text-muted">Prix par personne</p>
+                                    </div>
+
+                                    <!-- Séparateur visuel -->
+                                    <hr class="my-2 w-50 mx-auto">
+
+                                    <!-- Conversion de devise avec drapeaux -->
+                                    <!-- Conversion de devise avec drapeaux -->
+                                    <div class="mt-auto">
+                                        <div class="mb-2">
+                                            <label for="currencySelect" class="small text-muted">Convertir en :</label>
+                                        </div>
+                                        <select id="currencySelect" class="form-select form-select-sm border-primary">
+                                            <option value="EUR" data-icon="{{ asset('img/eu.png') }}">Euro (EUR)</option>
+                                            <option value="USD" data-icon="{{ asset('img/us.png') }}">Dollar US (USD)</option>
+                                            <option value="GBP" data-icon="{{ asset('img/uk.png') }}">Livre Sterling (GBP)</option>
+                                            <option value="JPY" data-icon="{{ asset('img/jp.png') }}">Yen Japonais (JPY)</option>
+                                            <option value="CAD" data-icon="{{ asset('img/ca.png') }}">Dollar Canadien (CAD)</option>
+                                            <option value="AUD" data-icon="{{ asset('img/au.png') }}">Dollar Australien (AUD)</option>
+                                            <option value="CHF" data-icon="{{ asset('img/ch.png') }}">Franc Suisse (CHF)</option>
+                                            <option value="CNY" data-icon="{{ asset('img/cn.png') }}">Yuan Chinois (CNY)</option>
+                                            <option value="SEK" data-icon="{{ asset('img/se.png') }}">Couronne Suédoise (SEK)</option>
+                                            <option value="NZD" data-icon="{{ asset('img/nz.png') }}">Dollar Néo-Zélandais (NZD)</option>
+                                            <option value="DZD" data-icon="{{ asset('img/dz.png') }}">Dinar Algérien (DZD)</option>
+                                            <option value="MAD" data-icon="{{ asset('img/ma.png') }}">Dirham Marocain (MAD)</option>
+                                            <option value="RUB" data-icon="{{ asset('img/ru.png') }}">Rouble Russe (RUB)</option>
+                                            <option value="TRY" data-icon="{{ asset('img/tr.png') }}">Livre Turque (TRY)</option>
+                                            <option value="BRL" data-icon="{{ asset('img/br.png') }}">Real Brésilien (BRL)</option>
+                                            <option value="INR" data-icon="{{ asset('img/in.png') }}">Roupie Indienne (INR)</option>
+                                            <option value="SAR" data-icon="{{ asset('img/rs.png') }}">Riyal Saoudien (SAR)</option>
+                                            <option value="ILS" data-icon="{{ asset('img/ps.png') }}">Livre Palestinienne (ILS)</option>
+                                        </select>
+                                        <div class="converted-price mt-2 small">
+                                                <span id="convertedAmount" class="text-muted">
+                                                    Sélectionnez une devise
+                                                </span>
+                                        </div>
+                                        <p class="conversion-note mt-1 mb-0">
+                                            <small><i class="fas fa-info-circle"></i> Taux en temps réel</small>
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -252,35 +317,46 @@
                         </ul>
                     </div>
                 </div>
-                <!-- Section Activités (à placer où vous souhaitez l'afficher) -->
+                <!-- Section Activités -->
                 <div class="mt-4">
                     <button id="generateActivities" class="btn btn-info py-3 px-5 btn-hover">
                         <i class="fas fa-lightbulb me-2"></i>Activités populaires
                     </button>
 
-                    <div id="activitiesContainer" class="mt-3 p-4 bg-light rounded d-none">
-                        <!-- En-tête avec bouton de copie -->
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h4 class="mb-0">
-                                <i class="fas fa-map-marked-alt text-primary me-2"></i>
-                                Activités à {{ voyage.destination }}
-                            </h4>
-                            <button id="copyActivities" class="btn btn-sm btn-outline-secondary" title="Copier les activités">
-                                <i class="fas fa-copy me-1"></i>Copier
-                            </button>
-                        </div>
-
-                        <!-- Contenu des activités (rempli dynamiquement) -->
-                        <div id="activitiesContent" class="activities-content bg-white p-3 rounded">
-                            <!-- État initial - vide ou avec message d'attente -->
-                            <p class="text-center text-muted mb-0">
-                                Cliquez sur le bouton pour générer les activités populaires...
-                            </p>
-                        </div>
-
-                        <!-- Pied de section -->
-                        <div class="text-end small text-muted mt-2">
-                            <i class="fas fa-info-circle"></i> Suggestions générées par intelligence artificielle
+                    <!-- Modal pour afficher les activités - Version améliorée -->
+                    <div class="modal fade" id="activitiesModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-xl"> <!-- Changé de modal-lg à modal-xl -->
+                            <div class="modal-content">
+                                <div class="modal-header bg-primary text-white">
+                                    <h5 class="modal-title">
+                                        <i class="fas fa-map-marked-alt me-2"></i>
+                                        Activités populaires à {{ voyage.destination }}
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body p-4">
+                                    <div class="row g-4" id="activitiesContent">
+                                        <!-- Contenu chargé dynamiquement -->
+                                        <div class="col-12 text-center py-5">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Chargement...</span>
+                                            </div>
+                                            <p class="mt-3">Recherche des meilleures activités...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer bg-light">
+                                    <small class="text-muted me-auto">
+                                        <i class="fas fa-robot text-primary"></i> Suggestions générées par intelligence artificielle
+                                    </small>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="copyActivities">
+                                        <i class="fas fa-copy me-1"></i>Copier la liste
+                                    </button>
+                                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                                        <i class="fas fa-check me-1"></i>J'ai compris
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -549,6 +625,683 @@
                 height: 100px;
             }
         }
+        /* Style pour le sélecteur de devise */
+        /* Ajoutez ceci à votre section style */
+        .converted-price {
+            font-size: 0.9rem;
+            padding: 4px 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .conversion-note {
+            font-size: 0.7rem;
+            color: #6c757d;
+        }
+
+        /* Amélioration du select */
+        .form-select-sm {
+            padding: 0.25rem 1.5rem 0.25rem 0.5rem;
+            background-position: right 0.3rem center;
+        }
+
+        .border-primary {
+            border-color: #0d6efd !important;
+        }
+        .form-select option {
+            padding: 5px 10px;
+            background-repeat: no-repeat;
+            background-position: left center;
+            padding-left: 25px;
+        }
+
+        /* Style pour le prix converti avec drapeau */
+        .converted-price {
+            font-size: 0.9rem;
+            padding: 4px 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .converted-price span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .conversion-note {
+            font-size: 0.7rem;
+            color: #6c757d;
+        }
+
+        .select-with-flags {
+            position: relative;
+        }
+
+        .select-with-flags option {
+            padding-left: 30px;
+            background-repeat: no-repeat;
+            background-position: left center;
+            background-size: 20px;
+        }
+
+        #convertedAmount img {
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+
+        .fa-spinner {
+            margin-right: 5px;
+        }
+
+        /* Styles pour le modal des activités */
+        #activitiesModal .modal-content {
+            border-radius: 12px;
+            overflow: hidden;
+            border: none;
+        }
+
+        #activitiesModal .modal-header {
+            padding: 1.2rem 2rem;
+        }
+
+        #activitiesModal .modal-body {
+            padding: 2rem;
+        }
+
+        /* Carte des activités */
+        .activity-card {
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .activity-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        /* Bouton d'expansion */
+        .btn-expand-map {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            z-index: 10;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            opacity: 0.9;
+            transition: all 0.2s ease;
+        }
+
+        .btn-expand-map:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        /* Style pour la carte en plein écran */
+        .swal2-popup #fullScreenMap {
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            #activitiesModal .modal-dialog {
+                margin: 0.5rem;
+            }
+
+            .activity-card .row {
+                flex-direction: column;
+            }
+
+            .activity-card .col-md-6 {
+                width: 100%;
+            }
+
+            #fullScreenMap {
+                height: 300px !important;
+            }
+        }
+
+        /* Styles pour la traduction */
+        #translationResult {
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border-left: 3px solid #0d6efd;
+        }
+
+        #translationFlag img {
+            width: 20px;
+            height: auto;
+            border-radius: 2px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        #translationText {
+            flex-grow: 1;
+        }
+
+        /* Style du sélecteur de langue */
+        #languageSelect {
+            max-width: 200px;
+            background-position: right 0.5rem center;
+        }
+
+        /* Animation pour la traduction */
+        @keyframes fadeInTranslation {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .translation-appear {
+            animation: fadeInTranslation 0.3s ease-out;
+        }
+
+        /* Ajoutez ces styles dans votre section <style> existante */
+        .mapboxgl-popup {
+            max-width: 300px;
+        }
+
+        .mapboxgl-popup-content {
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+
+        .map-popup-content {
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        .map-popup-title {
+            color: #0d6efd;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .map-popup-description {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .map-popup-coordinates {
+            font-size: 0.8rem;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .activity-map-container {
+            position: relative;
+            height: 250px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Style pour la carte en plein écran */
+        .fullscreen-map-container {
+            height: 70vh;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        /* Style pour les contrôles de la carte */
+        .mapboxgl-ctrl-group {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .mapboxgl-ctrl-group button {
+            width: 32px;
+            height: 32px;
+        }
     </style>
+
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const currencySelect = document.getElementById('currencySelect');
+            const convertedAmount = document.getElementById('convertedAmount');
+            const originalPrice = {{ voyage.prix }};
+            const loadingText = '<i class="fas fa-spinner fa-spin"></i> Conversion en cours...';
+
+            currencySelect.addEventListener('change', async function() {
+                const targetCurrency = this.value;
+                convertedAmount.innerHTML = loadingText;
+
+                try {
+                    const response = await fetch('/convert', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            amount: originalPrice,
+                            from: 'TND',
+                            to: targetCurrency
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        const flagIcon = this.options[this.selectedIndex].getAttribute('data-icon');
+                        const currencySymbol = getCurrencySymbol(targetCurrency);
+                        convertedAmount.innerHTML = `
+                    <img src="${flagIcon}" alt="${targetCurrency}" width="20" class="me-1">
+                     ${data.convertedAmount.toFixed(2)} ${currencySymbol}
+                `;
+                    } else {
+                        convertedAmount.textContent = 'Erreur de conversion';
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    convertedAmount.textContent = 'Service temporairement indisponible';
+                }
+            });
+
+            function getCurrencySymbol(currency) {
+                const symbols = {
+                    'EUR': '€',
+                    'USD': '$',
+                    'GBP': '£',
+                    'JPY': '¥',
+                    'CAD': 'CA$',
+                    'AUD': 'AU$',
+                    'CHF': 'CHF',
+                    'CNY': 'CN¥',
+                    'SEK': 'kr',
+                    'NZD': 'NZ$',
+                    'DZD': 'DA',
+                    'MAD': 'DH',
+                    'RUB': '₽',
+                    'TRY': '₺',
+                    'BRL': 'R$',
+                    'INR': '₹',
+                    'SAR': 'هللة',
+                    'ILS': '₪'
+                };
+                return symbols[currency] || currency; // Retourne le code devise si symbole non trouvé
+            }
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.8.1/mapbox-gl.js'></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+    <!-- Ajoutez ceci juste avant les autres scripts dans votre template DetailsVoyage.html.twig -->
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiYXJpajE1IiwiYSI6ImNtOW9ndXoxODB6NTgybXI3cTJqbWJnZnIifQ.dBCfhP2_zHaiT6WkQqQfjw';  // Remplacez par votre token
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gestion des activités
+            const generateBtn = document.getElementById('generateActivities');
+            const activitiesModal = new bootstrap.Modal(document.getElementById('activitiesModal'));
+            const activitiesContent = document.getElementById('activitiesContent');
+            const copyBtn = document.getElementById('copyActivities');
+            const destination = '{{ voyage.destination|escape('js') }}';
+
+            generateBtn.addEventListener('click', async function() {
+                activitiesModal.show();
+                activitiesContent.innerHTML = `
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Chargement...</span>
+                </div>
+                <p class="mt-3">Recherche des meilleures activités...</p>
+            </div>`;
+
+                try {
+                    const response = await fetch(`/get-activities/${destination}`);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        displayActivities(data); // Appel de la fonction qui affiche les activités
+                    } else {
+                        activitiesContent.innerHTML = `
+                <div class="col-12 text-center py-4">
+                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                    <p>${data.error || 'Erreur lors du chargement des activités'}</p>
+                    <button class="btn btn-sm btn-outline-primary" onclick="window.location.reload()">
+                        <i class="fas fa-sync-alt me-1"></i> Réessayer
+                    </button>
+                </div>`;
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    activitiesContent.innerHTML = `
+            <div class="col-12 text-center py-4">
+                <i class="fas fa-unplug fa-3x text-danger mb-3"></i>
+                <p>Problème de connexion au service: ${error.message}</p>
+            </div>`;
+                }
+            });
+
+            // Fonction pour afficher les activités dans le modal
+            function displayActivities(data) {
+                let html = '';
+
+                if (data.activities && data.activities.length > 0) {
+                    html = `<div class="row g-4">`;
+
+                    data.activities.forEach((activity, index) => {
+                        const mapId = `activityMap-${index}`;
+                        html += `
+                            <div class="col-lg-6">
+                                <div class="card border-0 shadow-sm h-100 activity-card">
+                                    <div class="row g-0 h-100">
+                                        <div class="col-md-6 position-relative">
+                                            <div id="${mapId}" class="activity-map-container"></div>
+                                            <button class="btn btn-sm btn-light position-absolute m-2 top-0 end-0 btn-expand-map"
+                                                    onclick="showFullScreenMap(${JSON.stringify(activity)})">
+                                                <i class="fas fa-expand"></i>
+                                            </button>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card-body d-flex flex-column h-100">
+                                                <h5 class="card-title text-primary mb-3">
+                                                    <i class="fas fa-map-marker-alt me-2"></i>${activity.name}
+                                                </h5>
+                                                <p class="card-text mb-3">${activity.description}</p>
+                                                <div class="mt-auto">
+                                                    <div class="d-grid gap-2">
+                                                        <button class="btn btn-outline-primary btn-sm"
+                                                                onclick="openGoogleMaps(${activity.latitude}, ${activity.longitude})">
+                                                            <i class="fas fa-directions me-2"></i>Itinéraire
+                                                        </button>
+                                                        <button class="btn btn-outline-secondary btn-sm"
+                                                                onclick="showFullScreenMap(${JSON.stringify(activity)})">
+                                                            <i class="fas fa-expand-arrows-alt me-2"></i>Agrandir la carte
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`;
+                    });
+
+                    html += '</div>';
+
+                    activitiesContent.innerHTML = html;
+
+                    // Initialiser les cartes
+                    data.activities.forEach((activity, index) => {
+                        initializeMap(activity, `activityMap-${index}`);
+                    });
+                }
+            }
+
+            function initializeMap(activity, mapId) {
+                const map = new mapboxgl.Map({
+                    container: mapId,
+                    style: 'mapbox://styles/mapbox/streets-v11',
+                    center: [activity.longitude, activity.latitude],
+                    zoom: 13,
+                    interactive: true
+                });
+
+                // Ajouter les contrôles
+                map.addControl(new mapboxgl.NavigationControl({
+                    showCompass: false
+                }), 'top-right');
+
+                // Créer le popup
+                const popup = new mapboxgl.Popup({
+                    offset: 25,
+                    maxWidth: '300px'
+                }).setHTML(`
+                    <div class="map-popup-content">
+                        <div class="map-popup-title">${activity.name}</div>
+                        <div class="map-popup-description">${activity.description}</div>
+                        <div class="map-popup-coordinates">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>${activity.latitude.toFixed(4)}, ${activity.longitude.toFixed(4)}</span>
+                        </div>
+                    </div>
+                `);
+
+                // Ajouter le marqueur avec le popup
+                new mapboxgl.Marker({
+                    color: "#FF0000",
+                    scale: 0.8
+                })
+                    .setLngLat([activity.longitude, activity.latitude])
+                    .setPopup(popup)
+                    .addTo(map);
+            }
+
+            function showFullScreenMap(activity) {
+                Swal.fire({
+                    title: '',
+                    html: `
+                        <div class="container-fluid p-0">
+                            <h4 class="text-primary mb-4">
+                                <i class="fas fa-map-marked-alt me-2"></i>${activity.name}
+                            </h4>
+                            <div class="fullscreen-map-container mb-4" id="fullScreenMap"></div>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <p class="text-muted">${activity.description}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-primary" onclick="openGoogleMaps(${activity.latitude}, ${activity.longitude})">
+                                            <i class="fas fa-directions me-2"></i>Obtenir l'itinéraire
+                                        </button>
+                                        <button class="btn btn-outline-primary" onclick="openStreetView(${activity.latitude}, ${activity.longitude})">
+                                            <i class="fas fa-street-view me-2"></i>Street View
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    width: '90%',
+                    padding: '2em',
+                    showConfirmButton: false,
+                    showCloseButton: true,
+                    didOpen: () => {
+                        initializeMap(activity, 'fullScreenMap');
+                    }
+                });
+            }
+
+            function openGoogleMaps(lat, lng) {
+                window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+            }
+
+            function openStreetView(lat, lng) {
+                window.open(`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`, '_blank');
+            }
+
+            copyBtn.addEventListener('click', function() {
+                const activitiesText = Array.from(document.querySelectorAll('#activitiesContent .card-title'))
+                    .map(el => el.textContent)
+                    .join('\n- ');
+
+                navigator.clipboard.writeText(`Activités recommandées :\n- ${activitiesText}`)
+                    .then(() => {
+                        const originalText = copyBtn.innerHTML;
+                        copyBtn.innerHTML = '<i class="fas fa-check me-1"></i>Copié!';
+                        setTimeout(() => {
+                            copyBtn.innerHTML = originalText;
+                        }, 2000);
+                    });
+            });
+
+            // Gestion de la traduction (conservez cette partie si elle fonctionne déjà)
+            const languageSelect = document.getElementById('languageSelect');
+            const translationResult = document.getElementById('translationResult');
+            const translationFlag = document.getElementById('translationFlag');
+            const translationText = document.getElementById('translationText');
+            const resetBtn = document.getElementById('resetTranslation');
+            const originalDescription = document.getElementById('voyageDescription').textContent;
+            const loadingText = '<i class="fas fa-spinner fa-spin me-1"></i> Traduction en cours...';
+
+            if (languageSelect) {
+                languageSelect.addEventListener('change', async function() {
+                    const targetLang = this.value;
+                    if (!targetLang) return;
+
+                    // Afficher le chargement
+                    translationText.innerHTML = loadingText;
+                    translationFlag.innerHTML = '';
+                    resetBtn.style.display = 'none';
+
+                    try {
+                        const response = await fetch('{{ path('app_translate_description') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: JSON.stringify({
+                                targetLang: targetLang,
+                                description: originalDescription
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            // Afficher le résultat avec le drapeau
+                            const flagIcon = this.options[this.selectedIndex].getAttribute('data-icon');
+                            translationFlag.innerHTML = `<img src="${flagIcon}" alt="${data.langName}" width="20">`;
+                            translationText.textContent = data.translation;
+                            resetBtn.style.display = 'inline-block';
+                        } else {
+                            throw new Error(data.error || 'Erreur lors de la traduction');
+                        }
+                    } catch (error) {
+                        console.error('Erreur:', error);
+                        translationText.textContent = 'Erreur: ' + error.message;
+                    }
+                });
+
+                // Bouton de réinitialisation
+                resetBtn.addEventListener('click', function() {
+                    translationFlag.innerHTML = '';
+                    translationText.textContent = 'Sélectionnez une langue';
+                    languageSelect.value = '';
+                    resetBtn.style.display = 'none';
+                });
+            }
+        });
+    </script>
+
+    <style>
+        /* Style pour les mini-cartes */
+        .mapboxgl-canvas {
+            border-radius: 8px 8px 0 0;
+        }
+
+        /* Bouton d'expansion */
+        .btn-expand-map {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            z-index: 1;
+            opacity: 0.8;
+        }
+
+        .btn-expand-map:hover {
+            opacity: 1;
+        }
+
+        /* Style pour la carte en plein écran */
+        .swal2-popup #fullScreenMap {
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        /* Style des marqueurs */
+        .mapboxgl-marker {
+            cursor: pointer;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const languageSelect = document.getElementById('languageSelect');
+            const translationResult = document.getElementById('translationResult');
+            const translationFlag = document.getElementById('translationFlag');
+            const translationText = document.getElementById('translationText');
+            const resetBtn = document.getElementById('resetTranslation');
+            const originalDescription = document.getElementById('voyageDescription').textContent;
+            const loadingText = '<i class="fas fa-spinner fa-spin me-1"></i> Traduction en cours...';
+
+            languageSelect.addEventListener('change', async function() {
+                const targetLang = this.value;
+                if (!targetLang) return;
+
+                // Afficher le chargement
+                translationText.innerHTML = loadingText;
+                translationFlag.innerHTML = '';
+                resetBtn.style.display = 'none';
+
+                try {
+                    const response = await fetch('{{ path('app_translate_description') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            targetLang: targetLang,
+                            description: originalDescription
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Afficher le résultat avec le drapeau
+                        const flagIcon = this.options[this.selectedIndex].getAttribute('data-icon');
+                        translationFlag.innerHTML = `<img src="${flagIcon}" alt="${data.langName}" width="20">`;
+                        translationText.textContent = data.translation;
+                        resetBtn.style.display = 'inline-block';
+                    } else {
+                        throw new Error(data.error || 'Erreur lors de la traduction');
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    translationText.textContent = 'Erreur: ' + error.message;
+                }
+            });
+
+            // Bouton de réinitialisation
+            resetBtn.addEventListener('click', function() {
+                translationFlag.innerHTML = '';
+                translationText.textContent = 'Sélectionnez une langue';
+                languageSelect.value = '';
+                resetBtn.style.display = 'none';
+            });
+        });
+    </script>
+
 
 {% endblock %}

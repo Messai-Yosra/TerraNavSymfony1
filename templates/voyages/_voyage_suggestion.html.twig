@@ -1,0 +1,88 @@
+<div class="ai-suggestion-popup animate__animated animate__fadeInUp">
+    <div class="card border-primary shadow-lg">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-robot me-2"></i>Votre assistant IA vous propose
+            </h5>
+            <button type="button" class="btn-close btn-close-white" onclick="closeSuggestionPopup()"></button>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-3">{{ suggestion_text }}</p>
+
+            <div class="voyage-preview mb-3">
+                <h6>{{ voyage.titre }}</h6>
+                <p class="mb-1">
+                    <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                    De {{ voyage.pointDepart }} à {{ voyage.destination }}
+                </p>
+                <p class="mb-1">
+                    <i class="fas fa-tag text-primary me-2"></i>
+                    Type: {{ voyage.type }}
+                </p>
+                <p class="mb-1">
+                    <i class="fas fa-money-bill-wave text-primary me-2"></i>
+                    Prix: {{ voyage.prix }} DT
+                </p>
+                <p class="mb-1">
+                    <i class="fas fa-users text-primary me-2"></i>
+                    Places: {{ voyage.nbPlacesD }}
+                </p>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <button class="btn btn-outline-secondary btn-sm" onclick="closeSuggestionPopup()">
+                    <i class="fas fa-times me-1"></i> Ignorer
+                </button>
+                <a href="{{ path('app_ajout_voyage_ia', {
+                    'titre': voyage.titre,
+                    'destination': voyage.destination,
+                    'pointDepart': voyage.pointDepart,
+                    'type': voyage.type,
+                    'prix': voyage.prix,
+                    'nbPlacesD': voyage.nbPlacesD,
+                    'description': voyage.description,
+                    'dateDepart': voyage.dateDepart|date('Y-m-d'),
+                    'dateRetour': voyage.dateRetour|date('Y-m-d')
+                }) }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-check me-1"></i> Voir proposition
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<style>
+    .ai-suggestion-popup {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 350px;
+        z-index: 1060;
+        animation-duration: 0.5s;
+    }
+
+    .voyage-preview {
+        background-color: #f8f9fa;
+        border-left: 3px solid #0d6efd;
+        padding: 10px;
+        border-radius: 5px;
+    }
+</style>
+
+<script>
+    function closeSuggestionPopup() {
+        document.querySelector('.ai-suggestion-popup').classList.add('animate__fadeOutDown');
+        setTimeout(() => {
+            document.querySelector('.ai-suggestion-popup').remove();
+        }, 500);
+    }
+
+    // Fermer après 30 secondes si l'utilisateur n'interagit pas
+    setTimeout(() => {
+        if (document.querySelector('.ai-suggestion-popup')) {
+            closeSuggestionPopup();
+        }
+    }, 30000);
+</script>

@@ -1,6 +1,6 @@
 {% extends "baseAdmin.html.twig" %}
 
-{% block titre %}Transports{% endblock %}
+{% block titre %}Gestion des Transports{% endblock %}
 
 {% block content %}
     <link rel="stylesheet" href="{{ asset('css/transports/adminTransportList.css') }}"/>
@@ -9,121 +9,663 @@
     <div class="content-card">
         <div class="card-header">
             <h1><i class="fas fa-bus"></i> Gestion des transports</h1>
+            <div class="card-tools">
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="search-input" class="form-control" placeholder="Rechercher un transport..." value="{{ searchTerm|default('') }}">
+                </div>
+            </div>
         </div>
         
         <div class="card-body">
-            <div class="action-buttons">
-                <a href="{{ path('admin_transports') }}" class="btn btn-primary">
-                    <i class="fas fa-arrow-left"></i> Retour à l'accueil
-                </a>
-                <a href="{{ path('admin_trajets_index') }}" class="btn btn-primary">
-                    <i class="fas fa-list"></i> Voir la liste des Trajets
-                </a>
-            </div>
+          
+                <div class="action-buttons">
+                    <a href="{{ path('admin_transports') }}" class="btn btn-primary">
+                        <i class="fas fa-arrow-left"></i> Retour à l'accueil
+                    </a>
+                    <a href="{{ path('admin_trajets_index') }}" class="btn btn-primary">
+                        <i class="fas fa-route"></i> Liste des Trajets
+                    </a>
+                    <a href="{{ path('client_transports_export_pdf') }}" class="btn btn-secondary">
+                        <i class="fa fa-file-pdf"></i> Exporter en PDF
+                    </a>
+                </div>
+         
             
-            {% if transports is defined and transports is not empty %}
-                <div class="table-responsive">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Nom</th>
-                                <th>Type</th>
-                                <th>Prix</th>
-                                <th>Capacité</th>
-                                <th>Trajet</th>
-                                <th class="actions-column">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for transport in transports %}
-                                <tr class="transport-row" data-transport-id="{{ transport.id }}">
-                                    <td>{{ transport.nom }}</td>
-                                    <td>{{ transport.type }}</td>
-                                    <td>{{ transport.prix }} DTN</td>
-                                    <td>{{ transport.capacite }}</td>
-                                    <td>
-                                        {% if transport.id_trajet is not null %}
-                                            {{ transport.id_trajet.pointDepart }} - {{ transport.id_trajet.destination }}
-                                        {% else %}
-                                            <span class="text-muted">Aucun trajet associé</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="actions-column">
-                                        <div class="row-actions">
-                                            <button class="btn btn-primary btn-details" title="Détails" 
-                                                    data-transport-id="{{ transport.id }}">
-                                                <i class="fas fa-info-circle"></i> Détails
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <!-- Expandable Details Row -->
-                                <tr class="details-row" id="details-{{ transport.id }}" style="display: none;">
-                                    <td colspan="6">
-                                        <div class="details-content">
-                                            <h3>Détails du Transport</h3>
-                                            <p><strong>Nom:</strong> {{ transport.nom }}</p>
-                                            <p><strong>Type:</strong> {{ transport.type }}</p>
-                                            <p><strong>Prix:</strong> {{ transport.prix }} DTN</p>
-                                            <p><strong>Capacité:</strong> {{ transport.capacite }}</p>
-                                            <p><strong>Trajet:</strong> 
-                                                {% if transport.id_trajet %}
-                                                    {{ transport.id_trajet.pointDepart }} - {{ transport.id_trajet.destination }}
-                                                {% else %}
-                                                    Aucun trajet associé
-                                                {% endif %}
-                                            </p>
-                                            <p><strong>Description:</strong> {{ transport.description|default('Non spécifié') }}</p>
-                                            <p><strong>Contact:</strong> {{ transport.contact|default('Non spécifié') }}</p>
-                                            <p><strong>Image:</strong></p>
-                                            <div class="image-container">
-                                                {% if transport.imagePath %}
-                                                    <img src="{{ asset(transport.imagePath) }}" alt="Image du transport" class="transport-image">
-                                                {% else %}
-                                                    <span>Aucune image disponible</span>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
+            <!-- Transport Table Container -->
+            <div id="transport-list">
+                {% block transport_list %}
+                    {% if transports|length > 0 %}
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th><i class="fas fa-tag"></i> Nom</th>
+                                        <th><i class="fas fa-shuttle-van"></i> Type</th>
+                                        <th><i class="fas fa-tag"></i> Prix</th>
+                                        <th><i class="fas fa-users"></i> Capacité</th>
+                                        <th class="actions-column">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for transport in transports %}
+                                        <tr class="transport-row" data-transport-id="{{ transport.id }}">
+                                            <td><span class="fw-bold">{{ transport.nom }}</span></td>
+                                            <td>
+                                                <span class="badge badge-{{ transport.type == 'Bus' ? 'primary' : transport.type == 'Avion' ? 'success' : transport.type == 'Train' ? 'warning' : 'info' }}">
+                                                    {{ transport.type }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="price-tag">{{ transport.prix }} <span class="currency">DTN</span></span>
+                                            </td>
+                                            <td>
+                                                <div class="capacity-indicator">
+                                                    <span class="capacity-value">{{ transport.capacite }}</span>
+                                                    <span class="capacity-icon"><i class="fas fa-user"></i></span>
+                                                </div>
+                                            </td>
+                                            <td class="actions-column">
+                                                <div class="row-actions">
+                                                    <button class="btn btn-info btn-details" title="Détails" 
+                                                            data-transport-id="{{ transport.id }}">
+                                                        <i class="fas fa-info-circle"></i> Détails
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <!-- Expandable Details Row -->
+                                        <tr class="details-row" id="details-{{ transport.id }}" style="display: none;">
+                                            <td colspan="5">
+                                                <div class="details-content">
+                                                    <div class="details-header">
+                                                        <h3><i class="fas fa-bus"></i> {{ transport.nom }}</h3>
+                                                    </div>
+                                                    <div class="details-body">
+                                                        <div class="row">
+                                                            <div class="col-md-7">
+                                                                <div class="info-table">
+                                                                    <div class="info-row">
+                                                                        <div class="info-label">
+                                                                            <i class="fas fa-tag"></i> Nom:
+                                                                        </div>
+                                                                        <div class="info-value">{{ transport.nom }}</div>
+                                                                    </div>
+                                                                    <div class="info-row">
+                                                                        <div class="info-label">
+                                                                            <i class="fas fa-shuttle-van"></i> Type:
+                                                                        </div>
+                                                                        <div class="info-value">
+                                                                            <span class="badge badge-{{ transport.type == 'Bus' ? 'primary' : transport.type == 'Avion' ? 'success' : transport.type == 'Train' ? 'warning' : 'info' }}">
+                                                                                {{ transport.type }}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="info-row">
+                                                                        <div class="info-label">
+                                                                            <i class="fas fa-money-bill-wave"></i> Prix:
+                                                                        </div>
+                                                                        <div class="info-value">{{ transport.prix }} DTN</div>
+                                                                    </div>
+                                                                    <div class="info-row">
+                                                                        <div class="info-label">
+                                                                            <i class="fas fa-users"></i> Capacité:
+                                                                        </div>
+                                                                        <div class="info-value">{{ transport.capacite }}</div>
+                                                                    </div>
+                                                                    <div class="info-row">
+                                                                        <div class="info-label">
+                                                                            <i class="fas fa-info"></i> Description:
+                                                                        </div>
+                                                                        <div class="info-value">{{ transport.description|default('Non spécifié') }}</div>
+                                                                    </div>
+                                                                    <div class="info-row">
+                                                                        <div class="info-label">
+                                                                            <i class="fas fa-phone"></i> Contact:
+                                                                        </div>
+                                                                        <div class="info-value">{{ transport.contact|default('Non spécifié') }}</div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-5">
+                                                                <div class="image-container">
+                                                                    {% if transport.imagePath %}
+                                                                        <img src="{{ asset(transport.imagePath) }}" alt="Image du transport" class="transport-image">
+                                                                    {% else %}
+                                                                        <div class="no-image">
+                                                                            <i class="fas fa-images"></i>
+                                                                            <p>Aucune image disponible</p>
+                                                                        </div>
+                                                                    {% endif %}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                                        <!-- Pagination -->
+                <div class="pagination-container">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination">
+                            {% if transports.currentPageNumber > 1 %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ path('admin_transports_list', {'page': transports.currentPageNumber - 1}) }}" aria-label="Previous">
+                                        <span aria-hidden="true"><i class="fas fa-chevron-left"></i></span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link" aria-hidden="true"><i class="fas fa-chevron-left"></i></span>
+                                </li>
+                            {% endif %}
+                            
+                            {% for page in 1..transports.pageCount %}
+                                <li class="page-item {{ transports.currentPageNumber == page ? 'active' : '' }}">
+                                    <a class="page-link" href="{{ path('admin_transports_list', {'page': page}) }}">{{ page }}</a>
+                                </li>
                             {% endfor %}
-                        </tbody>
-                    </table>
+                            
+                            {% if transports.currentPageNumber < transports.pageCount %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ path('admin_transports_list', {'page': transports.currentPageNumber + 1}) }}" aria-label="Next">
+                                        <span aria-hidden="true"><i class="fas fa-chevron-right"></i></span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link" aria-hidden="true"><i class="fas fa-chevron-right"></i></span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
                 </div>
-            {% else %}
-                <div class="empty-state">
-                    <i class="fas fa-bus-alt empty-icon"></i>
-                    <p>Aucun transport disponible pour le moment.</p>
-                </div>
-            {% endif %}
+                    {% endif %}
+                {% endblock %}
+            </div>
         </div>
     </div>
 
-    <!-- JavaScript for Expandable Rows -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const detailsButtons = document.querySelectorAll('.btn-details');
+  
+        <!-- JavaScript for Expandable Rows and Dynamic Search -->
+        <script>
+            // Debounce function to limit the rate of search requests
+            function debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
 
-            detailsButtons.forEach(button => {
-                button.addEventListener('click', function () {
-                    const transportId = this.getAttribute('data-transport-id');
-                    const detailsRow = document.getElementById(`details-${transportId}`);
+            document.addEventListener('DOMContentLoaded', function () {
+                const searchInput = document.getElementById('search-input');
+                const transportList = document.getElementById('transport-list');
 
-                    // Toggle visibility
-                    if (detailsRow.style.display === 'none' || detailsRow.style.display === '') {
-                        // Hide all other details rows
-                        document.querySelectorAll('.details-row').forEach(row => {
-                            row.style.display = 'none';
+                if (!searchInput) {
+                    console.error('Search input element not found!');
+                    return;
+                }
+
+                if (!transportList) {
+                    console.error('Transport list element not found!');
+                    return;
+                }
+
+                // Handle expandable rows
+                function setupDetailsButtons() {
+                    const detailsButtons = document.querySelectorAll('.btn-details');
+                    detailsButtons.forEach(button => {
+                        button.addEventListener('click', function () {
+                            const transportId = this.getAttribute('data-transport-id');
+                            const detailsRow = document.getElementById(`details-${transportId}`);
+                            const transportRow = document.querySelector(`.transport-row[data-transport-id="${transportId}"]`);
+
+                            if (detailsRow.style.display === 'none' || detailsRow.style.display === '') {
+                                // Close all other detail rows
+                                document.querySelectorAll('.details-row').forEach(row => {
+                                    row.style.display = 'none';
+                                });
+                                document.querySelectorAll('.transport-row').forEach(row => {
+                                    row.classList.remove('active-row');
+                                });
+                                document.querySelectorAll('.btn-details').forEach(btn => {
+                                    btn.innerHTML = '<i class="fas fa-info-circle"></i> Détails';
+                                    btn.classList.remove('btn-danger');
+                                    btn.classList.add('btn-info');
+                                });
+
+                                // Open this details row
+                                detailsRow.style.display = 'table-row';
+                                transportRow.classList.add('active-row');
+                                this.innerHTML = '<i class="fas fa-times-circle"></i> Fermer';
+                                this.classList.remove('btn-info');
+                                this.classList.add('btn-danger');
+                            } else {
+                                // Close this details row
+                                detailsRow.style.display = 'none';
+                                transportRow.classList.remove('active-row');
+                                this.innerHTML = '<i class="fas fa-info-circle"></i> Détails';
+                                this.classList.remove('btn-danger');
+                                this.classList.add('btn-info');
+                            }
                         });
-                        // Show the selected details row
-                        detailsRow.style.display = 'table-row';
-                        this.innerHTML = '<i class="fas fa-times-circle"></i> Fermer';
-                    } else {
-                        detailsRow.style.display = 'none';
-                        this.innerHTML = '<i class="fas fa-info-circle"></i> Détails';
+                    });
+                }
+
+                // Initial setup
+                setupDetailsButtons();
+
+                // Dynamic search handler
+                searchInput.addEventListener('input', debounce(async () => {
+                    const searchTerm = searchInput.value.trim();
+
+                    try {
+                        const response = await fetch(`{{ path('admin_transports_list') }}?search=${encodeURIComponent(searchTerm)}`, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+
+                        const data = await response.json();
+
+                        // Check for server-reported error
+                        if (data.error) {
+                            console.error('Server error:', data.error);
+                            transportList.innerHTML = `
+                                <div class="empty-state">
+                                    <i class="fas fa-exclamation-triangle empty-icon error"></i>
+                                    <p>Erreur: ${data.error}</p>
+                                </div>`;
+                            return;
+                        }
+
+                        // Validate response data
+                        if (!data.html) {
+                            console.error('Invalid or missing HTML data:', data);
+                            transportList.innerHTML = `
+                                <div class="empty-state">
+                                    <i class="fas fa-exclamation-triangle empty-icon error"></i>
+                                    <p>Erreur lors de la récupération des transports.</p>
+                                </div>`;
+                            return;
+                        }
+
+                        // Update the transport list with the new HTML
+                        transportList.innerHTML = data.html;
+
+                        // Re-attach event listeners for details buttons
+                        setupDetailsButtons();
+                    } catch (error) {
+                        console.error('Error fetching transport list:', error);
+                        transportList.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-exclamation-triangle empty-icon error"></i>
+                                <p>Une erreur est survenue lors de la recherche: ${error.message}</p>
+                            </div>`;
                     }
-                });
+                }, 300));
             });
-        });
-    </script>
+        </script>
+
+        <style>
+            /* Enhanced styles for better UX */
+            .content-card {
+                background: #fff;
+                border-radius: 8px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+                margin-bottom: 30px;
+                overflow: hidden;
+            }
+
+            .card-header {
+                background: linear-gradient(135deg, #4a88e5, #3367b1);
+                color: white;
+                padding: 20px;
+                position: relative;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .card-header h1 {
+                margin: 0;
+                font-size: 1.5rem;
+                font-weight: 600;
+            }
+
+            .card-header .card-tools {
+                display: flex;
+                align-items: center;
+            }
+
+            .card-body {
+                padding: 20px;
+            }
+
+            .search-wrapper {
+                position: relative;
+                width: 280px;
+            }
+
+            .search-icon {
+                position: absolute;
+                left: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #6c757d;
+            }
+
+            #search-input {
+                padding-left: 35px;
+                border-radius: 20px;
+                border: 1px solid #e0e0e0;
+                background-color: rgba(255, 255, 255, 0.2);
+                color: white;
+                transition: all 0.3s;
+            }
+
+            #search-input::placeholder {
+                color: rgba(255, 255, 255, 0.7);
+            }
+
+            #search-input:focus {
+                background-color: white;
+                color: #333;
+                box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+            }
+
+            #search-input:focus::placeholder {
+                color: #6c757d;
+            }
+
+            .action-buttons {
+                margin-bottom: 20px;
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+
+            .btn {
+                border-radius: 5px;
+                padding: 8px 16px;
+                font-weight: 500;
+                transition: all 0.3s;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .btn-primary {
+                background: #4a88e5;
+                border-color: #4a88e5;
+            }
+
+            .btn-primary:hover {
+                background: #3a78d5;
+                border-color: #3a78d5;
+            }
+
+            .btn-secondary {
+                background: #6c757d;
+                border-color: #6c757d;
+            }
+
+            .btn-info {
+                background: #17a2b8;
+                border-color: #17a2b8;
+            }
+
+            .btn-danger {
+                background: #dc3545;
+                border-color: #dc3545;
+            }
+
+            .data-table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+                margin-bottom: 20px;
+            }
+
+            .data-table thead th {
+                background-color: #f8f9fa;
+                border-bottom: 2px solid #e0e0e0;
+                color: #495057;
+                padding: 15px;
+                font-weight: 600;
+                text-align: left;
+            }
+
+            .data-table tbody td {
+                padding: 15px;
+                border-bottom: 1px solid #f0f0f0;
+                vertical-align: middle;
+            }
+
+            .transport-row {
+                transition: all 0.3s;
+            }
+
+            .transport-row:hover {
+                background-color: #f8f9fa;
+            }
+
+            .transport-row.active-row {
+                background-color: #e8f4fc;
+            }
+
+            .details-row td {
+                padding: 0;
+            }
+
+            .details-content {
+                background-color: #f8f9fa;
+                padding: 20px;
+                border-radius: 0 0 8px 8px;
+                border-top: 2px solid #e0e0e0;
+            }
+
+            .details-header {
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 1px solid #e0e0e0;
+            }
+
+            .details-header h3 {
+                margin: 0;
+                color: #333;
+                font-size: 1.25rem;
+            }
+
+            .details-body {
+                display: flex;
+                flex-wrap: wrap;
+            }
+
+            .badge {
+                padding: 6px 10px;
+                border-radius: 20px;
+                font-weight: 500;
+                font-size: 0.85em;
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                text-transform: uppercase;
+            }
+
+            .badge-primary {
+                background-color: #4a88e5;
+                color: white;
+            }
+
+            .badge-success {
+                background-color: #28a745;
+                color: white;
+            }
+
+            .badge-warning {
+                background-color: #ffc107;
+                color: #212529;
+            }
+
+            .badge-info {
+                background-color: #17a2b8;
+                color: white;
+            }
+
+            .badge-secondary {
+                background-color: #6c757d;
+                color: white;
+            }
+
+            .price-tag {
+                font-weight: 600;
+                color: #28a745;
+            }
+
+            .currency {
+                font-size: 0.85em;
+                color: #6c757d;
+            }
+
+            .capacity-indicator {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+
+            .capacity-value {
+                font-weight: 600;
+                color: #495057;
+            }
+
+            .capacity-icon {
+                color: #6c757d;
+            }
+
+            .info-table {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+
+            .info-row {
+                display: flex;
+                border-bottom: 1px dashed #f0f0f0;
+                padding-bottom: 8px;
+            }
+
+            .info-label {
+                flex: 0 0 140px;
+                font-weight: 600;
+                color: #495057;
+            }
+
+            .info-value {
+                flex: 1;
+                color: #212529;
+            }
+
+            .image-container {
+                width: 100%;
+                height: 220px;
+                border-radius: 8px;
+                overflow: hidden;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: #f8f9fa;
+                border: 1px solid #e0e0e0;
+            }
+
+            .transport-image {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .no-image {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                color: #6c757d;
+                height: 100%;
+                width: 100%;
+            }
+
+            .no-image i {
+                font-size: 3rem;
+                margin-bottom: 10px;
+            }
+
+            .no-image p {
+                margin: 0;
+            }
+
+            .empty-state {
+                text-align: center;
+                padding: 50px 20px;
+                background-color: #f8f9fa;
+                border-radius: 8px;
+                margin-top: 20px;
+            }
+
+            .empty-icon {
+                font-size: 4rem;
+                color: #6c757d;
+                margin-bottom: 20px;
+            }
+
+            .empty-icon.error {
+                color: #dc3545;
+            }
+
+            .pagination-wrapper {
+                margin-top: 20px;
+                display: flex;
+                justify-content: center;
+            }
+
+            /* Responsive adjustments */
+            @media (max-width: 768px) {
+                .card-header {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+
+                .card-tools {
+                    margin-top: 15px;
+                    width: 100%;
+                }
+
+                .search-wrapper {
+                    width: 100%;
+                }
+
+                .info-row {
+                    flex-direction: column;
+                }
+
+                .info-label {
+                    flex: 0 0 100%;
+                    margin-bottom: 5px;
+                }
+            }
+        </style>
+    
 {% endblock %}

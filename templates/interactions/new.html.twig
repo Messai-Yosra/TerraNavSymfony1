@@ -4,8 +4,8 @@
 {% block content %}
     <link rel="stylesheet" href="{{ asset('css/styleClient.css') }}">
     <link rel="stylesheet" href="{{ asset('css/interactions/interactions.css') }}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"><script src="https://cdn.jsdelivr.net/npm/emoji-toolkit@7.0.0/lib/js/joypixels.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-toolkit@7.0.0/extras/css/joypixels.min.css">
     <style>
         .is-invalid {
             border-color: #dc3545 !important;
@@ -13,6 +13,33 @@
         .invalid-feedback {
             color: #dc3545;
             font-size: 0.875em;
+        }
+        #generateDescription {
+            background-color: #4e73df;
+            color: white;
+            border: none;
+            transition: all 0.3s;
+        }
+        #generateDescription:hover {
+            background-color: #2e59d9;
+            transform: translateY(-2px);
+        }
+        #generateDescription:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            vertical-align: middle;
+            border: 0.2em solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spinner 0.75s linear infinite;
+        }
+        @keyframes spinner {
+            to { transform: rotate(360deg); }
         }
     </style>
 
@@ -24,7 +51,16 @@
             
             <div class="form-group mb-3">
                 {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label'}}) }}
-                {{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}
+                <div class="input-group">
+                    {{ form_widget(form.description, {'attr': {
+                        'class': 'form-control',
+                        'rows': 4,
+                        'placeholder': 'Décrivez votre post...'
+                    }}) }}
+                </div>
+                <button type="button" id="generateDescription" class="btn btn-primary mt-2">
+                    <i class="fas fa-magic me-1"></i> Générer une description avec IA
+                </button>
                 <div class="invalid-feedback description-error"></div>
                 {% if form.description.vars.errors is not empty %}
                     <div class="alert alert-danger">
@@ -44,7 +80,7 @@
             </div>
 
             <button type="submit" class="btn btn-primary">
-                <i class="fas fa-plus-circle"></i> Ajouter
+                <i class="fas fa-plus-circle"></i> Publier le post
             </button>
             {{ form_end(form) }}
         </div>
@@ -52,68 +88,35 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const form = document.getElementById('postForm');
-        const descriptionInput = form.querySelector('#{{ form.description.vars.id }}');
+    document.addEventListener('DOMContentLoaded', function() {
+        const generateButton = document.getElementById('generateDescription');
+        const descriptionInput = document.getElementById('add_post_form_description');
 
-        form.addEventListener('submit', function (event) {
-            event.preventDefault();
-            
-            let isValid = true;
-            
-            // Reset error state
-            descriptionInput.classList.remove('is-invalid');
-            document.querySelector('.description-error').textContent = '';
+        generateButton.addEventListener('click', function() {
+            // Récupérer le contenu actuel du textarea
+            const currentContent = descriptionInput.value;
 
-            // Validate description
-            const descriptionValue = descriptionInput.value.trim();
-            
-            // Check not blank
-            if (!descriptionValue) {
-                isValid = false;
-                descriptionInput.classList.add('is-invalid');
-                document.querySelector('.description-error').textContent = 'La description du post ne doit pas être vide.';
-            } 
-            // Check minimum length
-            else if (descriptionValue.length < 10) {
-                isValid = false;
-                descriptionInput.classList.add('is-invalid');
-                document.querySelector('.description-error').textContent = 'La description du post doit contenir au moins 10 caractères.';
-            }
-            // Check contains at least one letter
-            else if (!/[a-zA-Z]/.test(descriptionValue)) {
-                isValid = false;
-                descriptionInput.classList.add('is-invalid');
-                document.querySelector('.description-error').textContent = 'La description du post doit contenir au moins une lettre.';
-            }
-
-            if (isValid) {
-                Swal.fire({
-                    position: "top-end",
-                    icon: "success",
-                    title: "Votre post a été ajouté avec succès !",
-                    showConfirmButton: false,
-                    timer: 1500
-                }).then(() => {
-                    form.submit();
-                });
-            } else {
-                Swal.fire({
-                    position: "top-end",
-                    icon: "error",
-                    title: "Erreur de validation",
-                    text: "Veuillez corriger les erreurs dans la description",
-                    showConfirmButton: true
-                });
-            }
-        });
-
-        // Clear validation when user starts typing
-        descriptionInput.addEventListener('input', function() {
-            if (this.value.trim()) {
-                this.classList.remove('is-invalid');
-                document.querySelector('.description-error').textContent = '';
-            }
+            fetch("{{ path('post_generate_description') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    context: currentContent || 'Post social', // Utiliser le contenu du textarea
+                    type: 'general',
+                    style: 'convivial'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    descriptionInput.value = data.content;
+                } else {
+                    console.error('Erreur:', data.message);
+                }
+            })
+            .catch(error => console.error('Erreur:', error));
         });
     });
     </script>

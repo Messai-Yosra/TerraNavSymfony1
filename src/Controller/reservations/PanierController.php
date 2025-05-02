@@ -12,6 +12,8 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Attribute\Route;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -305,18 +307,10 @@ final class PanierController extends AbstractController
         ReservationRepository $reservationRepository,
         PanierRepository $panierRepository,
         EntityManagerInterface $entityManager,
-        Security $security,  // Add security service
-        LoggerInterface $logger  // Add this for debugging
+        Security $security,
+        LoggerInterface $logger,
+        MailerInterface $mailer
     ): JsonResponse {
-        // Log incoming request details
-        $logger->info('Confirmation request received', [
-            'panierId' => $panierId,
-            'method' => $request->getMethod(),
-            'content' => $request->getContent(),
-            'headers' => $request->headers->all(),
-            'isAuthenticated' => $security->getUser() ? 'yes' : 'no'
-        ]);
-
         // Handle OPTIONS preflight request
         if ($request->isMethod('OPTIONS')) {
             return new JsonResponse([], 204, [
@@ -326,7 +320,7 @@ final class PanierController extends AbstractController
             ]);
         }
 
-        // Check authentication first - but with detailed error
+        // Check authentication
         $user = $security->getUser();
         if (!$user) {
             return new JsonResponse([
@@ -335,7 +329,7 @@ final class PanierController extends AbstractController
             ], 401);
         }
 
-        // Check if the user has access to this panier - with detailed error
+        // Check if the user has access to this panier
         $panier = $panierRepository->find($panierId);
         if (!$panier) {
             return new JsonResponse([
@@ -345,35 +339,52 @@ final class PanierController extends AbstractController
         }
 
         try {
-            // Get request content (either as JSON or regular form data)
-            $data = json_decode($request->getContent(), true) ?? $request->request->all();
-
-            // Process reservations without requiring CSRF token for API calls
             $reservations = $reservationRepository->findBy([
                 'id_panier' => $panierId,
                 'Etat' => 'PENDING'
             ]);
 
+            // Get total price and date of confiramtion
+            $totalPrice = $panier->getPrixTotal();
+            $confirmationDate = new \DateTime(); // Capture date before any changes
+
+            // Send confirmation email FIRST
+            $email = (new Email())
+                ->from('troudi111salim@gmail.com') // Change to your domain
+                ->to($user->getEmail())
+                ->subject('Confirmation de paiement - TerraNav')
+                ->html($this->renderView(
+                    'reservations/payment_confirmation.html.twig',
+                    [
+                        'user' => $user,
+                        'reservations' => $reservations,
+                        'totalPrice' => $totalPrice,
+                        'confirmationDate' => $confirmationDate,
+                    ]
+                ));
+
+            $mailer->send($email);
+
+            // THEN update reservations and panier
             foreach ($reservations as $reservation) {
                 $reservation->setEtat('CONFIRMED');
             }
-
-            // Update panier
-            $panier->setDateValidation(new \DateTime());
-            $panier->setPrixTotal(0); // Or calculate confirmed total
+            $panier->setDateValidation($confirmationDate);
+            $panier->setPrixTotal(0);
 
             $entityManager->flush();
 
             return new JsonResponse([
                 'success' => true,
-                'message' => 'Reservations confirmed successfully',
+                'message' => 'Réservations confirmées et email envoyé',
                 'count' => count($reservations)
             ]);
 
         } catch (\Exception $e) {
+            $logger->error('Payment confirmation failed', ['error' => $e->getMessage()]);
             return new JsonResponse([
                 'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
+                'message' => 'Erreur: ' . $e->getMessage()
             ], 500);
         }
     }

@@ -6,11 +6,6 @@
         <td>{{ trajet.dateDepart|date('d/m/Y H:i') }}</td>
         <td>{{ trajet.duree }} min</td>
         <td>
-            <span class="badge badge-{{ trajet.disponibilite ? 'success' : 'secondary' }}">
-                {{ trajet.disponibilite ? 'Disponible' : 'Terminé' }}
-            </span>
-        </td>
-        <td>
             {% if trajet.transports is not empty %}
                 <ul class="list-unstyled">
                     {% for transport in trajet.transports %}

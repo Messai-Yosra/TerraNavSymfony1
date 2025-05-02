@@ -6,7 +6,12 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Dompdf\Dompdf;
+use Dompdf\Options;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Psr\Log\LoggerInterface; 
 use App\Entity\Trajet;
+use App\Entity\Transport;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -26,20 +31,41 @@ final class TrajetClientController extends AbstractController
         return $this->render('trajets/client_index.html.twig');
     }
 
-    #[Route('/trajets/liste', name: 'client_trajets_list')]
+    #[Route('/trajets/liste', name: 'client_trajets_list', methods: ['GET'])]
     public function list(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $searchTerm = $request->query->get('search');
+        $searchTerm = $request->query->get('search', '');
+        $isAjax = $request->isXmlHttpRequest();
 
         $queryBuilder = $entityManager->getRepository(Trajet::class)
             ->createQueryBuilder('t');
 
         if ($searchTerm) {
-            $queryBuilder->where('t.pointDepart LIKE :searchTerm OR t.destination LIKE :searchTerm')
-                         ->setParameter('searchTerm', '%'.$searchTerm.'%');
+            $queryBuilder->where('t.pointDepart LIKE :searchTerm')
+                         ->setParameter('searchTerm', '%' . $searchTerm . '%');
         }
 
         $trajets = $queryBuilder->getQuery()->getResult();
+
+        if ($isAjax) {
+            $trajetData = array_map(function ($trajet) {
+                return [
+                    'id' => $trajet->getId(),
+                    'pointDepart' => $trajet->getPointDepart(),
+                    'destination' => $trajet->getDestination(),
+                    'dateDepart' => $trajet->getDateDepart()->format('d/m/Y H:i'),
+                    'duree' => $trajet->getDuree(),
+                    'disponibilite' => $trajet->getDisponibilite(),
+                    'description' => $trajet->getDescription(),
+                    'csrfToken' => $this->container->get('security.csrf.token_manager')->getToken('delete' . $trajet->getId())->getValue(),
+                ];
+            }, $trajets);
+
+            return new JsonResponse([
+                'trajets' => $trajetData,
+                'searchTerm' => $searchTerm,
+            ]);
+        }
 
         return $this->render('transports/client_trajets_list.html.twig', [
             'trajets' => $trajets,
@@ -50,8 +76,13 @@ final class TrajetClientController extends AbstractController
     #[Route('/trajets/ajouter', name: 'client_trajet_new')]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
-        $trajet = new Trajet();
+        $user = $this->getUser();
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour ajouter un trajet.');
+            return $this->redirectToRoute('app_login');
+        }
 
+        $trajet = new Trajet();
         $form = $this->createFormBuilder($trajet, [
             'attr' => ['id' => 'trajet-form'],
             'data_class' => Trajet::class
@@ -59,23 +90,53 @@ final class TrajetClientController extends AbstractController
             ->add('pointDepart', TextType::class, [
                 'label' => 'Point de départ',
                 'attr' => ['class' => 'form-control'],
-                
+                'constraints' => [
+                    new Assert\NotBlank(['message' => 'Le point de départ est requis']),
+                    new Assert\Length([
+                        'min' => 2,
+                        'max' => 100,
+                        'minMessage' => 'Le point de départ doit contenir au moins {{ limit }} caractères',
+                        'maxMessage' => 'Le point de départ ne peut pas dépasser {{ limit }} caractères',
+                    ]),
+                ],
             ])
             ->add('destination', TextType::class, [
                 'label' => 'Destination',
                 'attr' => ['class' => 'form-control'],
-                
+                'constraints' => [
+                    new Assert\NotBlank(['message' => 'La destination est requise']),
+                    new Assert\Length([
+                        'min' => 2,
+                        'max' => 100,
+                        'minMessage' => 'La destination doit contenir au moins {{ limit }} caractères',
+                        'maxMessage' => 'La destination ne peut pas dépasser {{ limit }} caractères',
+                    ]),
+                ],
             ])
             ->add('dateDepart', DateTimeType::class, [
                 'label' => 'Date de départ',
                 'widget' => 'single_text',
                 'attr' => ['class' => 'form-control'],
-                
+                'constraints' => [
+                    new Assert\NotBlank(['message' => 'La date de départ est requise']),
+                    new Assert\GreaterThanOrEqual([
+                        'value' => 'today',
+                        'message' => 'La date de départ doit être aujourd\'hui ou dans le futur',
+                    ]),
+                ],
             ])
             ->add('duree', IntegerType::class, [
                 'label' => 'Durée (minutes)',
                 'attr' => ['class' => 'form-control'],
-            
+                'constraints' => [
+                    new Assert\NotBlank(['message' => 'La durée est requise']),
+                    new Assert\Positive(['message' => 'La durée doit être positive']),
+                    new Assert\Range([
+                        'min' => 1,
+                        'max' => 1440, // 24 hours
+                        'notInRangeMessage' => 'La durée doit être entre {{ min }} et {{ max }} minutes',
+                    ]),
+                ],
             ])
             ->add('description', TextareaType::class, [
                 'label' => 'Description',
@@ -93,7 +154,6 @@ final class TrajetClientController extends AbstractController
                 'required' => false,
                 'attr' => ['class' => 'form-check-input'],
             ])
-          
             ->getForm();
 
         $form->handleRequest($request);
@@ -105,45 +165,42 @@ final class TrajetClientController extends AbstractController
                     foreach ($form->getErrors(true) as $error) {
                         $errors[$error->getOrigin()->getName()] = $error->getMessage();
                     }
-
-                    return $this->json([
+                    return new JsonResponse([
                         'success' => false,
                         'errors' => $errors
                     ], 422);
                 }
 
                 try {
-                    $trajet->setId_User($em->getReference(Utilisateur::class, 251));
                     $em->persist($trajet);
                     $em->flush();
 
-                    return $this->json([
+                    return new JsonResponse([
                         'success' => true,
                         'title' => 'Succès',
                         'message' => 'Trajet créé avec succès',
                         'redirect' => $this->generateUrl('client_trajets_list')
                     ]);
                 } catch (\Exception $e) {
-                    return $this->json([
+                    return new JsonResponse([
                         'success' => false,
                         'title' => 'Erreur',
-                        'message' => 'Une erreur est survenue lors de la création: '.$e->getMessage()
+                        'message' => 'Une erreur est survenue lors de la création: ' . $e->getMessage()
                     ], 500);
                 }
             }
 
-            // Non-AJAX handling
             if ($form->isValid()) {
                 try {
-                    $trajet->setId_User($em->getReference(Utilisateur::class, 251));
                     $em->persist($trajet);
                     $em->flush();
 
                     $this->addFlash('success', 'Trajet créé avec succès');
+                    return $this->redirectToRoute('client_trajets_list');
                 } catch (\Exception $e) {
-                    $this->addFlash('error', 'Une erreur est survenue lors de la création: '.$e->getMessage());
+                    $this->addFlash('error', 'Une erreur est survenue lors de la création: ' . $e->getMessage());
+                    return $this->redirectToRoute('client_trajet_new');
                 }
-                return $this->redirectToRoute('client_trajet_new');
             }
         }
 
@@ -151,7 +208,6 @@ final class TrajetClientController extends AbstractController
             'form' => $form->createView(),
         ]);
     }
-
     #[Route('/trajets/modifier/{id}', name: 'client_trajet_edit')]
     public function edit(Request $request, Trajet $trajet, EntityManagerInterface $em): Response
     {
@@ -246,16 +302,22 @@ final class TrajetClientController extends AbstractController
     #[Route('/trajets/supprimer/{id}', name: 'client_trajet_delete')]
     public function delete(Request $request, Trajet $trajet, EntityManagerInterface $em): Response
     {
-        if ($trajet->getId_User()->getId() !== 251) {
+        // Récupérer l'utilisateur connecté
+        $user = $this->getUser();
+        
+        // Vérifier que l'utilisateur est connecté
+        if (!$user) {
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse([
                     'success' => false,
-                    'message' => 'Vous ne pouvez supprimer que vos propres trajets'
+                    'message' => 'Vous devez être connecté pour effectuer cette action'
                 ], 403);
             }
-            $this->addFlash('error', 'Vous ne pouvez supprimer que vos propres trajets');
-            return $this->redirectToRoute('client_trajets_list');
+            $this->addFlash('error', 'Vous devez être connecté pour effectuer cette action');
+            return $this->redirectToRoute('app_login');
         }
+        
+        // Note: Nous supprimons la vérification du propriétaire pour permettre à tout utilisateur connecté de supprimer des trajets
 
         if (!$this->isCsrfTokenValid('delete'.$trajet->getId(), $request->request->get('_token'))) {
             if ($request->isXmlHttpRequest()) {
@@ -285,12 +347,81 @@ final class TrajetClientController extends AbstractController
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse([
                     'success' => false,
-                    'message' => 'Erreur lors de la suppression'
+                    'message' => 'Erreur lors de la suppression: ' . $e->getMessage()
                 ], 500);
             }
-            $this->addFlash('error', 'Erreur lors de la suppression');
+            $this->addFlash('error', 'Erreur lors de la suppression: ' . $e->getMessage());
         }
 
         return $this->redirectToRoute('client_trajets_list');
+    }
+
+    #[Route('/trajets/affecter/{transportId}', name: 'client_trajet_affect', methods: ['GET'])]
+public function affect(int $transportId, Request $request, EntityManagerInterface $entityManager): Response
+{
+    $searchTerm = $request->query->get('search', '');
+    $isAjax = $request->isXmlHttpRequest();
+
+    // Validate transport existence
+    $transport = $entityManager->getRepository(Transport::class)->find($transportId);
+    if (!$transport) {
+        $this->addFlash('error', 'Transport non trouvé.');
+        return $this->redirectToRoute('client_transports_list');
+    }
+
+    $queryBuilder = $entityManager->getRepository(Trajet::class)
+        ->createQueryBuilder('t')
+        ->where('t.disponibilite = :disponible')
+        ->setParameter('disponible', true);
+
+    if ($searchTerm) {
+        $queryBuilder->andWhere('t.pointDepart LIKE :searchTerm OR t.destination LIKE :searchTerm')
+                     ->setParameter('searchTerm', '%' . $searchTerm . '%');
+    }
+
+    $trajets = $queryBuilder->getQuery()->getResult();
+
+    if ($isAjax) {
+        $trajetData = array_map(function ($trajet) use ($transportId) {
+            return [
+                'id' => $trajet->getId(),
+                'pointDepart' => $trajet->getPointDepart(),
+                'destination' => $trajet->getDestination(),
+                'dateDepart' => $trajet->getDateDepart()->format('d/m/Y H:i'),
+                'duree' => $trajet->getDuree(),
+                'disponibilite' => $trajet->getDisponibilite(),
+                'description' => $trajet->getDescription(),
+                'transportId' => $transportId,
+                'csrfToken' => $this->container->get('security.csrf.token_manager')->getToken('delete' . $trajet->getId())->getValue(),
+            ];
+        }, $trajets);
+
+        return new JsonResponse([
+            'trajets' => $trajetData,
+            'searchTerm' => $searchTerm,
+        ]);
+    }
+
+    return $this->render('transports/client_trajet_affect.html.twig', [
+        'trajets' => $trajets,
+        'searchTerm' => $searchTerm,
+        'transportId' => $transportId,
+    ]);
+}
+#[Route('/client/trajet/{id}', name: 'client_trajet_details')]
+    public function details(Trajet $trajet, EntityManagerInterface $entityManager): Response
+    {
+        // Get other trajets (all available trajets, excluding the current one)
+        $autresTrajets = $entityManager->getRepository(Trajet::class)->findBy(
+            ['disponibilite' => true],
+            ['dateDepart' => 'DESC'],
+            6 // Limit to 6
+        );
+        $autresTrajets = array_filter($autresTrajets, fn($t) => $t->getId() !== $trajet->getId());
+
+        return $this->render('transports/trajet_details.html.twig', [
+            'trajet' => $trajet,
+            'autresTrajets' => $autresTrajets,
+        ]);
     }
 }

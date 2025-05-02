@@ -67,11 +67,11 @@
 
     // Modal Video
     $(document).ready(function () {
-        var $videoSrc;
+        var $videoSrc = ""; // Initialiser avec une chaîne vide pour éviter undefined
         $('.btn-play').click(function () {
             $videoSrc = $(this).data("src");
+            console.log($videoSrc); // Déplacé ici pour éviter l'erreur undefined
         });
-        console.log($videoSrc);
 
         $('#videoModal').on('shown.bs.modal', function (e) {
             $("#video").attr('src', $videoSrc + "?autoplay=1&amp;modestbranding=1&amp;showinfo=0");

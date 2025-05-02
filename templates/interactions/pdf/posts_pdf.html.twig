@@ -1,0 +1,108 @@
+{# filepath: c:\Users\Mayar\Desktop\integ\TerraNavSymfony1\templates\interactions\pdf\posts_pdf.html.twig #}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des Publications</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            max-width: 150px;
+            margin-bottom: 15px;
+        }
+        .title {
+            font-size: 24px;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        .date {
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th {
+            background-color: #4361ee;
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+        .status-completed {
+            background-color: #c6f6d5;
+            color: #22543d;
+        }
+        .status-pending {
+            background-color: #feebc8;
+            color: #9c4221;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #718096;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{{ absolute_url(asset('img/TerraNav.png')) }}" alt="Logo" class="logo">
+        <h1 class="title">Liste des Publications</h1>
+        <div class="date">Exporté le {{ date_export|date('d/m/Y à H:i') }}</div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Auteur</th>
+                <th>Description</th>
+                <th>Statut</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in posts %}
+                <tr>
+                    <td>#{{ post.id }}</td>
+                    <td>{{ post.id_user.username }}</td>
+                    <td>{{ post.description|slice(0, 100) }}...</td>
+                    <td>
+                        <span class="status {{ post.statut == 'traitée' ? 'status-completed' : 'status-pending' }}">
+                            {{ post.statut }}
+                        </span>
+                    </td>
+                    <td>{{ post.date|date('d/m/Y H:i') }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Document généré automatiquement - Page [[page_cu]]/[[page_nb]]</p>
+    </div>
+</body>
+</html>

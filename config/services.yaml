@@ -9,6 +9,14 @@ parameters:
     uploads_directory: '%kernel.project_dir%/public/img'
     env(STRIPE_PUBLIC_KEY): ~
     env(STRIPE_SECRET_KEY): ~
+    amadeus.api.key: '%env(AMADEUS_API_KEY)%'
+    amadeus.api.secret: '%env(AMADEUS_API_SECRET)%'
+    openrouter.api_key: '%env(OPENROUTER_API_KEY)%'
+    mapbox_access_token: 'pk.eyJ1IjoiYXJpajE1IiwiYSI6ImNtOW9ndXoxODB6NTgybXI3cTJqbWJnZnIifQ.dBCfhP2_zHaiT6WkQqQfjw'
+    geodb_api_key: '%env(GEODB_API_KEY)%'
+    stories_directory: '%kernel.project_dir%/public/uploads/stories'
+    openai_api_key: '%env(OPENAI_API_KEY)%'
+
 services:
     # default configuration for services in *this* file
     _defaults:
@@ -23,6 +31,46 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+    App\Service\AmadeusService:
+        arguments:
+            $amadeusApiKey: '%amadeus.api.key%'
+            $amadeusApiSecret: '%amadeus.api.secret%'
+    App\Service\WeatherService:
+        arguments:
+            $weatherApiKey: '%env(WEATHERSTACK_API_KEY)%'
+        autowire: true
+        autoconfigure: true
+    App\Service\OpenAiService:
+        arguments:
+            $apiKey: '%env(OPENAI_API_KEY)%'
+    App\Service\BarCodeGenerator:
+        arguments:
+            $router: '@router'
+
+    App\Service\OpenRouterService:
+        arguments:
+            $apiKey: '%openrouter.api_key%'
+
+    App\Service\CityAutocompleter:
+        arguments:
+            $httpClient: '@http_client'
+            $logger: '@logger'
+
+    App\Service\IpCountryService:
+        arguments:
+            $httpClient: '@http_client'
+            $logger: '@logger'
+
+
+    App\Service\interactions\PostDescriptionGenerator:
+        arguments:
+            $model: '%env(OPENAI_MODEL)%'
+            $temperature: '%env(OPENAI_TEMPERATURE)%'
+            $maxTokens: '%env(OPENAI_MAX_TOKENS)%'
+
+
+
+
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
@@ -69,3 +117,9 @@ services:
             $entityManager: '@doctrine.orm.entity_manager'
 
 
+    # Ajouter aux autres services
+    App\Service\utilisateurs\TwilioSMSService:
+        arguments:
+            $accountSid: '%env(TWILIO_ACCOUNT_SID)%'
+            $authToken: '%env(TWILIO_AUTH_TOKEN)%'
+            $fromNumber: '%env(TWILIO_FROM_NUMBER)%'

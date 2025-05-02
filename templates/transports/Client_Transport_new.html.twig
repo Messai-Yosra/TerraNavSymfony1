@@ -1,9 +1,9 @@
-{% extends "baseClient.html.twig" %}
+{% extends 'baseAgenceTransport.html.twig' %}
+
 
 {% block titre %}Ajouter un Transport{% endblock %}
 
 {% block content %}
- 
     <link rel="stylesheet" href="{{ asset('css/transports/CrudAgence.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -68,7 +68,10 @@
                     </div>
                     <div class="form-group full-width">
                         {{ form_label(form.contact) }}
-                        {{ form_widget(form.contact, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_widget(form.contact, {'attr': {
+                            'class': 'form-control',
+                            'placeholder': phoneCode ? 'Ex: ' ~ phoneCode ~ '123456789' : 'Ex: +21612345678 ou email'
+                        }}) }}
                         {{ form_errors(form.contact) }}
                     </div>
                     <div class="form-group full-width">
@@ -101,4 +104,61 @@
         </section>
     </div>
 
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/intlTelInput.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/css/intlTelInput.css">
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.querySelector("#{{ form.contact.vars.id }}");
+            const iti = window.intlTelInput(input, {
+                initialCountry: "{{ countryCode|default('tn') }}", // Use ISO alpha-2 country code (e.g., 'TN')
+                utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/utils.js",
+                separateDialCode: true
+            });
+
+            input.addEventListener('blur', function() {
+                if (iti.isValidNumber()) {
+                    input.value = iti.getNumber();
+                }
+            });
+
+            const form = document.getElementById('transport-form');
+            form.addEventListener('submit', function(e) {
+                const submitButton = form.querySelector('.search-button');
+                submitButton.disabled = true;
+                submitButton.querySelector('.submit-text').style.display = 'none';
+                submitButton.querySelector('.loading-spinner').style.display = 'inline-block';
+            });
+
+            const fileInput = document.querySelector('input[type="file"]');
+            const fileMsg = document.querySelector('.file-msg');
+            fileInput.addEventListener('change', function() {
+                fileMsg.textContent = this.files.length > 0 ? this.files[0].name : 'Aucun fichier sélectionné';
+            });
+
+            {% for message in app.flashes('success') %}
+                Swal.fire({
+                    title: 'Succès !',
+                    text: '{{ message }}',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    window.location.href = '{{ path('client_transports_list') }}';
+                });
+            {% endfor %}
+            {% for message in app.flashes('error') %}
+                Swal.fire({
+                    title: 'Erreur !',
+                    text: '{{ message }}',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            {% endfor %}
+        });
+    </script>
 {% endblock %}

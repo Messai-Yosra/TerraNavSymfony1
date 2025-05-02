@@ -197,11 +197,13 @@ class Offre
     {
         return str_replace(
             [
-                'C:\TerraNavSymfony1\public\\',
+                'C:\Users\asus\TerraNavSymfony1\TerraNavSymfony1\public\\',
+                'C:\terra\TerraNavSymfony1\public\\',
                 'C:/TerraNavSymfony1/public/',
                 '\\'
             ],
             [
+                '',
                 '',
                 '',
                 '/'

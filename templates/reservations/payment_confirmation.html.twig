@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmation de commande</title>
+</head>
+<body style="font-family: Arial, sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+    <tr>
+        <td style="padding: 20px;">
+            <p>Bonjour {{ user.getUsername }},</p>
+
+            <p>Nous vous remercions pour votre confiance et votre paiement.</p>
+
+            <h3>Récapitulatif de votre commande :</h3>
+
+            <p><strong>Date de confirmation :</strong> {{ confirmationDate|date('d/m/Y à H:i') }}</p>
+            <p><strong>Montant total :</strong> {{ "%.3f"|format(totalPrice) }} TND</p>
+
+            <h4>Détails des réservations :</h4>
+            <ul>
+                {% for reservation in reservations %}
+                    <li>
+                        {{ reservation.gettype_service() }} -
+                        {{ "%.3f"|format(reservation.getprix()) }} TND
+                        {% if reservation.getdate_reservation() %}
+                            ({{ reservation.getdate_reservation()|date('d/m/Y') }})
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <p>Votre équipe TerraNav reste à votre disposition pour toute information complémentaire.</p>
+
+            <p>Cordialement,<br><strong>L'équipe TerraNav</strong></p>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

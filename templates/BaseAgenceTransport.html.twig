@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>{% block titre %} {% endblock %}</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
+
+    <!-- Logo Page -->
+    <link href="{{ asset('img/favicon.ico') }}" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="{{ asset('lib/animate/animate.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('lib/owlcarousel/assets/owl.carousel.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css') }}" rel="stylesheet" />
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="{{ asset('css/styleClient.css') }}" rel="stylesheet">
+
+    <!-- Google Translate -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement(
+                {
+                    pageLanguage: 'fr',
+                    includedLanguages: 'en,es,de,it,ar',
+                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                    autoDisplay: false
+                },
+                'google_translate_element'
+            );
+        }
+    </script>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <style>
+        /* Styles pour le widget Google Translate */
+        .goog-te-gadget {
+            font-family: 'Montserrat', sans-serif !important;
+            color: #FEA116 !important;
+        }
+
+        .goog-te-gadget-simple {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid #FEA116 !important;
+            padding: 8px !important;
+            border-radius: 4px !important;
+        }
+
+        .goog-te-gadget-simple span {
+            color: #FEA116 !important;
+        }
+
+        .goog-te-gadget-simple > span > a > span {
+            color: #FEA116 !important;
+            font-size: 14px !important;
+        }
+
+        .goog-te-menu-value {
+            color: #FEA116 !important;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .goog-te-menu-value:hover {
+            color: #fff !important;
+        }
+
+        /* Style pour la liste déroulante des langues */
+        .goog-te-menu2 {
+            background-color: #212529 !important;
+            border: 1px solid #FEA116 !important;
+        }
+
+        .goog-te-menu2-item div {
+            color: #FEA116 !important;
+            padding: 8px !important;
+        }
+
+        .goog-te-menu2-item:hover div {
+            background-color: #FEA116 !important;
+            color: #fff !important;
+        }
+
+        .goog-te-menu2-item-selected div {
+            background-color: #FEA116 !important;
+            color: #fff !important;
+        }
+
+        /* Masquer le logo Google et le texte "Select Language" */
+        .goog-te-gadget-icon,
+        .goog-te-menu-value span:first-child {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+{# In your base template or a separate macro file #}
+{% macro is_active_route(current_route, target_route) %}
+    {% if current_route == target_route %}active{% endif %}
+{% endmacro %}
+
+<div class="bg-white p-0" style="width: 100vw; margin: 0; padding: 0;">
+    {% block header %}
+        <!-- Header Start -->
+        <div class="container-fluid bg-dark px-0 ">
+            <div class="row gx-0 nav p-lg-3">
+                <div class="col-lg-3 bg-dark d-none d-lg-block ">
+                    <div class="d-flex align-items-center justify-content-center h-100">
+                        <a href="{{ path('app_home') }}" class="navbar-brand m-0 me-3">
+                            <h1 class="m-0 text-primary text-uppercase">TerraNav</h1>
+                        </a>
+                        <!-- Sélecteur de langue -->
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="languageSelector" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-globe me-1"></i> FR
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="languageSelector">
+                                <li><a class="dropdown-item active" href="#"><img src="{{ asset('img/flags/fr.png') }}" alt="Français" width="20" class="me-2">Français</a></li>
+                                <li><a class="dropdown-item" href="#"><img src="{{ asset('img/flags/gb.png') }}" alt="English" width="20" class="me-2">English</a></li>
+                                <li><a class="dropdown-item" href="#"><img src="{{ asset('img/flags/es.png') }}" alt="Español" width="20" class="me-2">Español</a></li>
+                                <li><a class="dropdown-item" href="#"><img src="{{ asset('img/flags/de.png') }}" alt="Deutsch" width="20" class="me-2">Deutsch</a></li>
+                                <li><a class="dropdown-item" href="#"><img src="{{ asset('img/flags/it.png') }}" alt="Italiano" width="20" class="me-2">Italiano</a></li>
+                                <li><a class="dropdown-item" href="#"><img src="{{ asset('img/flags/ar.png') }}" alt="العربية" width="20" class="me-2">العربية</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-9 d-flex justify-content-end">
+                    <nav class="navbar navbar-expand-lg bg-dark navbar-dark p-3 p-lg-0">
+                        <a href="{{ path('app_home') }}" class="navbar-brand d-block d-lg-none">
+                            <h1 class="m-0 text-primary text-uppercase">TerraNav</h1>
+                        </a>
+                        <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" style="margin-right: 20px">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
+                            <div class="navbar-nav mr-auto py-0">
+                                <a href="{{ path('app_home') }}"
+                                   class="nav-item nav-link {{ app.request.get('_route') == 'app_home' ? 'active' : '' }}">
+                                    Accueil
+                                </a>
+                                <a href="{{ path('client_transports_list') }}"
+                                   class="nav-item nav-link {{ app.request.get('_route') == 'app_voyages' ? 'active' : '' }}">
+                                    Transports
+                                </a>
+                                <a href="{{ path('client_trajets_list') }}"
+                                   class="nav-item nav-link {{ app.request.get('_route') == 'client_trajets_list' ? 'active' : '' }}">
+                                    Trajets
+                                </a>
+                                <a href="{{ path('client_transports_list') }}"
+                                   class="nav-item nav-link {{ app.request.get('_route') == 'client_transports_list' ? 'active' : '' }}">
+                                    Statistiques
+                                </a>
+                                <div class="nav-item dropdown">
+                                    <a href="#" class="nav-link dropdown-toggle {{ app.request.get('_route') in ['user_profile', 'app_historique'] ? 'active' : '' }}"
+                                       data-bs-toggle="dropdown">
+                                        Profile
+                                    </a>
+                                    <div class="dropdown-menu rounded-0 m-0">
+                                        <a href="{{ path('user_profile') }}"
+                                           class="dropdown-item {{ app.request.get('_route') == 'user_profile' ? 'active' : '' }}">
+                                            <i class="fas fa-user-circle me-2"></i> Mon Profil
+                                        </a>
+                                        <a href="{{ path('app_historique') }}"
+                                           class="dropdown-item {{ app.request.get('_route') == 'app_historique' ? 'active' : '' }}">
+                                            <i class="fas fa-history me-2"></i> Historique
+                                        </a>
+                                        <a href="{{ path('app_reclamer') }}"
+                                           class="dropdown-item {{ app.request.get('_route') == 'app_reclamer' ? 'active' : '' }}">
+                                            <i class="fas fa-exclamation-circle me-2"></i> Reclamer
+                                        </a>
+                                        <div class="dropdown-divider"></div>
+                                        <a href="{{ path('app_logout') }}" class="dropdown-item">
+                                            <i class="fas fa-sign-out-alt me-2"></i> Se déconnecter
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        <!-- Header End -->
+    {% endblock %}
+
+    <!-- Widget Google Translate invisible mais fonctionnel -->
+    <div id="google_translate_element" style="display:none;"></div>
+
+    {% block content %}
+    {% endblock %}
+
+    {% block footer %}
+        <!-- Footer Start -->
+        <div class="container-fluid bg-dark text-light footer wow" data-wow-delay="0.1s">
+            <div class="container pb-5">
+                <div class="row g-5">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="bg-primary rounded p-4">
+                            <a href="index.html"><h1 class="text-white text-uppercase mb-3">TerraNav</h1></a>
+                            <p class="text-white mb-0">
+                                Terranav, votre allié pour des voyages sans stress ! Que vous recherchiez un transport fiable, un hébergement confortable ou une aventure inoubliable!
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <h6 class="section-title text-start text-primary text-uppercase mb-4">Contact</h6>
+                        <p class="mb-2"><i class="fa fa-map-marker-alt me-3"></i>Av. Fethi Zouhir, Cebalat Ben Ammar 2083</p>
+                        <p class="mb-2"><i class="fa fa-phone-alt me-3"></i>+216 99 072 221</p>
+                        <p class="mb-2"><i class="fa fa-envelope me-3"></i>terranav3a11@gmail.com</p>
+                        <div class="d-flex pt-2">
+                            <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-twitter"></i></a>
+                            <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-facebook-f"></i></a>
+                            <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-youtube"></i></a>
+                            <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-linkedin-in"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-lg-5 col-md-12">
+
+                        <div class="col-md-6">
+                            <h6 class="section-title text-start text-primary text-uppercase mb-4">Company</h6>
+                            <a class="btn btn-link" href="">About Us</a>
+                            <a class="btn btn-link" href="">Contact Us</a>
+                            <a class="btn btn-link" href="">Privacy Policy</a>
+                            <a class="btn btn-link" href="">Terms & Condition</a>
+                            <a class="btn btn-link" href="">Support</a>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Footer End -->
+
+
+        <!-- Back to Top -->
+        <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+
+        <!-- JavaScript Libraries -->
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="{{ asset('lib/wow/wow.min.js') }}"></script>
+        <script src="{{ asset('lib/easing/easing.min.js') }}"></script>
+        <script src="{{ asset('lib/waypoints/waypoints.min.js') }}"></script>
+        <script src="{{ asset('lib/counterup/counterup.min.js') }}"></script>
+        <script src="{{ asset('lib/owlcarousel/owl.carousel.min.js') }}"></script>
+        <script src="{{ asset('lib/tempusdominus/js/moment.min.js') }}"></script>
+        <script src="{{ asset('lib/tempusdominus/js/moment-timezone.min.js') }}"></script>
+        <script src="{{ asset('lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js') }}"></script>
+
+        <!-- Template Javascript -->
+        <script src="{{ asset('js/mainClient.js') }}"></script>
+        
+        <script>
+            // Script pour connecter le sélecteur de langue personnalisé à Google Translate
+            document.addEventListener('DOMContentLoaded', function() {
+                // Attendre que Google Translate soit chargé
+                function waitForGoogleTranslate() {
+                    if (window.google && window.google.translate && window.google.translate.TranslateElement) {
+                        initCustomLanguageSelector();
+                    } else {
+                        setTimeout(waitForGoogleTranslate, 100);
+                    }
+                }
+                
+                waitForGoogleTranslate();
+                
+                // Initialiser notre sélecteur personnalisé
+                function initCustomLanguageSelector() {
+                    const langItems = document.querySelectorAll('.dropdown-item');
+                    const languageSelector = document.getElementById('languageSelector');
+                    
+                    langItems.forEach(item => {
+                        item.addEventListener('click', function(e) {
+                            // Ne pas traiter les clics sur les éléments du menu profil
+                            if (!this.closest('#language-selector-container')) {
+                                return;
+                            }
+                            
+                            e.preventDefault();
+                            
+                            const langCode = this.getAttribute('data-lang');
+                            if (!langCode) return; // Ignorer si pas d'attribut data-lang
+                            
+                            // Récupérer le code de langue
+                            const langText = langCode.toUpperCase();
+                            
+                            // Mettre à jour le texte du bouton
+                            languageSelector.innerHTML = `<i class="fas fa-globe me-1"></i> ${langText}`;
+                            
+                            // Supprimer la classe active de tous les éléments
+                            langItems.forEach(l => {
+                                if (l.closest('#language-selector-container')) {
+                                    l.classList.remove('active');
+                                }
+                            });
+                            
+                            // Ajouter la classe active à l'élément sélectionné
+                            this.classList.add('active');
+                            
+                            // Déclencher Google Translate
+                            changeLanguageByCode(langCode);
+                        });
+                    });
+                }
+                
+                // Fonction pour changer de langue via Google Translate
+                function changeLanguageByCode(langCode) {
+                    // Trouver l'élément iframe généré par Google Translate
+                    const gtCombo = document.querySelector('.goog-te-combo');
+                    
+                    if (gtCombo) {
+                        gtCombo.value = langCode;
+                        // Déclencher l'événement 'change' pour activer la traduction
+                        gtCombo.dispatchEvent(new Event('change'));
+                    } else {
+                        // Si l'élément n'est pas encore créé, utiliser une autre méthode
+                        const selectElement = document.querySelector('.goog-te-menu-value span:first-child');
+                        if (selectElement) {
+                            selectElement.click();
+                            
+                            // Attendre que le menu soit ouvert
+                            setTimeout(() => {
+                                // Trouver l'élément correspondant à la langue
+                                const languageOption = document.querySelector('.goog-te-menu2-item div[class*="' + langCode + '"]');
+                                if (languageOption) {
+                                    languageOption.click();
+                                }
+                            }, 300);
+                        }
+                    }
+                }
+            });
+        </script>
+    {% endblock %}
+</div>
+</body>
+</html>

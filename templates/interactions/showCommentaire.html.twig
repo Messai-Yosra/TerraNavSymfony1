@@ -3,57 +3,238 @@
 {% block titre %}Détails du Post{% endblock %}
 
 {% block content %}
-<link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
-<link href="{{ asset('css/styleClient.css') }}" rel="stylesheet">
-
 <div class="container mt-4">
-    <!-- Section Post -->
+        <!-- Post Details Section -->
     <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <img src="{{ post.id_user.photo ? asset('uploads/profile/' ~ post.id_user.photo) : asset('img/default-avatar.jpg') }}"
+                         class="rounded-circle me-3"
+                         width="40"
+                         height="40"
+                         alt="Photo de profil">
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ post.id_user.username }}</h6>
+                        <small class="text-muted">
+                            <i class="far fa-clock me-1"></i>
+                            {{ post.date ? post.date|date('d M Y à H:i') : 'Non défini' }}
+                        </small>
+                    </div>
+                </div>
+                {% if app.user and app.user.id == post.id_user.id %}
+                    <div class="dropdown">
+                        <button class="btn btn-link text-dark" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="{{ path('app_post_edit', {'id': post.id}) }}">
+                                    <i class="fas fa-edit me-2"></i>Modifier
+                                </a>
+                            </li>
+                            <li>
+                                <button class="dropdown-item text-danger delete-post-btn" 
+                                        data-post-id="{{ post.id }}">
+                                    <i class="fas fa-trash me-2"></i>Supprimer
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
         <div class="card-body">
-            <h3 class="card-title">Détails du Post</h3>
             <p class="card-text">{{ post.description }}</p>
             {% if post.image %}
-                <img src="{{ asset('img/' ~ post.image) }}" alt="Image du post" class="img-fluid rounded">
+                <img src="{{ asset('img/' ~ post.image) }}" 
+                     alt="Image du post" 
+                     class="img-fluid rounded mb-3">
             {% endif %}
         </div>
     </div>
 
-    <!-- Section Commentaires -->
+    <!-- Comments Section -->
     <div class="card shadow-sm">
         <div class="card-body">
-            <h4 class="card-title">Commentaires</h4>
+            <h5 class="card-title mb-4">
+                <i class="far fa-comments me-2"></i>
+                Commentaires ({{ post.commentaires|length }})
+            </h5>
+
+            <!-- New Comment Form -->
+            <div class="mb-4">
+                <div class="d-flex gap-2">
+                    <img src="{{ app.user and app.user.photo ? asset('uploads/profile/' ~ app.user.photo) : asset('img/default-avatar.jpg') }}"
+                         class="rounded-circle"
+                         width="40"
+                         height="40"
+                         alt="Photo de profil">
+                    <div class="flex-grow-1">
+                        <a href="{{ path('app_commentaire_new', {'postId': post.id}) }}" 
+                           class="btn btn-light w-100 text-start">
+                            Écrire un commentaire...
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comments List -->
             {% if post.commentaires is not empty %}
-                <ul class="list-group list-group-flush">
+                <div class="comments-section">
                     {% for commentaire in post.commentaires %}
-                        <li class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>{{ commentaire.id_User.nom }}</strong>
-                                    <p class="mb-1">Contenu : {{ commentaire.contenu }}</p>
-                                    <small class="text-muted">Date : {{ commentaire.date ? commentaire.date|date('d/m/Y H:i') : 'Non défini' }}</small>
+                        <div class="comment-item d-flex gap-3 mb-3">
+                            <img src="{{ commentaire.id_User.photo ? asset('uploads/profile/' ~ commentaire.id_User.photo) : asset('img/default-avatar.jpg') }}"
+                                 class="rounded-circle align-self-start"
+                                 width="40"
+                                 height="40"
+                                 alt="Photo de profil">
+                            
+                            <div class="flex-grow-1">
+                                <div class="comment-bubble p-3 rounded">
+                                    <div class="fw-bold mb-1">{{ commentaire.id_User.username }}</div>
+                                    <p class="mb-0">{{ commentaire.contenu }}</p>
                                 </div>
-                                <div>
-                                    <form action="{{ path('app_commentaire_delete', {'id': commentaire.id}) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce commentaire ?')" class="d-inline">
-                                        <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
-                                    </form>
-                                    <a href="{{ path('app_commentaire_edit', {'id': commentaire.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
+                                
+                                <div class="comment-actions mt-2 d-flex align-items-center">
+                                    <small class="text-muted">
+                                        {{ commentaire.date ? commentaire.date|date('d/m/Y H:i') : 'Non défini' }}
+                                    </small>
+                                    
+                                    {% if app.user and app.user.id == commentaire.id_User.id %}
+                                        <div class="ms-auto">
+                                            <a href="{{ path('app_commentaire_edit', {'id': commentaire.id}) }}" 
+                                               class="btn btn-sm btn-link text-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button class="btn btn-sm btn-link text-danger delete-comment-btn"
+                                                    data-comment-id="{{ commentaire.id }}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    {% endif %}
                                 </div>
                             </div>
-                        </li>
+                        </div>
                     {% endfor %}
-                </ul>
+                </div>
             {% else %}
-                <p class="text-muted">Aucun commentaire pour ce post.</p>
+                <div class="text-center text-muted py-4">
+                    <i class="far fa-comments fa-3x mb-3"></i>
+                    <p>Aucun commentaire pour le moment. Soyez le premier à commenter !</p>
+                </div>
             {% endif %}
         </div>
     </div>
-
-    <!-- Boutons d'action -->
-    <div class="mt-4">
-        <a href="{{ path('app_commentaire_new', {'postId': post.id}) }}" class="btn btn-success">
-            <i class="fas fa-plus-circle"></i> Ajouter un commentaire
-        </a>
-
-    </div>
 </div>
+
+<style>
+.comment-bubble {
+    background-color: #f0f2f5;
+    border-radius: 18px;
+    position: relative;
+}
+
+.comment-bubble p {
+    color: #050505;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.comment-actions {
+    font-size: 0.8rem;
+}
+
+.btn-link {
+    text-decoration: none;
+}
+
+.comment-item {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.post-create-btn {
+    border: none;
+    background-color: #f0f2f5;
+    border-radius: 20px;
+    padding: 8px 16px;
+    transition: background-color 0.2s;
+}
+
+.post-create-btn:hover {
+    background-color: #e4e6eb;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.dropdown-item:hover {
+    background-color: #f0f2f5;
+}
+
+.btn-link {
+    color: #65676b;
+}
+
+.btn-link:hover {
+    color: #1877f2;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Delete comment functionality
+    document.querySelectorAll('.delete-comment-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const commentId = this.dataset.commentId;
+            Swal.fire({
+                title: 'Confirmer la suppression',
+                text: 'Voulez-vous vraiment supprimer ce commentaire ?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Oui, supprimer',
+                cancelButtonText: 'Annuler'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = `{{ path('app_commentaire_delete', {'id': 'COMMENT_ID'}) }}`.replace('COMMENT_ID', commentId);
+                }
+            });
+        });
+    });
+
+    // Delete post functionality
+    document.querySelector('.delete-post-btn')?.addEventListener('click', function() {
+        const postId = this.dataset.postId;
+        Swal.fire({
+            title: 'Confirmer la suppression',
+            text: 'Voulez-vous vraiment supprimer ce post ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Oui, supprimer',
+            cancelButtonText: 'Annuler'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = `{{ path('app_post_delete', {'id': 'POST_ID'}) }}`.replace('POST_ID', postId);
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

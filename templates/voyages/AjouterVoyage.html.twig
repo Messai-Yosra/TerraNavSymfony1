@@ -1,4 +1,4 @@
-{% extends "baseClient.html.twig" %}
+{% extends "baseAgenceVoyage.html.twig" %}
 
 {% block title %}Proposer un Voyage{% endblock %}
 
@@ -79,9 +79,14 @@
                                 <div class="card-body">
                                     <div class="row g-3">
                                         <!-- Destination -->
-                                        <div class="col-md-6">
+                                        <div class="col-md-6 position-relative">
                                             <div class="form-floating {% if form.destination.vars.errors|length %}has-error{% endif %}">
-                                                {{ form_widget(form.destination, {'attr': {'class': form.destination.vars.errors|length ? 'form-control is-invalid' : 'form-control'}}) }}
+                                                {{ form_widget(form.destination, {
+                                                    'attr': {
+                                                        'class': (form.destination.vars.errors|length ? 'form-control is-invalid' : 'form-control') ~ ' with-suggestions',
+                                                        'autocomplete': 'off'
+                                                    }
+                                                }) }}
                                                 {{ form_label(form.destination) }}
                                                 {% if form.destination.vars.errors|length %}
                                                     <div class="invalid-feedback d-block">
@@ -92,9 +97,14 @@
                                         </div>
 
                                         <!-- Point de départ -->
-                                        <div class="col-md-6">
+                                        <div class="col-md-6 position-relative">
                                             <div class="form-floating {% if form.pointDepart.vars.errors|length %}has-error{% endif %}">
-                                                {{ form_widget(form.pointDepart, {'attr': {'class': form.pointDepart.vars.errors|length ? 'form-control is-invalid' : 'form-control'}}) }}
+                                                {{ form_widget(form.pointDepart, {
+                                                    'attr': {
+                                                        'class': (form.pointDepart.vars.errors|length ? 'form-control is-invalid' : 'form-control') ~ ' with-suggestions',
+                                                        'autocomplete': 'off'
+                                                    }
+                                                }) }}
                                                 {{ form_label(form.pointDepart) }}
                                                 {% if form.pointDepart.vars.errors|length %}
                                                     <div class="invalid-feedback d-block">
@@ -482,6 +492,71 @@
             border-top-left-radius: 0;
             border-bottom-left-radius: 0;
         }
+
+        /* Animation pour le champ description */
+        .animate__flash {
+            animation-duration: 1s;
+            border: 1px solid #28a745;
+            box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
+        }
+
+        /* Style du bouton pendant la génération */
+        .btn-generating {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            cursor: wait;
+        }
+
+        /* Style pour les erreurs */
+        .field-error {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+        }
+
+        datalist {
+            display: block;
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        datalist option {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        datalist option:hover {
+            background-color: #f5f5f5;
+        }
+
+        #destinationSuggestions {
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+            border-radius: 0 0 4px 4px;
+            margin-top: -1px;
+        }
+
+        #destinationSuggestions .list-group-item {
+            border-left: none;
+            border-right: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            padding: 0.75rem 1.25rem;
+        }
+
+        #destinationSuggestions .list-group-item:first-child {
+            border-top: none;
+        }
+
+        #destinationSuggestions .list-group-item:hover {
+            background-color: #f8f9fa;
+            padding-left: 1.5rem;
+        }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -675,5 +750,178 @@
             });
         });
     </script>
+
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const destinationInput = document.getElementById('{{ form.destination.vars.id }}');
+            const departureInput = document.getElementById('{{ form.pointDepart.vars.id }}');
+            const destinationOptions = document.getElementById('destinationOptions');
+            const departureOptions = document.getElementById('departureOptions');
+
+            // Fonction pour créer et gérer les suggestions
+            function createSuggestions(input, datalist) {
+                // Créer le conteneur des suggestions
+                const suggestionsContainer = document.createElement('div');
+                suggestionsContainer.className = 'airport-suggestions';
+                suggestionsContainer.style.display = 'none';
+
+                // Insérer le conteneur après l'input
+                input.parentNode.insertBefore(suggestionsContainer, input.nextSibling);
+
+                // Fonction pour afficher les suggestions
+                async function showSuggestions(query) {
+                    if (query.length < 2) {
+                        suggestionsContainer.style.display = 'none';
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`/get-airports/${encodeURIComponent(query)}`);
+                        if (!response.ok) throw new Error('Erreur réseau');
+
+                        const data = await response.json();
+
+                        if (data.success && data.airports.length > 0) {
+                            suggestionsContainer.innerHTML = data.airports.map(airport =>
+                                `<div class="suggestion-item">${airport}</div>`
+                            ).join('');
+
+                            // Gestion du clic sur une suggestion
+                            suggestionsContainer.querySelectorAll('.suggestion-item').forEach(item => {
+                                item.addEventListener('click', () => {
+                                    input.value = item.textContent;
+                                    suggestionsContainer.style.display = 'none';
+                                });
+                            });
+
+                            suggestionsContainer.style.display = 'block';
+                        } else {
+                            suggestionsContainer.style.display = 'none';
+                        }
+                    } catch (error) {
+                        console.error('Erreur:', error);
+                        suggestionsContainer.style.display = 'none';
+                    }
+                }
+
+                // Fonction debounce
+                function debounce(func, delay) {
+                    let timeout;
+                    return function() {
+                        const context = this;
+                        const args = arguments;
+                        clearTimeout(timeout);
+                        timeout = setTimeout(() => func.apply(context, args), delay);
+                    };
+                }
+
+                // Écouteurs d'événements
+                input.addEventListener('input', debounce(function() {
+                    showSuggestions(this.value.trim());
+                }, 1000));
+
+                // Masquer les suggestions quand on clique ailleurs
+                document.addEventListener('click', (e) => {
+                    if (!input.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+                        suggestionsContainer.style.display = 'none';
+                    }
+                });
+            }
+
+            // Initialiser les suggestions pour les deux champs
+            createSuggestions(destinationInput, destinationOptions);
+            createSuggestions(departureInput, departureOptions);
+        });
+    </script>
+
+    <style>
+        .airport-suggestions {
+            position: absolute;
+            width: calc(100% - 2px); /* Ajuster à la largeur du champ */
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .suggestion-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Style pour le champ avec suggestions */
+        .form-control.with-suggestions {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const generateBtn = document.getElementById('generateDescBtn');
+            const descriptionField = document.getElementById('{{ form.description.vars.id }}');
+
+            generateBtn.addEventListener('click', async function() {
+                // Afficher un indicateur de chargement
+                generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération...';
+                generateBtn.disabled = true;
+
+                try {
+                    // Récupérer les données du formulaire
+                    const formData = {
+                        destination: document.getElementById('{{ form.destination.vars.id }}').value,
+                        pointDepart: document.getElementById('{{ form.pointDepart.vars.id }}').value,
+                        type: document.getElementById('{{ form.type.vars.id }}').value,
+                        dateDepart: document.getElementById('{{ form.dateDepart.vars.id }}').value,
+                        dateRetour: document.getElementById('{{ form.dateRetour.vars.id }}').value,
+                        nbPlacesD: document.getElementById('{{ form.nbPlacesD.vars.id }}').value,
+                        prix: document.getElementById('{{ form.prix.vars.id }}').value
+                    };
+
+                    // Appeler l'API
+                    const response = await fetch('{{ path('app_generate_description') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        descriptionField.value = data.description;
+                        // Ajouter une petite animation pour montrer que c'est généré
+                        descriptionField.classList.add('animate__animated', 'animate__flash');
+                        setTimeout(() => {
+                            descriptionField.classList.remove('animate__animated', 'animate__flash');
+                        }, 1000);
+                    } else {
+                        throw new Error(data.error || 'Erreur lors de la génération');
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de la génération: ' + error.message);
+                } finally {
+                    // Réinitialiser le bouton
+                    generateBtn.innerHTML = '<i class="fas fa-magic me-1"></i> Générer';
+                    generateBtn.disabled = false;
+                }
+            });
+        });
+    </script>
+
+
 
 {% endblock %}

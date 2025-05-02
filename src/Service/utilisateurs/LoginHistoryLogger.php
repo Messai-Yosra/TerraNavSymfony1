@@ -116,4 +116,46 @@ class LoginHistoryLogger
             return $entry['userId'] === $userId;
         });
     }
+    
+    public function getMostActiveUsers(int $days = 30, int $limit = 5): array
+    {
+        $allHistory = $this->getLoginHistory($days);
+        $userConnections = [];
+        
+        // Comptabiliser les connexions par utilisateur
+        foreach ($allHistory as $entry) {
+            $userId = $entry['userId'];
+            $username = $entry['username'] ?? 'Unknown';
+            $email = $entry['email'] ?? '';
+            $role = $entry['role'] ?? 'Unknown';
+            
+            if (!isset($userConnections[$userId])) {
+                $userConnections[$userId] = [
+                    'userId' => $userId,
+                    'username' => $username,
+                    'email' => $email,
+                    'role' => $role,
+                    'connectionCount' => 0,
+                    'lastConnection' => null
+                ];
+            }
+            
+            $userConnections[$userId]['connectionCount']++;
+            
+            // Mettre à jour la dernière connexion si elle est plus récente
+            $timestamp = $entry['timestamp'];
+            if ($userConnections[$userId]['lastConnection'] === null || 
+                $timestamp > $userConnections[$userId]['lastConnection']) {
+                $userConnections[$userId]['lastConnection'] = $timestamp;
+            }
+        }
+        
+        // Trier par nombre de connexions (décroissant)
+        usort($userConnections, function($a, $b) {
+            return $b['connectionCount'] - $a['connectionCount'];
+        });
+        
+        // Retourner les X utilisateurs les plus actifs
+        return array_slice(array_values($userConnections), 0, $limit);
+    }
 }

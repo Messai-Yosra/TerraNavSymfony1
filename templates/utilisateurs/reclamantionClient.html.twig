@@ -1,39 +1,231 @@
 {# filepath: c:\Users\asus\TerraNavSymfony1\TerraNavSymfony1\templates\utilisateurs\reclamantionClient.html.twig #}
 {% extends "baseClient.html.twig" %}
 
-{% block titre %} Reclamer {% endblock %}
+{% block titre %}Réclamations | TerraNav{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .page-header-reclamation {
+            padding: 100px 0;
+            background: linear-gradient(rgba(15, 23, 43, .7), rgba(15, 23, 43, .7)), url({{ asset('img/carousel-1.jpg') }});
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            margin-bottom: 40px;
+        }
+
+        .reclamation-form-container {
+            position: relative;
+            z-index: 1;
+            margin-top: -50px;
+            box-shadow: 0 0 45px rgba(0, 0, 0, .1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .reclamation-form-header {
+            background: var(--primary);
+            color: #FFF;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .reclamation-form-body {
+            background: #FFFFFF;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .reclamation-list {
+            background: #FFFFFF;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 45px rgba(0, 0, 0, .1);
+        }
+
+        .reclamation-list-header {
+            background: var(--dark);
+            color: #FFF;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .reclamation-item {
+            border-left: 4px solid transparent;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .reclamation-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, .1);
+        }
+
+        .reclamation-item.non-traite {
+            border-left-color: var(--primary);
+        }
+
+        .reclamation-item.traite {
+            border-left-color: #28a745;
+        }
+
+        .reclamation-header {
+            padding: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .reclamation-content {
+            padding: 0 15px 15px 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .form-floating {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .form-floating > .form-control,
+        .form-floating > .form-select {
+            height: calc(3.5rem + 2px);
+            padding: 1rem 0.75rem;
+        }
+
+        .form-floating > label {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            padding: 1rem 0.75rem;
+            pointer-events: none;
+            border: 1px solid transparent;
+            transform-origin: 0 0;
+            transition: opacity .1s ease-in-out,transform .1s ease-in-out;
+        }
+
+        .form-floating > .form-control:focus,
+        .form-floating > .form-control:not(:placeholder-shown),
+        .form-floating > .form-select {
+            padding-top: 1.625rem;
+            padding-bottom: 0.625rem;
+        }
+
+        .form-floating > .form-control:focus ~ label,
+        .form-floating > .form-control:not(:placeholder-shown) ~ label,
+        .form-floating > .form-select ~ label {
+            opacity: .65;
+            transform: scale(.85) translateY(-0.5rem) translateX(0.15rem);
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        
+        .status-badge.non-traite {
+            background-color: rgba(254, 161, 22, 0.2);
+            color: var(--primary);
+        }
+        
+        .status-badge.traite {
+            background-color: rgba(40, 167, 69, 0.2);
+            color: #28a745;
+        }
+        
+        .btn-submit-reclamation {
+            background: var(--primary);
+            color: #fff;
+            font-weight: 600;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+        
+        .btn-submit-reclamation:hover {
+            background: #e08b00;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(254, 161, 22, 0.3);
+        }
+        
+        .textarea-description {
+            min-height: 150px !important;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+        }
+        
+        .empty-state i {
+            font-size: 70px;
+            color: #e0e0e0;
+            margin-bottom: 20px;
+        }
+        
+        .empty-state h4 {
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+    </style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row">
+<div class="container-fluid page-header-reclamation mb-5 py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="display-4 text-white animated slideInDown mb-3">Service de Réclamations</h1>
+                <p class="text-white animated slideInDown">Votre satisfaction est notre priorité. Soumettez vos réclamations et nous vous répondrons dans les plus brefs délais.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row g-4">
         <div class="col-lg-5">
-            <div class="card shadow mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Nouvelle réclamation</h5>
+            <div class="reclamation-form-container wow fadeInUp" data-wow-delay="0.2s">
+                <div class="reclamation-form-header">
+                    <h4 class="m-0"><i class="fas fa-edit me-2"></i>Nouvelle réclamation</h4>
                 </div>
-                <div class="card-body">
+                <div class="reclamation-form-body">
                     {% for message in app.flashes('success') %}
-                        <div class="alert alert-success" role="alert">
-                            {{ message }}
+                        <div class="alert alert-success d-flex align-items-center" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <div>{{ message }}</div>
                         </div>
                     {% endfor %}
                     
                     {{ form_start(form) }}
-                        <div class="mb-3">
-                            {{ form_label(form.sujet) }}
-                            {{ form_widget(form.sujet, {'attr': {'class': 'form-select'}}) }}
+                        <div class="form-floating mb-4">
+                            {{ form_widget(form.sujet, {'attr': {'class': 'form-select', 'placeholder': ' '}}) }}
+                            {{ form_label(form.sujet, 'Sujet de votre réclamation') }}
                             {{ form_errors(form.sujet) }}
                         </div>
                         
-                        <div class="mb-3">
-                            {{ form_label(form.description) }}
-                            {{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}
+                        <div class="form-floating mb-4">
+                            {{ form_widget(form.description, {'attr': {'class': 'form-control textarea-description', 'placeholder': ' ', 'style': 'height: 150px', 'rows': '6'}}) }}
+                            {{ form_label(form.description, 'Détails de votre réclamation') }}
                             {{ form_errors(form.description) }}
-                            <div class="form-text">Soyez aussi précis que possible pour que nous puissions vous aider efficacement.</div>
+                            <small class="text-muted mt-2 d-block">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Soyez aussi précis que possible pour que nous puissions vous aider efficacement.
+                            </small>
                         </div>
                         
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn-submit-reclamation">
                                 <i class="fas fa-paper-plane me-2"></i>Envoyer ma réclamation
                             </button>
                         </div>
@@ -43,54 +235,122 @@
         </div>
         
         <div class="col-lg-7">
-            <div class="card shadow">
-                <div class="card-header">
-                    <h5 class="mb-0">Mes réclamations</h5>
+            <div class="reclamation-list wow fadeInUp" data-wow-delay="0.5s">
+                <div class="reclamation-list-header d-flex justify-content-between align-items-center">
+                    <h4 class="m-0"><i class="fas fa-history me-2"></i>Historique des réclamations</h4>
+                    <span class="badge bg-primary">{{ reclamations|length }} réclamation(s)</span>
                 </div>
-                <div class="card-body p-0">
+                <div class="p-4">
                     {% if reclamations is empty %}
-                        <div class="text-center py-4">
-                            <p class="text-muted mb-0">Vous n'avez pas encore soumis de réclamation</p>
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <h4>Aucune réclamation</h4>
+                            <p class="text-muted">Vous n'avez pas encore soumis de réclamation.</p>
                         </div>
                     {% else %}
-                        <div class="table-responsive">
-                            <table class="table mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Sujet</th>
-                                        <th>Statut</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for reclamation in reclamations %}
-                                        <tr>
-                                            <td>{{ reclamation.dateReclamation|date('d/m/Y') }}</td>
-                                            <td>{{ reclamation.sujet }}</td>
-                                            <td>
-                                                {% if reclamation.etat == 'Non traité' %}
-                                                    <span class="badge bg-warning text-dark">Non traité</span>
-                                                {% else %}
-                                                    <span class="badge bg-success">Traité</span>
-                                                {% endif %}
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="3" class="border-top-0 pt-0">
-                                                <div class="ps-3 pe-3 pb-2">
-                                                    <strong>Message:</strong>
-                                                    <p class="small mb-0 text-muted">{{ reclamation.description }}</p>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                        {% for reclamation in reclamations %}
+                            <div class="reclamation-item mb-3 {% if reclamation.etat == 'Non traité' %}non-traite{% else %}traite{% endif %}">
+                                <div class="reclamation-header" data-bs-toggle="collapse" href="#reclamationContent{{ loop.index }}" role="button">
+                                    <div>
+                                        <h5 class="mb-1">{{ reclamation.sujet }}</h5>
+                                        <span class="text-muted small">
+                                            <i class="far fa-calendar-alt me-1"></i>
+                                            {{ reclamation.dateReclamation|date('d/m/Y à H:i') }}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        {% if reclamation.etat == 'Non traité' %}
+                                            <span class="status-badge non-traite">
+                                                <i class="fas fa-clock me-1"></i>En attente
+                                            </span>
+                                        {% else %}
+                                            <span class="status-badge traite">
+                                                <i class="fas fa-check-circle me-1"></i>Traité
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="collapse" id="reclamationContent{{ loop.index }}">
+                                    <div class="reclamation-content">
+                                        <p class="fw-bold mb-2">Votre message :</p>
+                                        <p class="mb-0">{{ reclamation.description }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const descriptionField = document.querySelector('#{{ form.description.vars.id }}');
+            
+            // Ajuster la hauteur du textarea pour qu'il s'adapte au contenu
+            descriptionField.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+            
+            descriptionField.addEventListener('blur', async function() {
+                const text = this.value;
+                if (text.trim() === '') return;
+                
+                try {
+                    // Vérifier si le texte contient des mots inappropriés
+                    const encodedText = encodeURIComponent(text);
+                    const apiUrl = `https://www.purgomalum.com/service/containsprofanity?text=${encodedText}`;
+                    
+                    const response = await fetch(apiUrl);
+                    const result = await response.text();
+                    
+                    if (result === "true") {
+                        // Créer une alerte
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert alert-warning d-flex align-items-center mt-3 animate__animated animate__fadeIn';
+                        alertDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i><div>Attention: Votre texte contient des termes inappropriés qui seront censurés.</div>';
+                        
+                        // Supprimer les alertes existantes
+                        const existingAlerts = this.parentNode.querySelectorAll('.alert-warning');
+                        existingAlerts.forEach(alert => alert.remove());
+                        
+                        // Insérer l'alerte après le champ
+                        this.parentNode.appendChild(alertDiv);
+                        
+                        // Supprimer l'alerte après 5 secondes
+                        setTimeout(() => {
+                            alertDiv.classList.add('animate__fadeOut');
+                            setTimeout(() => {
+                                alertDiv.remove();
+                            }, 500);
+                        }, 4500);
+                    }
+                } catch (error) {
+                    console.error('Erreur lors de la vérification:', error);
+                }
+            });
+            
+            // Animations pour les éléments de réclamation
+            const reclamationItems = document.querySelectorAll('.reclamation-item');
+            reclamationItems.forEach(item => {
+                const header = item.querySelector('.reclamation-header');
+                header.addEventListener('click', function() {
+                    setTimeout(() => {
+                        const content = this.nextElementSibling;
+                        if (content.classList.contains('show')) {
+                            item.classList.add('active');
+                        } else {
+                            item.classList.remove('active');
+                        }
+                    }, 50);
+                });
+            });
+        });
+    </script>
 {% endblock %}

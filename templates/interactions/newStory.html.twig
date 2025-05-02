@@ -1,0 +1,225 @@
+{% extends 'baseClient.html.twig' %}
+
+{% block title %}Créer une Story{% endblock %}
+
+{% block content %}
+<div class="story-form-container">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h2 class="card-title text-center mb-4">
+                <i class="fas fa-plus-circle me-2"></i>
+                Créer une Story
+            </h2>
+
+            {{ form_start(form, {'attr': {'class': 'story-form needs-validation'}}) }}
+                <div class="form-group mb-4">
+                    <div class="media-preview-container mb-3 d-none">
+                        <img id="mediaPreview" src="#" alt="Aperçu" class="img-fluid rounded">
+                        <button type="button" class="btn-remove-preview">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+
+                    <div class="upload-zone">
+                        <i class="fas fa-cloud-upload-alt mb-2"></i>
+                        <p class="mb-1">Glissez et déposez votre média ici</p>
+                        <p class="text-muted small">ou</p>
+                        {{ form_widget(form.media, {
+                            'attr': {
+                                'class': 'form-control-file',
+                                'accept': 'image/*,video/*',
+                                'data-max-file-size': '10485760'
+                            }
+                        }) }}
+                        <button type="button" class="btn btn-outline-primary btn-select-file">
+                            Sélectionner un fichier
+                        </button>
+                    </div>
+                    {{ form_errors(form.media) }}
+                </div>
+
+                <div class="form-group mb-4">
+                    {{ form_label(form.text, 'Votre message') }}
+                    {{ form_widget(form.text, {
+                        'attr': {
+                            'class': 'form-control',
+                            'placeholder': 'Ajoutez un message à votre story...',
+                            'rows': '3'
+                        }
+                    }) }}
+                    {{ form_errors(form.text) }}
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-share me-2"></i>
+                        Publier la Story
+                    </button>
+                    <a href="{{ path('app_chat') }}" class="btn btn-light">
+                        <i class="fas fa-times me-2"></i>
+                        Annuler
+                    </a>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+
+<style>
+.story-form-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.upload-zone {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.upload-zone:hover {
+    border-color: #1877f2;
+    background: #e9ecef;
+}
+
+.upload-zone i {
+    font-size: 2.5rem;
+    color: #6c757d;
+}
+
+.form-control-file {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    border: 0;
+}
+
+.btn-select-file {
+    margin-top: 1rem;
+}
+
+.media-preview-container {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.media-preview-container img {
+    max-height: 300px;
+    width: auto;
+    margin: 0 auto;
+    display: block;
+}
+
+.btn-remove-preview {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: rgba(0,0,0,0.5);
+    border: none;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-remove-preview:hover {
+    background: rgba(0,0,0,0.7);
+}
+
+.is-dragover {
+    border-color: #1877f2;
+    background: rgba(24, 119, 242, 0.1);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadZone = document.querySelector('.upload-zone');
+    const fileInput = document.querySelector('input[type="file"]');
+    const previewContainer = document.querySelector('.media-preview-container');
+    const preview = document.getElementById('mediaPreview');
+    const btnSelectFile = document.querySelector('.btn-select-file');
+
+    // Handle file selection via button
+    btnSelectFile.addEventListener('click', () => fileInput.click());
+
+    // Handle file selection
+    fileInput.addEventListener('change', handleFileSelect);
+
+    // Handle drag and drop
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadZone.addEventListener(eventName, preventDefaults);
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadZone.addEventListener(eventName, highlight);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadZone.addEventListener(eventName, unhighlight);
+    });
+
+    uploadZone.addEventListener('drop', handleDrop);
+
+    // Handle preview removal
+    document.querySelector('.btn-remove-preview')?.addEventListener('click', () => {
+        fileInput.value = '';
+        previewContainer.classList.add('d-none');
+        uploadZone.classList.remove('d-none');
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function highlight() {
+        uploadZone.classList.add('is-dragover');
+    }
+
+    function unhighlight() {
+        uploadZone.classList.remove('is-dragover');
+    }
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles(files);
+    }
+
+    function handleFileSelect(e) {
+        const files = e.target.files;
+        handleFiles(files);
+    }
+
+    function handleFiles(files) {
+        if (files.length) {
+            const file = files[0];
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    preview.src = e.target.result;
+                    previewContainer.classList.remove('d-none');
+                    uploadZone.classList.add('d-none');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    }
+});
+</script>
+{% endblock %}
