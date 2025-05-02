@@ -5,6 +5,7 @@ namespace App\Controller\hebergements;
 use App\Entity\Hebergement;
 use App\Entity\Utilisateur;
 use App\Form\Hebergement1Type;
+use App\Service\ExcelImportService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,10 +18,12 @@ use Symfony\Component\Security\Core\Security;
 final class HebergementController extends AbstractController
 {
     private $security;
+    private $excelImportService;
 
-    public function __construct(Security $security)
+    public function __construct(Security $security, ExcelImportService $excelImportService)
     {
         $this->security = $security;
+        $this->excelImportService = $excelImportService;
     }
 
 
@@ -53,6 +56,7 @@ final class HebergementController extends AbstractController
         
         // Définir des valeurs par défaut
         $hebergement->setNoteMoyenne(0.0);
+        $hebergement->setNbChambres(0);
         
         // Associer l'utilisateur connecté à l'hébergement
         $user = $this->security->getUser();
@@ -113,14 +117,16 @@ final class HebergementController extends AbstractController
                 $chambres = $hebergement->getChambres();
                 if (!$chambres->isEmpty()) {
                     $firstChambre = $chambres->first();
-                    $images = $firstChambre->getImages();
-                    if (!$images->isEmpty()) {
-                        $firstImage = $images->first()->getUrlImage();
+                    if ($firstChambre) {
+                        $images = $firstChambre->getImages();
+                        if (!$images->isEmpty()) {
+                            $firstImage = $images->first()->getUrlImage();
+                        }
                     }
                 }
                 $hebergementImages[$hebergement->getId()] = $firstImage;
             }
-
+          
             return $this->render('hebergements/hebergement/index.html.twig', [
                 'hebergements' => $hebergements,
                 'hebergementImages' => $hebergementImages,
@@ -222,9 +228,11 @@ public function search(Request $request, EntityManagerInterface $entityManager):
             $chambres = $hebergement->getChambres();
             if (!$chambres->isEmpty()) {
                 $firstChambre = $chambres->first();
-                $images = $firstChambre->getImages();
-                if (!$images->isEmpty()) {
-                    $firstImage = $images->first()->getUrlImage();
+                if ($firstChambre) {
+                    $images = $firstChambre->getImages();
+                    if (!$images->isEmpty()) {
+                        $firstImage = $images->first()->getUrlImage();
+                    }
                 }
             }
             $hebergementImages[$hebergement->getId()] = $firstImage;
@@ -393,26 +401,60 @@ public function searchClient(Request $request, EntityManagerInterface $entityMan
         ]);
     }
 
-    #[Route('/{id}', name: 'app_hebergement_delete', methods: ['POST'])]
+    #[Route('/{id}/delete', name: 'app_hebergement_delete', methods: ['POST'])]
     public function delete(Request $request, Hebergement $hebergement, EntityManagerInterface $entityManager): Response
     {
-        // Vérification du token CSRF
-        if ($this->isCsrfTokenValid('delete'.$hebergement->getId(), $request->getPayload()->getString('_token'))) {
-            try {
-                // Récupérer le nom de l'hébergement avant suppression pour le message
-                $hebergementNom = $hebergement->getNom();
-                
-                $entityManager->remove($hebergement);
-                $entityManager->flush();
-                
-                $this->addFlash('success', "L'hébergement \"$hebergementNom\" a été supprimé avec succès.");
-            } catch (\Exception $e) {
-                $this->addFlash('error', 'Erreur lors de la suppression de l\'hébergement: ' . $e->getMessage());
-            }
-        } else {
-            $this->addFlash('error', 'Jeton de sécurité invalide. La suppression n\'a pas été effectuée.');
+        if ($this->isCsrfTokenValid('delete'.$hebergement->getId(), $request->request->get('_token'))) {
+            $entityManager->remove($hebergement);
+            $entityManager->flush();
         }
 
         return $this->redirectToRoute('app_hebergement_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    #[Route('/currency/change', name: 'app_change_currency', methods: ['POST'])]
+    public function changeCurrency(Request $request): Response
+    {
+        $currency = $request->request->get('currency', 'auto');
+        $request->getSession()->set('currency', $currency);
+        
+        return $this->redirectToRoute('app_hebergement_index');
+    }
+
+    #[Route('/import-excel', name: 'app_hebergement_import_excel', methods: ['POST'])]
+    public function importExcel(Request $request): Response
+    {
+        $file = $request->files->get('excel_file');
+        
+        if (!$file) {
+            $this->addFlash('error', 'Aucun fichier n\'a été uploadé.');
+            return $this->redirectToRoute('app_hebergement_index');
+        }
+
+        $user = $this->security->getUser();
+        if (!$user instanceof Utilisateur) {
+            $this->addFlash('error', 'Vous devez être connecté pour importer des hébergements.');
+            return $this->redirectToRoute('app_hebergement_index');
+        }
+
+        try {
+            $results = $this->excelImportService->importHebergements($file, $user);
+            
+            if ($results['success'] > 0) {
+                $this->addFlash('success', $results['success'] . ' hébergement(s) importé(s) avec succès.');
+            } else {
+                $this->addFlash('warning', 'Aucun hébergement n\'a été importé.');
+            }
+            
+            if (!empty($results['errors'])) {
+                foreach ($results['errors'] as $error) {
+                    $this->addFlash('warning', $error);
+                }
+            }
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Erreur lors de l\'import: ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('app_hebergement_index');
     }
 }

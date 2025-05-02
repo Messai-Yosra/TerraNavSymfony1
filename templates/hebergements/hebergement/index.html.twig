@@ -4,7 +4,7 @@
 
 {% block content %}
     <!-- En-tête avec image de couverture -->
-    <div class="container-fluid page-header mb-5 p-0" style="background-image: url({{ asset('img/hebergement-banner.jpg') }}); background-size: cover; background-position: center;">
+    <div class="container-fluid page-header mb-5 p-0" style="background-image: url({{ asset('ChambreImages/buzzly.fr-choisir-hebergement-wordpress-2.jpg') }}); background-size: cover; background-position: center;">
         <div class="container-fluid page-header-inner py-5">
             <div class="container text-center pb-5">
                 <h1 class="display-3 text-white mb-3 animated slideInDown">Hébergements Disponibles</h1>
@@ -17,6 +17,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- Formulaire de recherche avancée -->
     <div class="container-fluid booking pb-5 wow fadeIn" data-wow-delay="0.1s">
@@ -48,8 +49,17 @@
 
                         <!-- Prix max -->
                         <div class="col-md-2">
-                            <label for="maxPrice" class="form-label fw-semibold">Prix Max (€)</label>
-                            <input type="number" name="maxPrice" id="maxPrice" class="form-control" placeholder="Ex: 200" value="{{ maxPrice_selected|default('') }}">
+                            <label for="maxPrice" class="form-label fw-semibold">Prix Max</label>
+                            <div class="input-group">
+                                <input type="number" name="maxPrice" id="maxPrice" class="form-control" placeholder="Ex: 200" value="{{ maxPrice_selected|default('') }}">
+                                <select name="currency" id="currency" class="form-select" style="max-width: 80px;">
+                                    <option value="auto" {% if app.session.get('currency', 'auto') == 'auto' %}selected{% endif %}>Auto</option>
+                                    <option value="EUR" {% if app.session.get('currency') == 'EUR' %}selected{% endif %}>€</option>
+                                    <option value="USD" {% if app.session.get('currency') == 'USD' %}selected{% endif %}>$</option>
+                                    <option value="TND" {% if app.session.get('currency') == 'TND' %}selected{% endif %}>TND</option>
+                                    <option value="GBP" {% if app.session.get('currency') == 'GBP' %}selected{% endif %}>£</option>
+                                </select>
+                            </div>
                         </div>
 
                         <!-- Nombre min chambres -->
@@ -67,10 +77,64 @@
                 </form>
             </div>
             <!-- Bouton Ajouter centré -->
-            <div class="text-center mt-4">
-                <a href="{{ path('app_hebergement_add') }}" class="btn btn-add text-white px-4 py-2 shadow-sm">
-                    <i class="fas fa-plus me-2"></i> Ajouter une Hebergement
-                </a>
+            {% if app.user and app.user.role is not null and app.user.role|lower == 'agence' %}
+                <div class="text-center mt-4">
+                    <a href="{{ path('app_hebergement_add') }}" class="btn btn-add text-white px-4 py-2 shadow-sm me-2">
+                        <i class="fas fa-plus me-2"></i> Ajouter un Hébergement
+                    </a>
+                    <button type="button" class="btn btn-add text-white px-4 py-2 shadow-sm" onclick="openImportModal()">
+                        <i class="fas fa-file-excel me-2"></i> Importer Excel
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Modal Import Excel -->
+    <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="importModalLabel">Importer des hébergements</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="importForm" action="{{ path('app_hebergement_import_excel') }}" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="excel_file" class="form-label">Fichier Excel</label>
+                            <input type="file" class="form-control" id="excel_file" name="excel_file" accept=".xlsx,.xls" required>
+                        </div>
+                        <div class="alert alert-info">
+                            <h6>Format du fichier Excel :</h6>
+                            <p class="small mb-1">Les colonnes doivent être dans cet ordre :</p>
+                            <ol class="small mb-2">
+                                <li>Nom (obligatoire)</li>
+                                <li>Description (obligatoire)</li>
+                                <li>Adresse (obligatoire)</li>
+                                <li>Ville (obligatoire)</li>
+                                <li>Pays (obligatoire)</li>
+                                <li>Type d'hébergement</li>
+                                <li>Services</li>
+                                <li>Politique d'annulation</li>
+                                <li>Contact</li>
+                                <li>Chambres (format spécial)</li>
+                            </ol>
+                            <p class="small mb-1">Format des chambres :</p>
+                            <p class="small mb-0">
+                                Numéro|Capacité|Prix|Description|Équipements|Vue|Taille|URL_3D|Images<br>
+                                Séparez les chambres par des points-virgules (;)<br>
+                                Séparez les images par des virgules (,)<br>
+                                <strong>Exemple :</strong><br>
+                                101|2|150|Chambre Standard|Wifi,TV|Vue Mer|25|https://visite3d.com/chambre101|chambre1.jpg,chambre2.jpg;<br>
+                                102|3|200|Suite|Minibar,Clim|Vue Jardin|35|https://visite3d.com/chambre102|suite1.jpg,suite2.jpg
+                            </p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <button type="submit" class="btn btn-primary">Importer</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -84,18 +148,29 @@
             </div>
 
             <div class="row g-4">
+            
                 {% if hebergements|length > 0 %}
                     {% for hebergement in hebergements %}
                         <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.{{ loop.index * 2 }}s">
                             <div class="room-item shadow rounded overflow-hidden">
                                 <div class="position-relative">
-                                    {% if hebergementImages[hebergement.id] is defined and hebergementImages[hebergement.id] %}
-                                        <img class="img-fluid hebergement-image" src="{{ hebergementImages[hebergement.id] }}" alt="{{ hebergement.nom }}">
+                                    {% if hebergement.chambres is not empty %}
+                                        {% set firstChambre = hebergement.chambres.first %}
+                                        {% if firstChambre.images is not empty %}
+                                            <img class="img-fluid hebergement-image" src="{{ asset(firstChambre.images.first.urlImage) }}" alt="{{ hebergement.nom }}">
+                                        {% else %}
+                                            <img class="img-fluid hebergement-image" src="{{ asset('ChambreImages/no-image-icon-4.png') }}" alt="Pas d'image disponible">
+                                        {% endif %}
                                     {% else %}
-                                        <img class="img-fluid hebergement-image" src="{{ asset('img/hebergement-default.jpg') }}" alt="{{ hebergement.nom }}">
+                                        <img class="img-fluid hebergement-image" src="{{ asset('ChambreImages/no-image-icon-4.png') }}" alt="Pas d'image disponible">
                                     {% endif %}
                                     <small class="price-badge">
-                                        {{ hebergement.chambres.first.prix is not null ? hebergement.chambres.first.prix|number_format(2, '.', ',') ~ ' €/Nuit' : 'Prix non défini' }}
+                                        {% if hebergement.chambres is not empty and hebergement.chambres.first.prix is not null %}
+                                            {% set local_price = hebergement.chambres.first.prix|local_price %}
+                                            {{ local_price.amount }} {{ local_price.currency }}/Nuit
+                                        {% else %}
+                                            À partir de --
+                                        {% endif %}
                                     </small>
                                 </div>
                                 <div class="p-4 mt-2 d-flex flex-column card-content">
@@ -136,17 +211,19 @@
                                            title="Voir chambres">
                                             <i class="fas fa-door-open"></i>
                                         </a>
+                                    {% if app.user and app.user.role is not null and app.user.role|lower == 'agence' %}
                                         <div class="btn-group">
                                             <a href="{{ path('app_hebergement_edit', {'id': hebergement.id}) }}" class="btn-icon btn-edit animate-btn" title="Modifier">
                                                 <i class="fas fa-pen"></i>
                                             </a>
-                                            <form method="post" action="{{ path('app_hebergement_delete', {'id': hebergement.id}) }}" onsubmit="return confirm('Supprimer ?');" class="d-inline">
+                                            <form method="post" action="{{ path('app_hebergement_delete', {'id': hebergement.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet hébergement ?');" class="d-inline">
                                                 <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ hebergement.id) }}">
                                                 <button class="btn-icon btn-delete animate-btn" title="Supprimer">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </form>
                                         </div>
+                                    {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -356,4 +433,64 @@
             }
         }
     </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const currencySelect = document.getElementById('currency');
+            if (currencySelect) {
+                currencySelect.addEventListener('change', function() {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '{{ path('app_change_currency') }}';
+
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'currency';
+                    input.value = this.value;
+
+                    form.appendChild(input);
+                    document.body.appendChild(form);
+                    form.submit();
+                });
+            }
+        });
+
+        function openImportModal() {
+            var myModal = new bootstrap.Modal(document.getElementById('importModal'));
+            myModal.show();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const importForm = document.getElementById('importForm');
+            if (importForm) {
+                importForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const formData = new FormData(this);
+                    
+                    fetch(this.action, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.redirected) {
+                            window.location.href = response.url;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                });
+            }
+        });
+    </script>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+function openImportModal() {
+    var myModal = new bootstrap.Modal(document.getElementById('importModal'));
+    myModal.show();
+}
+</script>
 {% endblock %}

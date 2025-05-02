@@ -46,9 +46,11 @@
                 <a href="{{ path('app_hebergement_index') }}" class="btn btn-secondary mt-3">
                     <i class="fas fa-arrow-left me-2"></i>Retour aux hébergements
                 </a>
+            {% if app.user and app.user.role is not null and app.user.role|lower == 'agence' %}
                 <a href="{{ path('app_chambre_new', { 'hebergementId': hebergement.id }) }}" class="btn btn-edit mt-2 ms-2 text-white">
                     <i class="fas fa-plus me-2"></i>Ajouter une chambre
                 </a>
+            {% endif %}
             </div>
 
             {% if chambres is empty %}
@@ -84,7 +86,8 @@
                                         </div>
                                     {% endif %}
                                     <small class="position-absolute start-0 top-100 translate-middle-y bg-primary text-white rounded py-1 px-3 ms-4">
-                                        {{ chambre.prix|number_format(2, ',', ' ') }}€/Nuit
+                                        {% set local_price = chambre.prix|local_price %}
+                                        {{ local_price.amount }} {{ local_price.currency }}/Nuit
                                     </small>
                                 </div>
 
@@ -110,7 +113,7 @@
                                            title="Voir détails">
                                             <i class="fas fa-eye"></i>
                                         </a>
-
+                                    {% if app.user and app.user.role is not null and app.user.role|lower == 'agence' %}
                                         <div class="btn-group">
                                             <a href="{{ path('app_chambre_edit', {'id': chambre.id}) }}"
                                                class="btn-icon btn-edit animate-btn"
@@ -126,6 +129,7 @@
                                                 </button>
                                             </form>
                                         </div>
+                                    {% endif %}
                                     </div>
 
                                 </div>

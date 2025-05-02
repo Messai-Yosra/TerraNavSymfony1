@@ -1,0 +1,94 @@
+{% extends 'baseAdmin.html.twig' %}
+
+{% block title %}Export des hébergements{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Export des hébergements</h3>
+                    <div>
+                        <a href="{{ path('admin_export_hebergements_download') }}" class="btn btn-primary">
+                            <i class="fas fa-file-excel me-2"></i>Télécharger l'Excel
+                        </a>
+                        <a href="{{ path('admin_chambres') }}" class="btn btn-secondary ms-2">
+                            <i class="fas fa-arrow-left me-2"></i>Retour
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>Nom de l'hébergement</th>
+                                    <th>Description</th>
+                                    <th>Adresse</th>
+                                    <th>Ville</th>
+                                    <th>Pays</th>
+                                    <th>Prix moyen</th>
+                                    <th>Email du propriétaire</th>
+                                    <th>Chambres</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for hebergement in hebergements %}
+                                    <tr>
+                                        <td>{{ hebergement.nom }}</td>
+                                        <td>{{ hebergement.description|slice(0, 100) }}...</td>
+                                        <td>{{ hebergement.adresse }}</td>
+                                        <td>{{ hebergement.ville }}</td>
+                                        <td>{{ hebergement.pays }}</td>
+                                        <td>
+                                            {% set prixMoyen = 0 %}
+                                            {% set count = 0 %}
+                                            {% for chambre in hebergement.chambres %}
+                                                {% if chambre.prix is not null %}
+                                                    {% set prixMoyen = prixMoyen + chambre.prix %}
+                                                    {% set count = count + 1 %}
+                                                {% endif %}
+                                            {% endfor %}
+                                            {% if count > 0 %}
+                                                {{ (prixMoyen / count)|number_format(2, ',', ' ') }} TND
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ hebergement.idUser ? hebergement.idUser.email : '-' }}</td>
+                                        <td>
+                                            <ul class="list-unstyled mb-0">
+                                            {% for chambre in hebergement.chambres %}
+                                                <li>
+                                                    Chambre {{ chambre.numero }} 
+                                                    ({{ chambre.capacite }} pers., 
+                                                    {{ chambre.prix|number_format(2, ',', ' ') }} TND,
+                                                    {{ chambre.taille }} m²)
+                                                </li>
+                                            {% endfor %}
+                                            </ul>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table th {
+        white-space: nowrap;
+    }
+    .table td {
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+    }
+</style>
+{% endblock %} 

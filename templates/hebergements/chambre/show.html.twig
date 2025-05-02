@@ -111,7 +111,10 @@
                                     </dd>
 
                                     <dt class="col-sm-5">Prix:</dt>
-                                    <dd class="col-sm-7">{{ chambre.prix|number_format(2, ',', ' ') }} €</dd>
+                                    <dd class="col-sm-7">
+                                        {% set local_price = chambre.prix|local_price %}
+                                        {{ local_price.amount }} {{ local_price.currency }}
+                                    </dd>
 
                                     <dt class="col-sm-5">Capacité:</dt>
                                     <dd class="col-sm-7">{{ chambre.capacite ?? '—' }} personnes</dd>
@@ -148,6 +151,24 @@
                         {{ chambre.description ? chambre.description|nl2br : 'Aucune description disponible' }}
                     </div>
                 </div>
+
+                {# Bouton Réserver et Delete selon le rôle #}
+                {% if app.user.role == 'CLIENT' %}
+                    {% if chambre.disponibilite %}
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body text-center">
+                                <h3 class="text-primary mb-3">{{ chambre.prix|number_format(2, ',', ' ') }} € / nuit</h3>
+                                <button class="btn btn-primary btn-lg px-5">
+                                    <i class="fas fa-calendar-check me-2"></i>Réserver
+                                </button>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% elseif app.user.role == 'Agence' %}
+                    <div class="d-flex justify-content-end mt-3">
+                        {{ include('hebergements/chambre/_delete_form.html.twig') }}
+                    </div>
+                {% endif %}
             </div>
 
             {# Equipments Section #}
@@ -174,11 +195,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-        {# Delete Button #}
-        <div class="d-flex justify-content-end mt-3">
-            {{ include('hebergements/chambre/_delete_form.html.twig') }}
         </div>
     </div>
 

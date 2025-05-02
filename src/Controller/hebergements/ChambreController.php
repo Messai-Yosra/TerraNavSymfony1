@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 #[Route('/chambre')]
 final class ChambreController extends AbstractController
@@ -21,6 +22,7 @@ final class ChambreController extends AbstractController
     public function index(EntityManagerInterface $entityManager, Request $request): Response
     {
         $page = $request->query->getInt('page', 1);
+        $itemsPerPage = 9;
         $hebergementId = $request->query->get('hebergement', '');
         $disponibilite = $request->query->get('disponibilite', '');
         $capacite = $request->query->get('capacite', '');
@@ -54,12 +56,16 @@ final class ChambreController extends AbstractController
                 ->setParameter('maxPrice', $maxPrice);
         }
 
-        // Pagination
-        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($queryBuilder);
-        $paginator
+        // Get total items
+        $totalItems = count($queryBuilder->getQuery()->getResult());
+        $totalPages = ceil($totalItems / $itemsPerPage);
+
+        // Add pagination
+        $paginator = $queryBuilder
+            ->setFirstResult(($page - 1) * $itemsPerPage)
+            ->setMaxResults($itemsPerPage)
             ->getQuery()
-            ->setFirstResult(($page - 1) * 9)
-            ->setMaxResults(9);
+            ->getResult();
 
         // Fetch filter options
         $hebergements = $entityManager->getRepository(Hebergement::class)->findBy([], ['nom' => 'ASC']);
@@ -74,9 +80,10 @@ final class ChambreController extends AbstractController
 
         return $this->render('hebergements/chambre/index.html.twig', [
             'chambres' => $paginator,
-            'totalItems' => count($paginator),
+            'totalItems' => $totalItems,
+            'itemsPerPage' => $itemsPerPage,
             'currentPage' => $page,
-            'itemsPerPage' => 9,
+            'totalPages' => $totalPages,
             'hebergements' => $hebergements,
             'capacites' => $capacites,
             'hebergement_selected' => $hebergementId,
@@ -158,5 +165,14 @@ final class ChambreController extends AbstractController
         }
 
         return $this->redirectToRoute('app_chambre_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    #[Route('/change-currency', name: 'app_change_currency', methods: ['POST'])]
+    public function changeCurrency(Request $request): JsonResponse
+    {
+        $currency = $request->request->get('currency', 'auto');
+        $request->getSession()->set('currency', $currency);
+        
+        return new JsonResponse(['success' => true]);
     }
 }

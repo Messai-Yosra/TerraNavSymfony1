@@ -4,24 +4,51 @@ namespace App\Controller\hebergements;
 
 use App\Entity\Chambre;
 use App\Entity\Hebergement;
+use App\Service\ExcelImportService;
+use App\Service\ChambreStatsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 class ChambreAdminController extends AbstractController
 {
     #[Route('/chambresAdmin', name: 'admin_chambres')]
-    public function index(EntityManagerInterface $em): Response
+    public function index(
+        EntityManagerInterface $em, 
+        Request $request, 
+        ExcelImportService $excelImportService,
+        ChambreStatsService $statsService
+    ): Response
     {
-        $chambres = $em->getRepository(Chambre::class)->findBy([], ['numero' => 'ASC']);
+        // Gérer l'import Excel si un fichier est soumis
+        if ($request->isMethod('POST')) {
+            $file = $request->files->get('excel_file');
+            if ($file) {
+                $result = $excelImportService->importHebergements($file);
+                
+                if ($result['success'] > 0) {
+                    $this->addFlash('success', sprintf('%d hébergements et leurs chambres ont été importés avec succès', $result['success']));
+                }
+                
+                if (!empty($result['errors'])) {
+                    foreach ($result['errors'] as $error) {
+                        $this->addFlash('error', $error);
+                    }
+                }
+                
+                return $this->redirectToRoute('admin_chambres');
+            }
+        }
 
+        $chambres = $em->getRepository(Chambre::class)->findBy([], ['numero' => 'ASC']);
         $hebergements = $em->getRepository(Hebergement::class)->findBy([], ['nom' => 'ASC']);
 
-        $stats = [
+        // Statistiques de base
+        $basicStats = [
             'total' => count($chambres),
             'disponibles' => count(array_filter($chambres, fn($c) => $c->getDisponibilite())),
-            // Distribution by hébergement
             'hebergements' => $em->createQueryBuilder()
                 ->select('h.nom AS hebergement, COUNT(c.id) AS count')
                 ->from(Chambre::class, 'c')
@@ -31,7 +58,6 @@ class ChambreAdminController extends AbstractController
                 ->setMaxResults(10)
                 ->getQuery()
                 ->getResult(),
-            // Distribution by capacity
             'capacites' => $em->createQueryBuilder()
                 ->select('c.capacite AS capacite, COUNT(c.id) AS count')
                 ->from(Chambre::class, 'c')
@@ -40,7 +66,6 @@ class ChambreAdminController extends AbstractController
                 ->orderBy('c.capacite', 'ASC')
                 ->getQuery()
                 ->getResult(),
-            // Average price by hébergement
             'prix' => $em->createQueryBuilder()
                 ->select('h.nom AS hebergement, AVG(c.prix) AS avg_prix')
                 ->from(Chambre::class, 'c')
@@ -51,6 +76,9 @@ class ChambreAdminController extends AbstractController
                 ->getQuery()
                 ->getResult(),
         ];
+
+        // Fusionner les statistiques de base avec les statistiques avancées
+        $stats = array_merge($basicStats, $statsService->getAdvancedStats());
 
         return $this->render('hebergements/chambre/ChambreAdmin.html.twig', [
             'chambres' => $chambres,

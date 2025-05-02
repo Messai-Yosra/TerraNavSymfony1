@@ -9,6 +9,8 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -21,18 +23,50 @@ class HebergementType extends AbstractType
                 'label' => 'Nom de l\'hébergement',
                 'attr' => ['class' => 'form-control']
             ])
-            ->add('description', TextareaType::class, [
-                'attr' => ['class' => 'form-control', 'rows' => 5]
+            ->add('type_hebergement', ChoiceType::class, [
+                'choices' => [
+                    'Hôtel' => 'Hôtel',
+                    'Appartement' => 'Appartement',
+                    'Villa' => 'Villa',
+                    'Maison d\'hôtes' => 'Maison d\'hôtes',
+                    'Resort' => 'Resort'
+                ],
+                'label' => 'Type d\'hébergement'
             ])
-            ->add('adresse', TextType::class)
-            ->add('ville', TextType::class)
-            ->add('pays', TextType::class)
+            ->add('description', TextareaType::class, [
+                'attr' => ['class' => 'form-control', 'rows' => 5],
+                'label' => 'Description',
+                'required' => false
+            ])
+            ->add('adresse', TextType::class, [
+                'label' => 'Adresse'
+            ])
+            ->add('ville', TextType::class, [
+                'label' => 'Ville'
+            ])
+            ->add('pays', TextType::class, [
+                'label' => 'Pays'
+            ])
             ->add('note_moyenne')
-            ->add('services', TextareaType::class)
-            ->add('politique_annulation', TextareaType::class)
-            ->add('contact', TextType::class)
-            ->add('type_hebergement', TextType::class)
-            ->add('nb_chambres')
+            ->add('services', TextareaType::class, [
+                'label' => 'Services offerts',
+                'required' => false
+            ])
+            ->add('politique_annulation', TextareaType::class, [
+                'label' => 'Politique d\'annulation',
+                'required' => false
+            ])
+            ->add('contact', TextType::class, [
+                'label' => 'Contact',
+                'required' => true,
+                'attr' => [
+                    'class' => 'form-control phone-input',
+                    'placeholder' => 'Numéro de téléphone'
+                ]
+            ])
+            ->add('nb_chambres', IntegerType::class, [
+                'label' => 'Nombre de chambres'
+            ])
             ->add('id_user', EntityType::class, [
                 'class' => Utilisateur::class,
                 'choice_label' => 'id',
