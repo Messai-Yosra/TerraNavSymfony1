@@ -417,4 +417,27 @@
     }
 ]
 }
+``````json
+{
+"activities": [
+    {
+        "name": "Tour Eiffel",
+        "description": "Monument emblématique offrant une vue panoramique sur Paris, symbole de la capitale française.",
+        "longitude": 2.294481,
+        "latitude": 48.858370
+    },
+    {
+        "name": "Musée du Louvre",
+        "description": "Plus grand musée d'art au monde, abritant la Joconde et des œuvres historiques.",
+        "longitude": 2.337600,
+        "latitude": 48.860611
+    },
+    {
+        "name": "Cathédrale Notre-Dame",
+        "description": "Chef-d'œuvre gothique célèbre pour ses vitraux et son architecture médiévale.",
+        "longitude": 2.349900,
+        "latitude": 48.853000
+    }
+]
+}
 ```

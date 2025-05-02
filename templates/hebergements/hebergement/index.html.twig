@@ -4,7 +4,7 @@
 
 {% block content %}
     <!-- En-tête avec image de couverture -->
-    <div class="container-fluid page-header mb-5 p-0" style="background-image: url({{ asset('img/hebergement-banner.jpg') }}); background-size: cover; background-position: center;">
+    <div class="container-fluid page-header mb-5 p-0" style="background-image: url({{ asset('ChambreImages/buzzly.fr-choisir-hebergement-wordpress-2.jpg') }}); background-size: cover; background-position: center;">
         <div class="container-fluid page-header-inner py-5">
             <div class="container text-center pb-5">
                 <h1 class="display-3 text-white mb-3 animated slideInDown">Hébergements Disponibles</h1>
@@ -17,6 +17,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- Formulaire de recherche avancée -->
     <div class="container-fluid booking pb-5 wow fadeIn" data-wow-delay="0.1s">
@@ -76,14 +77,16 @@
                 </form>
             </div>
             <!-- Bouton Ajouter centré -->
-            <div class="text-center mt-4">
-                <a href="{{ path('app_hebergement_add') }}" class="btn btn-add text-white px-4 py-2 shadow-sm me-2">
-                    <i class="fas fa-plus me-2"></i> Ajouter un Hébergement
-                </a>
-                <button type="button" class="btn btn-add text-white px-4 py-2 shadow-sm" onclick="openImportModal()">
-                    <i class="fas fa-file-excel me-2"></i> Importer Excel
-                </button>
-            </div>
+            {% if app.user and app.user.role is not null and app.user.role|lower == 'agence' %}
+                <div class="text-center mt-4">
+                    <a href="{{ path('app_hebergement_add') }}" class="btn btn-add text-white px-4 py-2 shadow-sm me-2">
+                        <i class="fas fa-plus me-2"></i> Ajouter un Hébergement
+                    </a>
+                    <button type="button" class="btn btn-add text-white px-4 py-2 shadow-sm" onclick="openImportModal()">
+                        <i class="fas fa-file-excel me-2"></i> Importer Excel
+                    </button>
+                </div>
+            {% endif %}
         </div>
     </div>
 
@@ -208,6 +211,7 @@
                                            title="Voir chambres">
                                             <i class="fas fa-door-open"></i>
                                         </a>
+                                    {% if app.user and app.user.role is not null and app.user.role|lower == 'agence' %}
                                         <div class="btn-group">
                                             <a href="{{ path('app_hebergement_edit', {'id': hebergement.id}) }}" class="btn-icon btn-edit animate-btn" title="Modifier">
                                                 <i class="fas fa-pen"></i>
@@ -219,6 +223,7 @@
                                                 </button>
                                             </form>
                                         </div>
+                                    {% endif %}
                                     </div>
                                 </div>
                             </div>
