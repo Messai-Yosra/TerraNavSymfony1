@@ -279,7 +279,7 @@ class Voyage
     {
         return str_replace(
             [
-                'C:\Users\asus\TerraNavSymfony1\TerraNavSymfony1\public\\',
+                'C:\terra\TerraNavSymfony1\public\\',
                 'C:/TerraNavSymfony1/public/',
                 '\\',
                 '***'

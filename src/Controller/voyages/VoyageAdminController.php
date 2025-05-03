@@ -18,35 +18,15 @@ final class VoyageAdminController extends AbstractController
         OffreRepository $offreRepository,
         PaginatorInterface $paginator,
         Request $request
-    ): Response
-    {
-        $activeTab = $request->query->get('active_tab', 'voyages');
-        // Pagination pour les voyages
-        $voyagesQuery = $voyageRepository->createQueryBuilder('v')
-            ->leftJoin('v.id_offre', 'o')
-            ->addSelect('o')
-            ->getQuery();
+    ): Response {
+        $voyages = $voyageRepository->findAllWithOffres();
+        $offres = $offreRepository->findAllActiveOffres();
 
-        $voyages = $paginator->paginate(
-            $voyagesQuery,
-            $request->query->getInt('page_voyages', 1),
-            10, // Nombre d'éléments par page
-            [
-                'pageParameterName' => 'page_voyages'
-            ]
-        );
-
-        // Pagination pour les offres
-        $offresQuery = $offreRepository->createQueryBuilder('o')
-            ->getQuery();
-
-        $offres = $paginator->paginate(
-            $offresQuery,
-            $request->query->getInt('page_offres', 1),
-            10, // Nombre d'éléments par page
-            [
-                'pageParameterName' => 'page_offres'
-            ]
+        // Pagination des voyages
+        $pagination = $paginator->paginate(
+            $voyages,
+            $request->query->getInt('page', 1),
+            8  // Nombre d'éléments par page
         );
 
         $stats = [
@@ -59,10 +39,9 @@ final class VoyageAdminController extends AbstractController
         ];
 
         return $this->render('voyages/voyageAdmin.html.twig', [
-            'voyages' => $voyages,
+            'voyages' => $pagination,
             'offres' => $offres,
-            'stats' => $stats,
-            'active_tab' => $activeTab // Passer l'onglet actif au template
+            'stats' => $stats
         ]);
     }
 }

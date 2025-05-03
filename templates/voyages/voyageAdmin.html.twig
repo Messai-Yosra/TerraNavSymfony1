@@ -14,13 +14,13 @@
         <div class="voyages-content">
             <!-- Navigation Tabs -->
             <div class="tabs-nav">
-                <button class="tab-btn {{ active_tab == 'voyages' ? 'active' : '' }}" data-tab="voyages">Voyages</button>
-                <button class="tab-btn {{ active_tab == 'offres' ? 'active' : '' }}" data-tab="offres">Offres</button>
-                <button class="tab-btn {{ active_tab == 'stats' ? 'active' : '' }}" data-tab="stats">Statistiques</button>
+                <button class="tab-btn active" data-tab="voyages">Voyages</button>
+                <button class="tab-btn" data-tab="offres">Offres</button>
+                <button class="tab-btn" data-tab="stats">Statistiques</button>
             </div>
 
             <!-- Voyages Tab -->
-            <div id="voyages" class="tab-pane {{ active_tab == 'voyages' ? 'active' : '' }}">
+            <div id="voyages" class="tab-pane active">
                 <div class="table-header">
                     <div class="search-filter">
                         <div class="search-box">
@@ -105,19 +105,15 @@
                             <p>Aucun voyage trouvé</p>
                         </div>
                     {% endfor %}
-                </div>
-                <div class="pagination">
-                    {{ knp_pagination_render(voyages, null, {}, {
-                        'pageParameterName': 'page_voyages',
-                        'queryParams': {'active_tab': 'voyages'}
-                    }) }}
+
+                    <div class="pagination-container">
+                        {{ knp_pagination_render(voyages, '@KnpPaginator/Pagination/bootstrap_v5_pagination.html.twig') }}
+                    </div>
                 </div>
             </div>
 
-
-
             <!-- Offres Tab -->
-            <div id="offres" class="tab-pane {{ active_tab == 'offres' ? 'active' : '' }}">
+            <div id="offres" class="tab-pane">
                 <div class="table-header">
                     <div class="search-filter">
                         <div class="search-box">
@@ -138,6 +134,9 @@
                             </select>
                         </div>
                     </div>
+                    <button class="add-btn">
+                        <i class="fas fa-plus"></i> Ajouter une offre
+                    </button>
                 </div>
 
                 <div class="offres-list">
@@ -193,12 +192,6 @@
                             <p>Aucune offre trouvée</p>
                         </div>
                     {% endfor %}
-                </div>
-                <div class="pagination">
-                    {{ knp_pagination_render(offres, null, {}, {
-                        'pageParameterName': 'page_offres',
-                        'queryParams': {'active_tab': 'offres'}
-                    }) }}
                 </div>
             </div>
         </div>
@@ -269,9 +262,6 @@
     <script src="{{ asset('js/voyages/voyageAdmin.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-
-    </script>
-    <script>
         // Store voyages and offres data for JavaScript access
         const voyagesData = [
             {% for voyage in voyages %}
@@ -328,40 +318,6 @@
             const tabBtns = document.querySelectorAll('.tab-btn');
             const tabPanes = document.querySelectorAll('.tab-pane');
 
-            // Fonction pour changer d'onglet
-            function setActiveTab(tabId) {
-                // Update active tab button
-                tabBtns.forEach(b => b.classList.remove('active'));
-                document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
-
-                // Show corresponding tab pane
-                tabPanes.forEach(pane => pane.classList.remove('active'));
-                document.getElementById(tabId).classList.add('active');
-
-                // Update URL without reload
-                const url = new URL(window.location.href);
-                url.searchParams.set('active_tab', tabId);
-                window.history.replaceState({}, '', url.toString());
-
-                // Initialize charts when stats tab is activated
-                if (tabId === 'stats') {
-                    initializeCharts();
-                }
-            }
-
-            // Gestion du clic sur les onglets
-            tabBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const tabId = this.getAttribute('data-tab');
-                    setActiveTab(tabId);
-                });
-            });
-
-            // Initialiser l'onglet actif au chargement
-            const urlParams = new URLSearchParams(window.location.search);
-            const activeTab = urlParams.get('active_tab') || 'voyages';
-            setActiveTab(activeTab);
-
             tabBtns.forEach(btn => {
                 btn.addEventListener('click', function() {
                     const tabId = this.getAttribute('data-tab');
@@ -408,15 +364,8 @@
             const typeFilter = document.getElementById('voyageTypeFilter').value;
             const statusFilter = document.getElementById('voyageStatusFilter').value;
 
-            // Si un filtre est appliqué, rediriger vers la page 1
-            if(searchTerm || typeFilter !== 'all' || statusFilter !== 'all') {
-                const url = new URL(window.location.href);
-                url.searchParams.set('page_voyages', 1);
-                window.location.href = url.toString();
-                return;
-            }
-
             const voyageCards = document.querySelectorAll('.voyage-card');
+            let visibleCount = 0;
 
             voyageCards.forEach(card => {
                 const voyageId = parseInt(card.getAttribute('data-voyage-id'));
@@ -431,19 +380,25 @@
 
                 if (matchesSearch && matchesType && matchesStatus) {
                     card.style.display = 'flex';
+                    visibleCount++;
                 } else {
                     card.style.display = 'none';
                 }
             });
 
-            // Show no results message if all are hidden
-            const visibleCards = Array.from(voyageCards).filter(card => card.style.display !== 'none');
+            // Afficher/masquer le message "Aucun voyage"
             const noVoyagesMsg = document.querySelector('.no-voyages');
-
-            if (visibleCards.length === 0) {
+            if (visibleCount === 0) {
                 noVoyagesMsg.style.display = 'flex';
             } else {
                 noVoyagesMsg.style.display = 'none';
+            }
+
+            // Réinitialiser la pagination à la première page après le filtrage
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('page')) {
+                urlParams.set('page', '1');
+                window.history.replaceState({}, '', `${window.location.pathname}?${urlParams}`);
             }
         }
 
@@ -451,14 +406,6 @@
             const searchTerm = document.getElementById('offreSearch').value.toLowerCase();
             const statusFilter = document.getElementById('offreStatusFilter').value;
             const sortValue = document.getElementById('offreSort').value;
-
-            // Si un filtre est appliqué, rediriger vers la page 1
-            if(searchTerm || statusFilter !== 'all' || sortValue !== 'recent') {
-                const url = new URL(window.location.href);
-                url.searchParams.set('page_offres', 1);
-                window.location.href = url.toString();
-                return;
-            }
 
             const offreCards = document.querySelectorAll('.offre-card');
             const filteredCards = [];
@@ -734,6 +681,63 @@
 
         .stat-card {
             overflow-x: auto;
+        }
+
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .page-item {
+            list-style: none;
+        }
+
+        .page-link {
+            padding: 0.5rem 1rem;
+            border: 1px solid #dee2e6;
+            color: #0d6efd;
+            background-color: #fff;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .page-link:hover {
+            background-color: #0d6efd;
+            color: #fff;
+            border-color: #0d6efd;
+        }
+
+        .page-item.active .page-link {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: #fff;
+        }
+
+        .page-item.disabled .page-link {
+            color: #6c757d;
+            pointer-events: none;
+            background-color: #fff;
+            border-color: #dee2e6;
+        }
+
+        /* Style responsive */
+        @media (max-width: 768px) {
+            .pagination {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .page-link {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.9rem;
+            }
         }
     </style>
 
@@ -1022,126 +1026,7 @@
                 }
             });
         }
-
-        // Modifier la fonction de changement d'onglet
-        tabBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const tabId = this.getAttribute('data-tab');
-
-                // Update active tab button
-                tabBtns.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-
-                // Show corresponding tab pane
-                tabPanes.forEach(pane => {
-                    pane.classList.remove('active');
-                    // Masquer toutes les paginations
-                    pane.querySelectorAll('.pagination').forEach(p => p.style.display = 'none');
-                });
-
-                const activePane = document.getElementById(tabId);
-                activePane.classList.add('active');
-                // Afficher seulement la pagination de l'onglet actif
-                activePane.querySelector('.pagination').style.display = 'flex';
-
-                // Initialize charts when stats tab is activated
-                if (tabId === 'stats') {
-                    initializeCharts();
-                }
-            });
-        });
     </script>
-
-    <style>
-        .pagination {
-            display: flex;
-            justify-content: center;
-            margin: 30px 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .pagination ul {
-            display: flex;
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            gap: 8px;
-        }
-
-        .pagination li {
-            margin: 0;
-        }
-
-        .pagination a,
-        .pagination span {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 40px;
-            height: 40px;
-            padding: 0 12px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 14px;
-            transition: all 0.2s ease;
-        }
-
-        .pagination a {
-            color: #3498db;
-            background-color: #f8f9fa;
-            border: 1px solid #e1e4e8;
-        }
-
-        .pagination a:hover {
-            background-color: #e9f5fe;
-            border-color: #d0e3fa;
-            transform: translateY(-1px);
-        }
-
-        .pagination .active span {
-            background-color: #3498db;
-            color: white;
-            border-color: #3498db;
-            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
-        }
-
-        .pagination .disabled span {
-            color: #b0b0b0;
-            background-color: #f8f9fa;
-            border-color: #e1e4e8;
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-
-        .pagination .ellipsis span {
-            color: #6c757d;
-            background: transparent;
-            border: none;
-            padding: 0;
-            min-width: auto;
-        }
-
-        @media (max-width: 768px) {
-            .pagination ul {
-                gap: 4px;
-            }
-
-            .pagination a,
-            .pagination span {
-                min-width: 36px;
-                height: 36px;
-                padding: 0 8px;
-                font-size: 13px;
-            }
-        }
-
-        .tab-pane:not(.active) .pagination {
-            display: none !important;
-        }
-    </style>
-
-
 
 
 {% endblock %}

@@ -440,4 +440,25 @@
     }
 ]
 }
-```
+```{
+"activities": [
+    {
+        "name": "Sheikh Zayed Grand Mosque",
+        "description": "Iconic white marble mosque with intricate Islamic art, one of the world's largest, accommodating over 40,000 worshippers.",
+        "longitude": 54.4740,
+        "latitude": 24.4129
+    },
+    {
+        "name": "Ferrari World Abu Dhabi",
+        "description": "World's largest indoor theme park featuring thrilling rides, including the fastest roller coaster, and Ferrari-inspired attractions.",
+        "longitude": 54.6051,
+        "latitude": 24.4849
+    },
+    {
+        "name": "Louvre Abu Dhabi",
+        "description": "Stunning art museum showcasing global masterpieces, blending contemporary design with traditional Arabic architecture under a mesmerizing dome.",
+        "longitude": 54.4000,
+        "latitude": 24.5333
+    }
+]
+}

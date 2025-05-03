@@ -193,6 +193,36 @@ class VoyageController extends AbstractController
             ], 500);
         }
     }
+    #[Route('/generate-description-from-images', name: 'app_generate_description_from_images', methods: ['POST'])]
+    public function generateDescriptionFromImages(Request $request, OpenRouterService $openRouter): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        try {
+            // Valider les données reçues
+            if (empty($data['images'])) {
+                throw new \Exception('Aucune image fournie');
+            }
+
+            // Générer la description
+            $description = $openRouter->analyzeImagesAndGenerateDescription(
+                $data['images'],
+                $data['destination'] ?? 'Non spécifié',
+                $data['pointDepart'] ?? 'Non spécifié',
+                $data['type'] ?? 'Non spécifié'
+            );
+
+            return $this->json([
+                'success' => true,
+                'description' => $description
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
     private function createPromptFromData(array $data): string
     {

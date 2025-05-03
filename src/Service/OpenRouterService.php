@@ -59,4 +59,42 @@ class OpenRouterService
 
         return $response['choices'][0]['message']['content'];
     }
+
+    // src/Service/OpenRouterService.php
+
+    public function analyzeImagesAndGenerateDescription(array $imageUrls, string $destination, string $departure, string $type): string
+    {
+        // Construire le prompt avec les informations du voyage
+        $prompt = "Tu es un expert en voyages. Analyse ces images et crée une description attrayante pour un voyage de type '$type' ";
+        $prompt .= "allant de $departure à $destination. La description doit être en français, entre 100 et 150 mots, ";
+        $prompt .= "avec un ton enthousiaste et professionnel. Mets en valeur les points forts visibles dans les images.";
+
+        // Préparer les messages pour l'API
+        $messages = [
+            [
+                'role' => 'user',
+                'content' => [
+                    [
+                        'type' => 'text',
+                        'text' => $prompt
+                    ]
+                ]
+            ]
+        ];
+
+        // Ajouter chaque image aux messages
+        foreach ($imageUrls as $imageUrl) {
+            $messages[0]['content'][] = [
+                'type' => 'image_url',
+                'image_url' => [
+                    'url' => $imageUrl
+                ]
+            ];
+        }
+
+        // Appeler l'API
+        $response = $this->getChatCompletion('anthropic/claude-3-haiku', $messages);
+
+        return $response['choices'][0]['message']['content'];
+    }
 }

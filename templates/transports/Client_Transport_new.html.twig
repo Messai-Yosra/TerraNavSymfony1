@@ -1,5 +1,4 @@
-{% extends 'baseAgenceTransport.html.twig' %}
-
+{% extends "baseClient.html.twig" %}
 
 {% block titre %}Ajouter un Transport{% endblock %}
 
@@ -8,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    
+
     <div class="transport-booking-container">
         <section class="hero-section">
             <div class="hero-content">
@@ -21,75 +20,75 @@
             <h2>Nouveau Transport</h2>
             {{ form_start(form, {
                 'attr': {
-                    'class': 'search-form', 
-                    'novalidate': 'novalidate', 
+                    'class': 'search-form',
+                    'novalidate': 'novalidate',
                     'id': 'transport-form',
                     'enctype': 'multipart/form-data'
                 }
             }) }}
-                <div class="form-section">
-                    <h3>Informations de base</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            {{ form_label(form.nom) }}
-                            {{ form_widget(form.nom, {'attr': {'class': 'form-control'}}) }}
-                            {{ form_errors(form.nom) }}
-                        </div>
-                        <div class="form-group">
-                            {{ form_label(form.type) }}
-                            {{ form_widget(form.type, {'attr': {'class': 'form-control'}}) }}
-                            {{ form_errors(form.type) }}
-                        </div>
+            <div class="form-section">
+                <h3>Informations de base</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form_label(form.nom) }}
+                        {{ form_widget(form.nom, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.nom) }}
+                    </div>
+                    <div class="form-group">
+                        {{ form_label(form.type) }}
+                        {{ form_widget(form.type, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.type) }}
                     </div>
                 </div>
+            </div>
 
-                <div class="form-section">
-                    <h3>Détails</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            {{ form_label(form.capacite) }}
-                            {{ form_widget(form.capacite, {'attr': {'class': 'form-control'}}) }}
-                            {{ form_errors(form.capacite) }}
-                        </div>
-                        <div class="form-group">
-                            {{ form_label(form.prix) }}
-                            {{ form_widget(form.prix, {'attr': {'class': 'form-control'}}) }}
-                            {{ form_errors(form.prix) }}
-                        </div>
+            <div class="form-section">
+                <h3>Détails</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form_label(form.capacite) }}
+                        {{ form_widget(form.capacite, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.capacite) }}
+                    </div>
+                    <div class="form-group">
+                        {{ form_label(form.prix) }}
+                        {{ form_widget(form.prix, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.prix) }}
                     </div>
                 </div>
+            </div>
 
-                <div class="form-section">
-                    <h3>Informations supplémentaires</h3>
-                    <div class="form-group full-width">
-                        {{ form_label(form.description) }}
-                        {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 4}}) }}
-                        {{ form_errors(form.description) }}
-                    </div>
-                    <div class="form-group full-width">
-                        {{ form_label(form.contact) }}
-                        {{ form_widget(form.contact, {'attr': {
-                            'class': 'form-control',
-                            'placeholder': phoneCode ? 'Ex: ' ~ phoneCode ~ '123456789' : 'Ex: +21612345678 ou email'
-                        }}) }}
-                        {{ form_errors(form.contact) }}
-                    </div>
-                    <div class="form-group full-width">
-                        {{ form_label(form.imagePath) }}
-                        {{ form_widget(form.imagePath, {'attr': {'class': 'form-control file-input'}}) }}
-                        <span class="file-msg">Aucun fichier sélectionné</span>
-                        {{ form_errors(form.imagePath) }}
-                    </div>
+            <div class="form-section">
+                <h3>Informations supplémentaires</h3>
+                <div class="form-group full-width">
+                    {{ form_label(form.description) }}
+                    {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 4}}) }}
+                    {{ form_errors(form.description) }}
                 </div>
+                <div class="form-group full-width">
+                    {{ form_label(form.contact) }}
+                    {{ form_widget(form.contact, {'attr': {
+                        'class': 'form-control',
+                        'placeholder': phoneCode ? 'Ex: ' ~ phoneCode ~ '123456789' : 'Ex: +21612345678 ou email'
+                    }}) }}
+                    {{ form_errors(form.contact) }}
+                </div>
+                <div class="form-group full-width">
+                    {{ form_label(form.imagePath) }}
+                    {{ form_widget(form.imagePath, {'attr': {'class': 'form-control file-input'}}) }}
+                    <span class="file-msg">Aucun fichier sélectionné</span>
+                    {{ form_errors(form.imagePath) }}
+                </div>
+            </div>
 
-                <div class="form-group text-center mt-4">
-                    <button type="submit" class="btn btn-primary search-button">
-                        <span class="submit-text">Enregistrer</span>
-                        <span class="loading-spinner" style="display: none;">
+            <div class="form-group text-center mt-4">
+                <button type="submit" class="btn btn-primary search-button">
+                    <span class="submit-text">Enregistrer</span>
+                    <span class="loading-spinner" style="display: none;">
                             <i class="fas fa-spinner fa-spin"></i> Enregistrement...
                         </span>
-                    </button>
-                </div>
+                </button>
+            </div>
             {{ form_end(form) }}
         </div>
 
@@ -108,6 +107,7 @@
 
 {% block javascripts %}
     {{ parent() }}
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/intlTelInput.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/css/intlTelInput.css">
@@ -116,48 +116,23 @@
         document.addEventListener('DOMContentLoaded', function() {
             const input = document.querySelector("#{{ form.contact.vars.id }}");
             const iti = window.intlTelInput(input, {
-                initialCountry: "{{ countryCode|default('tn') }}", // Use ISO alpha-2 country code (e.g., 'TN')
-                utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/utils.js",
-                separateDialCode: true
-            });
-
-            input.addEventListener('blur', function() {
-                if (iti.isValidNumber()) {
-                    input.value = iti.getNumber();
-                }
+                initialCountry: "{{ phoneCode|slice(1)|replace({'+': ''})|default('tn') }}", // Ex: "+216" -> "tn"
+                utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/utils.js"
             });
 
             const form = document.getElementById('transport-form');
-            form.addEventListener('submit', function(e) {
-                const submitButton = form.querySelector('.search-button');
-                submitButton.disabled = true;
-                submitButton.querySelector('.submit-text').style.display = 'none';
-                submitButton.querySelector('.loading-spinner').style.display = 'inline-block';
-            });
-
-            const fileInput = document.querySelector('input[type="file"]');
-            const fileMsg = document.querySelector('.file-msg');
-            fileInput.addEventListener('change', function() {
-                fileMsg.textContent = this.files.length > 0 ? this.files[0].name : 'Aucun fichier sélectionné';
+            form.addEventListener('submit', function() {
+                document.querySelector('.submit-text').style.display = 'none';
+                document.querySelector('.loading-spinner').style.display = 'inline-block';
             });
 
             {% for message in app.flashes('success') %}
-                Swal.fire({
-                    title: 'Succès !',
-                    text: '{{ message }}',
-                    icon: 'success',
-                    confirmButtonText: 'OK'
-                }).then(() => {
-                    window.location.href = '{{ path('client_transports_list') }}';
-                });
-            {% endfor %}
-            {% for message in app.flashes('error') %}
-                Swal.fire({
-                    title: 'Erreur !',
-                    text: '{{ message }}',
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                });
+            Swal.fire({
+                title: 'Succès !',
+                text: '{{ message }}',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
             {% endfor %}
         });
     </script>

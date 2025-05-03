@@ -259,10 +259,21 @@
                                                             'class': form.description.vars.errors|length ? 'form-control is-invalid' : 'form-control'
                                                         }
                                                     }) }}
-                                                    <button class="btn btn-outline-primary" type="button"
-                                                            id="generateDescBtn" style="height: 58px;">
-                                                        <i class="fas fa-magic me-1"></i> Générer
-                                                    </button>
+                                                    <div class="input-group-append">
+                                                        <button class="btn btn-outline-primary dropdown-toggle" type="button"
+                                                                id="generateDescDropdown" data-bs-toggle="dropdown"
+                                                                aria-haspopup="true" aria-expanded="false" style="height: 58px;">
+                                                            <i class="fas fa-magic me-1"></i> Générer
+                                                        </button>
+                                                        <div class="dropdown-menu dropdown-menu-end">
+                                                            <button class="dropdown-item" type="button" id="generateFromTextBtn">
+                                                                <i class="fas fa-align-left me-2"></i>À partir des infos
+                                                            </button>
+                                                            <button class="dropdown-item" type="button" id="generateFromImagesBtn">
+                                                                <i class="fas fa-image me-2"></i>À partir des images
+                                                            </button>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 {% if form.description.vars.errors|length %}
                                                     <div class="invalid-feedback d-block">
@@ -866,15 +877,29 @@
             border-bottom-right-radius: 0;
         }
     </style>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const generateBtn = document.getElementById('generateDescBtn');
+            const generateFromTextBtn = document.getElementById('generateFromTextBtn');
+            const generateFromImagesBtn = document.getElementById('generateFromImagesBtn');
             const descriptionField = document.getElementById('{{ form.description.vars.id }}');
+            const imageInput = document.getElementById('images');
+            const generateDropdown = document.getElementById('generateDescDropdown');
 
-            generateBtn.addEventListener('click', async function() {
-                // Afficher un indicateur de chargement
-                generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération...';
-                generateBtn.disabled = true;
+            // Fonction pour mettre à jour l'état du bouton
+            function setGeneratingState(isGenerating) {
+                if (isGenerating) {
+                    generateDropdown.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération...';
+                    generateDropdown.disabled = true;
+                } else {
+                    generateDropdown.innerHTML = '<i class="fas fa-magic me-1"></i> Générer';
+                    generateDropdown.disabled = false;
+                }
+            }
+
+            // Générer à partir des infos texte
+            generateFromTextBtn.addEventListener('click', async function() {
+                setGeneratingState(true);
 
                 try {
                     // Récupérer les données du formulaire
@@ -902,11 +927,7 @@
 
                     if (data.success) {
                         descriptionField.value = data.description;
-                        // Ajouter une petite animation pour montrer que c'est généré
-                        descriptionField.classList.add('animate__animated', 'animate__flash');
-                        setTimeout(() => {
-                            descriptionField.classList.remove('animate__animated', 'animate__flash');
-                        }, 1000);
+                        animateDescriptionField();
                     } else {
                         throw new Error(data.error || 'Erreur lors de la génération');
                     }
@@ -914,13 +935,110 @@
                     console.error('Erreur:', error);
                     alert('Erreur lors de la génération: ' + error.message);
                 } finally {
-                    // Réinitialiser le bouton
-                    generateBtn.innerHTML = '<i class="fas fa-magic me-1"></i> Générer';
-                    generateBtn.disabled = false;
+                    setGeneratingState(false);
                 }
             });
+
+            // Générer à partir des images
+            generateFromImagesBtn.addEventListener('click', async function() {
+                // Vérifier qu'il y a des images
+                if (!imageInput.files || imageInput.files.length === 0) {
+                    alert('Veuillez d\'abord sélectionner des images');
+                    return;
+                }
+
+                setGeneratingState(true);
+
+                try {
+                    // Convertir les images en URLs base64
+                    const imagePromises = Array.from(imageInput.files).map(file => {
+                        return new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.onload = (e) => resolve(e.target.result);
+                            reader.readAsDataURL(file);
+                        });
+                    });
+
+                    const imageUrls = await Promise.all(imagePromises);
+
+                    // Récupérer les données du formulaire
+                    const formData = {
+                        images: imageUrls,
+                        destination: document.getElementById('{{ form.destination.vars.id }}').value,
+                        pointDepart: document.getElementById('{{ form.pointDepart.vars.id }}').value,
+                        type: document.getElementById('{{ form.type.vars.id }}').value
+                    };
+
+                    // Appeler l'API
+                    const response = await fetch('{{ path('app_generate_description_from_images') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        descriptionField.value = data.description;
+                        animateDescriptionField();
+                    } else {
+                        throw new Error(data.error || 'Erreur lors de la génération');
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de la génération: ' + error.message);
+                } finally {
+                    setGeneratingState(false);
+                }
+            });
+
+            // Fonction pour animer le champ description
+            function animateDescriptionField() {
+                descriptionField.classList.add('animate__animated', 'animate__flash');
+                setTimeout(() => {
+                    descriptionField.classList.remove('animate__animated', 'animate__flash');
+                }, 1000);
+            }
         });
     </script>
+    <style>
+        /* Ajoutez ce style dans votre template */
+        .animate__flash {
+            animation-duration: 1s;
+            border: 1px solid #28a745;
+            box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
+        }
+
+        .btn-generating {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            cursor: wait;
+        }
+
+        /* Ajoutez ces styles */
+        .input-group-append .dropdown-toggle {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+            border-left: 1px solid #ced4da;
+        }
+
+        .dropdown-item {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+            color: #0d6efd;
+        }
+
+        .dropdown-menu {
+            min-width: 200px;
+        }
+    </style>
 
 
 

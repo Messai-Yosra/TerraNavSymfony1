@@ -22,58 +22,7 @@ class VoyageRepository extends ServiceEntityRepository
     }
     public function findByFilters(array $criteria): array
     {
-        $qb = $this->createQueryBuilder('v')
-            ->leftJoin('v.id_offre', 'o')
-            ->addSelect('o')
-            ->andWhere('v.dateRetour >= CURRENT_DATE()') // Date de retour après aujourd'hui
-            ->andWhere('v.nbPlacesD > 0');
-
-        if (!empty($criteria['search'])) {
-            $qb->andWhere('v.titre LIKE :search OR v.description LIKE :search')
-                ->setParameter('search', '%'.$criteria['search'].'%');
-        }
-
-        if (!empty($criteria['minPrice'])) {
-            $qb->andWhere('v.prix >= :minPrice')
-                ->setParameter('minPrice', $criteria['minPrice']);
-        }
-
-        if (!empty($criteria['maxPrice'])) {
-            $qb->andWhere('v.prix <= :maxPrice')
-                ->setParameter('maxPrice', $criteria['maxPrice']);
-        }
-
-        if (!empty($criteria['minPlaces'])) {
-            $qb->andWhere('v.nbPlacesD >= :minPlaces')
-                ->setParameter('minPlaces', $criteria['minPlaces']);
-        }
-
-        if (!empty($criteria['type']) && $criteria['type'] !== 'all') {
-            $qb->andWhere('v.type = :type')
-                ->setParameter('type', $criteria['type']);
-        }
-
-        if ($criteria['onSale']) {
-            $qb->andWhere('o.reduction IS NOT NULL AND o.reduction > 0');
-        }
-
-        // Tri
-        switch ($criteria['sort']) {
-            case 'alpha':
-                $qb->orderBy('v.titre', 'ASC');
-                break;
-            case 'prix_asc':
-                $qb->orderBy('v.prix', 'ASC');
-                break;
-            case 'prix_desc':
-                $qb->orderBy('v.prix', 'DESC');
-                break;
-            case 'remise_desc':
-                $qb->orderBy('o.reduction', 'DESC');
-                break;
-            default:
-                $qb->orderBy('v.dateDepart', 'DESC');
-        }
+        $qb = $this->createQueryBuilderWithFilters($criteria);
 
         return $qb->getQuery()->getResult();
     }
@@ -288,5 +237,63 @@ class VoyageRepository extends ServiceEntityRepository
             ->setMaxResults(100) // Limite pour éviter de surcharger
             ->getQuery()
             ->getResult();
+    }
+
+    public function createQueryBuilderWithFilters(array $criteria)
+    {
+        $qb = $this->createQueryBuilder('v')
+            ->leftJoin('v.id_offre', 'o')
+            ->addSelect('o')
+            ->andWhere('v.dateRetour >= CURRENT_DATE()')
+            ->andWhere('v.nbPlacesD > 0');
+
+        if (!empty($criteria['search'])) {
+            $qb->andWhere('v.titre LIKE :search OR v.description LIKE :search')
+                ->setParameter('search', '%'.$criteria['search'].'%');
+        }
+
+        if (!empty($criteria['minPrice'])) {
+            $qb->andWhere('v.prix >= :minPrice')
+                ->setParameter('minPrice', $criteria['minPrice']);
+        }
+
+        if (!empty($criteria['maxPrice'])) {
+            $qb->andWhere('v.prix <= :maxPrice')
+                ->setParameter('maxPrice', $criteria['maxPrice']);
+        }
+
+        if (!empty($criteria['minPlaces'])) {
+            $qb->andWhere('v.nbPlacesD >= :minPlaces')
+                ->setParameter('minPlaces', $criteria['minPlaces']);
+        }
+
+        if (!empty($criteria['type']) && $criteria['type'] !== 'all') {
+            $qb->andWhere('v.type = :type')
+                ->setParameter('type', $criteria['type']);
+        }
+
+        if ($criteria['onSale']) {
+            $qb->andWhere('o.reduction IS NOT NULL AND o.reduction > 0');
+        }
+
+        // Tri
+        switch ($criteria['sort']) {
+            case 'alpha':
+                $qb->orderBy('v.titre', 'ASC');
+                break;
+            case 'prix_asc':
+                $qb->orderBy('v.prix', 'ASC');
+                break;
+            case 'prix_desc':
+                $qb->orderBy('v.prix', 'DESC');
+                break;
+            case 'remise_desc':
+                $qb->orderBy('o.reduction', 'DESC');
+                break;
+            default:
+                $qb->orderBy('v.dateDepart', 'DESC');
+        }
+
+        return $qb;
     }
 }
