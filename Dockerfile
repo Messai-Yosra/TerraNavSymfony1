@@ -1,6 +1,6 @@
 FROM php:8.1-apache
 
-# Installation des dépendances système nécessaires pour votre application
+# Installation des dépendances système nécessaires
 RUN apt-get update && apt-get install -y \
     libicu-dev \
     libzip-dev \
@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Configuration et installation des extensions PHP nécessaires
+# Configuration et installation des extensions PHP
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
     intl \
@@ -31,28 +31,21 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     opcache \
     mbstring \
     exif \
-    xml \
-    && docker-php-ext-enable opcache
+    xml
 
-# Configuration de la timezone pour PHP
-RUN echo "date.timezone = UTC" > /usr/local/etc/php/conf.d/timezone.ini
-
-# Installation de Composer avec vérification
+# Installation de Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-RUN composer --version
 
 # Configuration d'Apache
 RUN a2enmod rewrite headers
 RUN sed -i 's/DocumentRoot \/var\/www\/html/DocumentRoot \/var\/www\/html\/public/g' /etc/apache2/sites-available/000-default.conf
-
-# Création d'une configuration Apache personnalisée pour Symfony
 RUN echo '<Directory /var/www/html/public>\n\
     AllowOverride None\n\
     Require all granted\n\
     FallbackResource /index.php\n\
 </Directory>' >> /etc/apache2/sites-available/000-default.conf
 
-# Configuration du PHP pour la production
+# Configuration de PHP pour la production
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
     && echo "memory_limit = 512M" > /usr/local/etc/php/conf.d/memory-limit.ini \
     && echo "upload_max_filesize = 20M" > /usr/local/etc/php/conf.d/uploads.ini \
@@ -61,33 +54,33 @@ RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
 # Définition du répertoire de travail
 WORKDIR /var/www/html
 
-# Copie des fichiers du projet (sauf ceux dans .dockerignore)
+# Copie des fichiers du projet en plusieurs étapes pour optimiser le cache Docker
+# D'abord, copiez composer.json et composer.lock pour installer les dépendances
+COPY composer.json composer.lock ./
+
+# Installation des dépendances sans les scripts - cela permet de mettre en cache cette étape
+RUN COMPOSER_ALLOW_SUPERUSER=1 composer install --prefer-dist --no-dev --optimize-autoloader --no-autoloader --no-scripts --no-interaction
+
+# Copiez le reste des fichiers du projet
 COPY . .
 
-# Modification des permissions sur le dossier vendor s'il existe déjà
-RUN if [ -d "vendor" ]; then chmod -R 777 vendor; fi
+# Génération de l'autoloader et exécution des scripts d'installation
+RUN COMPOSER_ALLOW_SUPERUSER=1 composer dump-autoload --optimize --no-dev --classmap-authoritative \
+    && COMPOSER_ALLOW_SUPERUSER=1 php -d memory_limit=-1 bin/console cache:clear --env=prod --no-debug || echo "Cache clear failed, continuing..."
 
-# Installation des dépendances PHP avec Composer
-RUN COMPOSER_ALLOW_SUPERUSER=1 composer install --prefer-dist --no-dev --optimize-autoloader --no-interaction \
-    || (echo "Composer installation failed" && exit 1)
-
-# Nettoyage du cache et préparation de l'application pour la production
-RUN APP_ENV=prod APP_DEBUG=0 php bin/console cache:clear --no-debug \
-    && APP_ENV=prod APP_DEBUG=0 php bin/console assets:install public \
+# Préparation du répertoire var et mise à jour des permissions
+RUN mkdir -p var/cache var/log \
     && chmod -R 777 var \
     && chown -R www-data:www-data var
 
-# Suppression des répertoires inutiles en production
-RUN rm -rf tests/ .env.test phpunit.xml.dist
-
-# Définition d'un script de démarrage pour exécuter des tâches supplémentaires si nécessaire
+# Script d'entrée pour les opérations de démarrage
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 RUN chmod +x /usr/local/bin/docker-entrypoint
 
 # Exposition du port
 EXPOSE 80
 
-# Point d'entrée pour exécuter des scripts de démarrage si nécessaire
+# Point d'entrée pour les opérations de démarrage
 ENTRYPOINT ["docker-entrypoint"]
 
 # Commande de démarrage
