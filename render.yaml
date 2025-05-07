@@ -19,6 +19,6 @@ services:
 
 databases:
   - name: terranav-db
-    databaseName: terranav
+    databaseName: terranav3
     user: terranav_user
     ipAllowList: []
