@@ -440,4 +440,27 @@
     }
 ]
 }
+``````json
+{
+"activities": [
+    {
+        "name": "Royal Palace of Madrid",
+        "description": "Official residence of Spanish royalty, featuring opulent baroque architecture, historic rooms, and the Royal Armory. Don't miss the changing of the guard.",
+        "longitude": -3.7142,
+        "latitude": 40.4189
+    },
+    {
+        "name": "Prado Museum",
+        "description": "World-renowned art museum housing masterpieces by Goya, Velázquez, and El Greco. A must-visit for European art enthusiasts.",
+        "longitude": -3.6921,
+        "latitude": 40.4138
+    },
+    {
+        "name": "El Retiro Park",
+        "description": "Vast green oasis with a boating lake, the iconic Crystal Palace, and serene gardens. Perfect for strolls and outdoor activities.",
+        "longitude": -3.6833,
+        "latitude": 40.4148
+    }
+]
+}
 ```
