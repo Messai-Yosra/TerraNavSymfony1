@@ -77,31 +77,40 @@ class CommentaireController extends AbstractController
             if ($postCreator && $postCreator->getEmail()) {
                 $commentLink = $this->urlGenerator->generate('app_chat', [], UrlGeneratorInterface::ABSOLUTE_URL);
                 
-                // Chemin vers le logo dans le dossier public
-                $logoPath = $this->getParameter('kernel.project_dir').'/public/img/TerraNav.png';
-                
-                if (!file_exists($logoPath)) {
-                    throw $this->createNotFoundException('Le logo n\'a pas été trouvé dans public/img/');
-                }
-    
-                // Lire le contenu du logo
-                $logoContent = file_get_contents($logoPath);
-                $logoMime = mime_content_type($logoPath);
-    
+                // Configuration de base de l'email
                 $email = (new Email())
-    ->from('terranav4@gmail.com')
-    ->to($postCreator->getEmail())
-    ->subject('Nouveau commentaire sur votre publication')
-    ->embed($logoContent, 'logo', $logoMime)
-    ->html($this->renderView('interactions/cmntrmail.html.twig', [
-        'postCreator' => $postCreator,
-        'user' => $user,
-        'post' => $post,
-        'commentaire' => $commentaire,
-        'commentLink' => $commentLink
-    ]));
-    
-                $this->mailer->send($email);
+                    ->from('terranav4@gmail.com')
+                    ->to($postCreator->getEmail())
+                    ->subject('Nouveau commentaire sur votre publication');
+                
+                // Chemin vers le logo
+                $logoPath = $this->getParameter('kernel.project_dir') . '/public/img/TerraNav.png';
+                
+                // Ajouter le logo s'il existe
+                if (file_exists($logoPath)) {
+                    try {
+                        $email->embedFromPath($logoPath, 'logo');
+                    } catch (\Exception $e) {
+                        // En cas d'erreur avec le logo, on continue sans lui
+                        $this->addFlash('warning', 'Impossible d\'intégrer le logo dans l\'email: ' . $e->getMessage());
+                    }
+                }
+                
+                // Ajout du contenu HTML
+                $email->html($this->renderView('interactions/cmntrmail.html.twig', [
+                    'postCreator' => $postCreator,
+                    'user' => $user,
+                    'post' => $post,
+                    'commentaire' => $commentaire,
+                    'commentLink' => $commentLink
+                ]));
+                
+                // Envoi de l'email
+                try {
+                    $this->mailer->send($email);
+                } catch (\Exception $e) {
+                    $this->addFlash('error', 'Erreur lors de l\'envoi de l\'email: ' . $e->getMessage());
+                }
             }
     
             // Message flash et redirection

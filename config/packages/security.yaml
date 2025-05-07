@@ -170,7 +170,9 @@ security:
 
 
         # Routes Gestion Transport
-        - { path: ^/TrajetsAdmin/liste, roles: ROLE_AGENCE_TRANSPORT }
+        - { path: ^/TransportsAdmin/liste, roles: PUBLIC_ACCESS }
+        - { path: ^/TransportsAdmin, roles: ROLE_AGENCE_TRANSPORT }
+        - { path: ^/TrajetsAdmin/liste, roles: PUBLIC_ACCESS }
         - { path: ^/TrajetsAdmin/ajouter, roles: ROLE_AGENCE_TRANSPORT }
         - { path: ^/TrajetsAdmin/modifier/[ 0-9 ]+, roles: ROLE_AGENCE_TRANSPORT }
         - { path: ^/TrajetsAdmin/supprimer/[ 0-9 ]+, roles: ROLE_AGENCE_TRANSPORT }
@@ -179,11 +181,6 @@ security:
         - { path: ^/trajets/ajouter, roles: ROLE_AGENCE_TRANSPORT }
         - { path: ^/trajets/modifier/[ 0-9 ]+, roles: ROLE_AGENCE_TRANSPORT }
         - { path: ^/trajets/supprimer/[ 0-9 ]+, roles: ROLE_AGENCE_TRANSPORT }
-        - { path: ^/TransportsAdmin, roles: ROLE_AGENCE_TRANSPORT }
-        - { path: ^/TransportsAdmin/liste, roles: ROLE_AGENCE_TRANSPORT }
-        - { path: ^/TransportsAdmin/ajouter, roles: ROLE_AGENCE_TRANSPORT }
-        - { path: ^/TransportsAdmin/modifier/[ 0-9 ]+, roles: ROLE_AGENCE_TRANSPORT }
-        - { path: ^/TransportsAdmin/supprimer/[ 0-9 ]+, roles: ROLE_AGENCE_TRANSPORT }
         - { path: ^/transports, roles: PUBLIC_ACCESS } # Route de visualisation - reste accessible à tous
         - { path: ^/transports/liste, roles: PUBLIC_ACCESS } # Route de visualisation - reste accessible à tous
         - { path: ^/transports/ajouter, roles: ROLE_AGENCE_TRANSPORT }

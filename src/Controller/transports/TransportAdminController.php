@@ -51,7 +51,7 @@ public function adminList(Request $request, EntityManagerInterface $em, Paginato
     $transports = $paginator->paginate(
         $qb->getQuery(),
         $request->query->getInt('page', 1),
-        10
+        4
     );
 
     // Réponse AJAX
