@@ -1,0 +1,24 @@
+services:
+  # Service principal pour l'application web Symfony
+  - type: web
+    name: terranav-symfony
+    runtime: php
+    buildCommand: composer install --no-interaction --optimize-autoloader && php bin/console assets:install public
+    startCommand: heroku-php-apache2 public/
+    envVars:
+      - key: APP_ENV
+        value: prod
+      - key: APP_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: SYMFONY_ENV
+        value: prod
+      - key: PHP_VERSION
+        value: 8.1
+
+databases:
+  - name: terranav-db
+    databaseName: terranav
+    user: terranav_user
+    ipAllowList: []
