@@ -11,7 +11,9 @@ services:
       - key: APP_SECRET
         generateValue: true
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: terranav-db
+          property: connectionString
       - key: SYMFONY_ENV
         value: prod
       - key: PHP_VERSION
