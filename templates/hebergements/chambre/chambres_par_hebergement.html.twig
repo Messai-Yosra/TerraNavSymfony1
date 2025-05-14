@@ -1,5 +1,3 @@
-
-
 {% extends 'baseClient.html.twig' %}
 
 {% block title %}Chambres de {{ hebergement.nom }}{% endblock %}
@@ -70,7 +68,7 @@
             {% else %}
                 <div class="row g-4">
                     {% for chambre in chambres %}
-                        <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
+                        <div class="col-lg-4 col-md-6 wow fadeInUp chambre-card" data-wow-delay="0.1s" id="chambre-{{ chambre.id }}">
                             <div class="room-item shadow rounded overflow-hidden">
                                 <div class="position-relative">
                                     {% if chambre.images|length > 0 %}
@@ -134,7 +132,7 @@
                                             </a>
 
                                             <form method="post" action="{{ path('app_chambre_delete', {'id': chambre.id}) }}"
-                                                  onsubmit="return confirm('Êtes-vous sûr ?');" class="d-inline">
+                                                  onsubmit="return confirmDelete(this, event);" class="d-inline delete-form" data-chambre-id="{{ chambre.id }}">
                                                 <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ chambre.id) }}">
                                                 <button class="btn-icon btn-delete animate-btn" title="Supprimer">
                                                     <i class="fas fa-trash"></i>
@@ -143,7 +141,6 @@
                                         </div>
                                     {% endif %}
                                     </div>
-
                                 </div>
                             </div>
                         </div>
@@ -152,4 +149,49 @@
             {% endif %}
         </div>
     </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    function confirmDelete(form, event) {
+        event.preventDefault(); // Empêcher la soumission normale du formulaire
+        
+        if (confirm('Êtes-vous sûr de vouloir supprimer cette chambre ?')) {
+            const chambreId = form.dataset.chambreId;
+            
+            // Envoyer une requête fetch pour supprimer la chambre
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                if (data.success) {
+                    // Suppression réussie, masquer l'élément de la chambre sans redirection
+                    const chambreElement = document.getElementById('chambre-' + chambreId);
+                    if (chambreElement) {
+                        chambreElement.remove();
+                    }
+                    
+                    // Afficher une alerte de succès
+                    alert('Chambre supprimée avec succès !');
+                } else {
+                    alert('Erreur lors de la suppression: ' + (data.message || 'Veuillez réessayer'));
+                }
+            })
+            .catch(function(error) {
+                console.error('Erreur lors de la suppression :', error);
+                alert('Une erreur est survenue lors de la suppression.');
+            });
+        }
+        
+        return false; // Empêcher la soumission normale du formulaire
+    }
+</script>
 {% endblock %}

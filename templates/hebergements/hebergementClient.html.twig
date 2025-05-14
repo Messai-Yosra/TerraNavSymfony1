@@ -1,3 +1,5 @@
+{# Exemple de template Twig pour afficher les transports avec leurs images #}
+
 {% extends 'baseClient.html.twig' %}
 
 {% block title %}Liste des Hébergements{% endblock %}
@@ -82,7 +84,7 @@
     <div class="container-xxl py-5">
         <div class="container">
             <div class="text-center wow fadeInUp mb-4" data-wow-delay="0.1s">
-                <h6 class="section-title text-center text-primary text-uppercase">Nos Hébergementss</h6>
+                <h6 class="section-title text-center text-primary text-uppercase">Nos Hébergements</h6>
                 <h1 class="mb-3">Découvrez les <span class="text-primary text-uppercase">Meilleurs Logements</span></h1>
             </div>
 
@@ -90,14 +92,20 @@
                 {% if hebergements|length > 0 %}
                     {% for hebergement in hebergements %}
                         <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.{{ loop.index * 2 }}s">
-                            <div class="room-item shadow rounded overflow-hidden">
+                            <div class="room-item shadow rounded overflow-hidden h-100" style="min-width: 350px;">
                                 <div class="position-relative">
                                     {% if hebergementImages[hebergement.id] is defined and hebergementImages[hebergement.id] %}
-                                        <img class="img-fluid hebergement-image" src="{{ hebergementImages[hebergement.id] }}" alt="{{ hebergement.nom }}">
+                                        <img class="img-fluid w-100" 
+                                             src="{{ asset(hebergementImages[hebergement.id]) }}" 
+                                             alt="{{ hebergement.nom }}"
+                                             style="height: 250px; object-fit: cover;">
                                     {% else %}
-                                        <img class="img-fluid hebergement-image" src="{{ asset('img/hebergement-default.jpg') }}" alt="{{ hebergement.nom }}">
+                                        <img class="img-fluid w-100" 
+                                             src="{{ asset('img/hebergement-default.jpg') }}" 
+                                             alt="{{ hebergement.nom }}"
+                                             style="height: 250px; object-fit: cover;">
                                     {% endif %}
-                                    <small class="price-badge">
+                                    <small class="position-absolute start-0 top-100 translate-middle-y bg-primary text-white rounded py-1 px-3 ms-4">
                                         {% if hebergement.chambres.first.prix is not null %}
                                             {% set local_price = hebergement.chambres.first.prix|local_price %}
                                             {{ local_price.amount }} {{ local_price.currency }}/Nuit
@@ -106,12 +114,12 @@
                                         {% endif %}
                                     </small>
                                 </div>
-                                <div class="p-4 mt-2 d-flex flex-column card-content">
+                                <div class="p-4 mt-2 d-flex flex-column">
                                     <div class="d-flex justify-content-between mb-3">
                                         <h5 class="mb-0 text-truncate">{{ hebergement.nom }}</h5>
                                         <div class="ps-2" class="text-yellow">
                                             {% for i in 1..5 %}
-                                                <small class="fa fa-star {{ i <= hebergement.noteMoyenne|round ? 'text-yellow' : 'text-muted' }}"></small>
+                                                <small class="fa fa-star {{ i <= hebergement.noteMoyenne|round ? 'text-warning' : 'text-muted' }}"></small>
                                             {% endfor %}
                                         </div>
                                     </div>
@@ -121,29 +129,33 @@
                                         </small>
                                         <small><i class="fa fa-home text-primary me-2"></i>{{ hebergement.typeHebergement }}</small>
                                     </div>
-                                    <p class="text-body mb-2 text-truncate">
-                                        {{ hebergement.description|striptags|length > 100 ? hebergement.description|striptags|slice(0, 100) ~ '...' : hebergement.description|striptags }}
-                                    </p>
-
-                                    <div class="mb-2">
-                                        <i class="fas fa-bed text-primary me-2"></i>
-                                        <strong>{{ hebergement.nbChambres }}</strong> chambre{{ hebergement.nbChambres > 1 ? 's' : '' }}
+                                    
+                                    <p class="text-body mb-3">{{ hebergement.description|length > 120 ? hebergement.description|slice(0, 120) ~ '...' : hebergement.description }}</p>
+                                    
+                                    <div class="d-flex mt-auto">
+                                        {% set chambresCount = hebergement.chambres|length %}
+                                        <small class="flex-fill text-center border-end py-2">
+                                            <i class="fa fa-bed text-primary me-2"></i>{{ chambresCount }} Chambre{{ chambresCount > 1 ? 's' : '' }}
+                                        </small>
+                                        <small class="flex-fill text-center py-2">
+                                            <i class="fa fa-user text-primary me-2"></i>
+                                            {% set capaciteTotal = 0 %}
+                                            {% for chambre in hebergement.chambres %}
+                                                {% set capaciteTotal = capaciteTotal + chambre.capacite %}
+                                            {% endfor %}
+                                            {{ capaciteTotal }} Personne{{ capaciteTotal > 1 ? 's' : '' }}
+                                        </small>
                                     </div>
-
-                                    <div class="mb-3">
-                                        <i class="fas fa-phone text-primary me-2"></i>
-                                        {{ hebergement.contact }}
-                                    </div>
-
-                                    <div class="d-flex justify-content-between align-items-center mt-auto">
-
-                                        <a href="{{ path('app_chambres_by_hebergementC', {'id': hebergement.id}) }}"
-                                           class="btn-icon btn-secondary animate-btn"
-                                           title="Voir chambres">
-                                            <i class="fas fa-door-open"></i>
+                                    
+                                    <div class="d-flex justify-content-between mt-4">
+                                        <a href="{{ path('app_chambres_hebergement_client', {'id': hebergement.id}) }}" class="btn btn-sm btn-primary rounded-pill py-2 px-4 voyage-btn">
+                                            <i class="fas fa-info-circle me-2"></i>Voir les chambres
                                         </a>
-                                        <div class="btn-group">
-                                        </div>
+                                        {% if app.user and app.user.role == 'CLIENT' %}
+                                            <a href="{{ path('app_hebergement_avis', {'id': hebergement.id}) }}" class="btn btn-sm btn-dark rounded-pill py-2 px-4 voyage-btn">
+                                                <i class="fas fa-comment me-2"></i>Avis
+                                            </a>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -151,7 +163,11 @@
                     {% endfor %}
                 {% else %}
                     <div class="col-12 text-center py-5">
-                        <h4>Aucun hébergement disponible pour le moment.</h4>
+                        <div class="no-offers wow fadeIn" data-wow-delay="0.1s">
+                            <i class="fas fa-exclamation-circle fa-4x text-muted mb-4"></i>
+                            <h3 class="mb-3">Aucun hébergement disponible actuellement</h3>
+                            <p class="text-muted">Revenez plus tard pour découvrir nos nouvelles offres</p>
+                        </div>
                     </div>
                 {% endif %}
             </div>
@@ -159,207 +175,38 @@
     </div>
 
     <style>
-        /* Container and general styles */
-        .page-header {
-            background-color: #565c6d; /* REMOVE or override this */
-        }
-        .text-yellow {
-            color: #ffc107 !important;
-        }
-
-        .container-xxl {
-            padding: 40px 0;
-        }
-        .text-yellow {
-            color: #ffc107 !important; /* Bootstrap yellow */
-        }
-
+        /* Animation et effets de survol pour les cartes */
         .room-item {
-            background: #fff;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            height: 100%; /* Ensure cards stretch to same height */
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.1);
         }
 
         .room-item:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
 
-        /* Image styling */
-        .hebergement-image {
-            width: 100%;
-            height: 200px; /* Fixed height for uniformity */
-            object-fit: cover;
-            border-top-left-radius: 10px;
-            border-top-right-radius: 10px;
-        }
-
-        /* Price badge */
-        .price-badge {
-            position: absolute;
-            left: 0;
-            top: 100%;
-            transform: translateY(-50%);
-            background: #ffc107; /* Yellow badge to match buttons */
-            color: #333;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            margin-left: 16px;
+        /* Style pour les boutons */
+        .voyage-btn {
+            transition: all 0.2s ease;
             font-weight: 500;
         }
 
-        /* Card content */
-        .card-content {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 220px; /* Ensure content area has minimum height */
+        .voyage-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
-        .card-content h5 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            max-width: 70%; /* Prevent overflow */
+        /* Style pour les étoiles */
+        .text-warning {
+            color: #ffc107 !important;
         }
 
-        .card-content p.text-body {
-            font-size: 0.9rem;
-            color: #555;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 3; /* Limit to 3 lines */
-            -webkit-box-orient: vertical;
-        }
-
-        /* Buttons */
-        .btn {
-            border-radius: 6px;
-            font-weight: 500;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-
-        .btn-warning {
-            background-color: #ffc107;
-            border-color: #ffc107;
-            color: #333;
-        }
-
-        .btn-warning:hover {
-            background-color: #e0a800;
-            transform: scale(1.05);
-        }
-
-        .btn-secondary {
-            background-color: #6c757d;
-            border-color: #6c757d;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background-color: #565e64;
-            transform: scale(1.05);
-        }
-
-        /* Icon buttons */
-        .btn-icon {
-            width: 38px;
-            height: 38px;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 50%;
-            font-size: 16px;
-            border: none;
-            color: #fff;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            margin-left: 5px;
-        }
-
-        .btn-detail {
-            background-color: #002B5B; /* Dark blue */
-        }
-
-        .btn-edit {
-            background-color: #FFB703; /* Yellow */
-        }
-
-        .btn-delete {
-            background-color: #d90429; /* Red */
-        }
-
-        .btn-icon:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            opacity: 0.9;
-        }
-
-        /* Search form */
-        .form-select, .form-control {
-            border-radius: 6px;
-            padding: 10px;
-            font-size: 0.95rem;
-        }
-
-        .form-label {
-            font-weight: 500;
-            color: #333;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 767px) {
+        /* Styles responsive */
+        @media (max-width: 768px) {
             .room-item {
-                margin-bottom: 20px;
-            }
-
-            .hebergement-image {
-                height: 180px;
-            }
-
-            .card-content {
-                min-height: 200px;
-            }
-
-            .btn {
-                padding: 8px 12px;
-                font-size: 0.85rem;
-            }
-
-            .btn-icon {
-                width: 34px;
-                height: 34px;
-                font-size: 14px;
-                margin-left: 3px;
+                min-width: auto !important;
             }
         }
     </style>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const currencySelect = document.getElementById('currency');
-            if (currencySelect) {
-                currencySelect.addEventListener('change', function() {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = '{{ path('app_change_currency') }}';
-
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'currency';
-                    input.value = this.value;
-
-                    form.appendChild(input);
-                    document.body.appendChild(form);
-                    form.submit();
-                });
-            }
-        });
-    </script>
 {% endblock %}

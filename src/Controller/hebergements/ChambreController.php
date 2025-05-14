@@ -162,10 +162,16 @@ final class ChambreController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        // Vérifier si l'utilisateur est le propriétaire de l'hébergement
-        if ($user instanceof Utilisateur && $chambre->getId_hebergement()->getIdUser() !== $user) {
+        // Vérifier si l'utilisateur est le propriétaire de l'hébergement ou s'il est une agence
+        if ($user instanceof Utilisateur) {
+            $userRole = strtolower($user->getRole() ?? '');
+            $isAgence = $userRole === 'agence';
+            
+            // Si ce n'est pas une agence, vérifier s'il est propriétaire
+            if (!$isAgence && $chambre->getId_hebergement()->getIdUser() !== $user) {
             $this->addFlash('error', 'Vous n\'avez pas les droits pour modifier cette chambre.');
             return $this->redirectToRoute('app_chambre_index');
+            }
         }
 
         $form = $this->createForm(ChambreType::class, $chambre);
@@ -194,21 +200,62 @@ final class ChambreController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        // Vérifier si l'utilisateur est le propriétaire de l'hébergement
-        if ($user instanceof Utilisateur && $chambre->getId_hebergement()->getIdUser() !== $user) {
+        // Vérifier si l'utilisateur est le propriétaire de l'hébergement ou s'il est une agence
+        if ($user instanceof Utilisateur) {
+            $userRole = strtolower($user->getRole() ?? '');
+            $isAgence = $userRole === 'agence';
+            
+            // Si ce n'est pas une agence, vérifier s'il est propriétaire
+            if (!$isAgence && $chambre->getId_hebergement()->getIdUser() !== $user) {
             $this->addFlash('error', 'Vous n\'avez pas les droits pour supprimer cette chambre.');
+                
+                if ($request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest') {
+                    return new JsonResponse(['success' => false, 'message' => 'Vous n\'avez pas les droits pour supprimer cette chambre.'], Response::HTTP_FORBIDDEN);
+                }
+                
             return $this->redirectToRoute('app_chambre_index');
+            }
         }
 
         if ($this->isCsrfTokenValid('delete'.$chambre->getId(), $request->getPayload()->getString('_token'))) {
+            try {
             $hebergementId = $chambre->getId_hebergement()->getId();
             $entityManager->remove($chambre);
             $entityManager->flush();
             $this->addFlash('success', 'Chambre supprimée avec succès!');
 
+                // Si c'est une requête AJAX, retourner une réponse JSON
+                if ($request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest') {
+                    return new JsonResponse(['success' => true]);
+                }
+
+                // Récupérer l'URL de retour depuis le formulaire si elle existe
+                $referer = $request->headers->get('referer');
+                if ($referer) {
+                    return $this->redirect($referer);
+                }
+                
+                // Redirection par défaut si pas d'URL de retour
             return $this->redirectToRoute('app_chambres_by_hebergement', [
                 'id' => $hebergementId
             ], Response::HTTP_SEE_OTHER);
+            } catch (\Exception $e) {
+                if ($request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest') {
+                    return new JsonResponse(['success' => false, 'message' => 'Erreur lors de la suppression: ' . $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+                }
+                
+                $this->addFlash('error', 'Erreur lors de la suppression: ' . $e->getMessage());
+            }
+        } else {
+            if ($request->isXmlHttpRequest() || $request->headers->get('X-Requested-With') === 'XMLHttpRequest') {
+                return new JsonResponse(['success' => false, 'message' => 'Token CSRF invalide'], Response::HTTP_BAD_REQUEST);
+            }
+        }
+
+        // Récupérer l'URL de retour depuis le formulaire si elle existe
+        $referer = $request->headers->get('referer');
+        if ($referer) {
+            return $this->redirect($referer);
         }
 
         return $this->redirectToRoute('app_chambre_index', [], Response::HTTP_SEE_OTHER);

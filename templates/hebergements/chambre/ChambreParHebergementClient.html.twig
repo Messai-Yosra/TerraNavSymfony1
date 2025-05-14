@@ -3,95 +3,69 @@
 {% block title %}Chambres de {{ hebergement.nom }}{% endblock %}
 
 {% block content %}
-    <style>
-        .btn-icon {
-            width: 38px;
-            height: 38px;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 50%;
-            font-size: 16px;
-            border: none;
-            color: #fff;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            margin-left: 5px;
-        }
-
-        .btn-detail {
-            background-color: #002B5B;
-        }
-
-        .btn-edit {
-            background-color: #FFB703;
-        }
-
-        .btn-delete {
-            background-color: #d90429;
-        }
-
-        .btn-icon:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            opacity: 0.9;
-        }
-
-        .btn-reserve {
-            background-color: #28a745;
-            color: white;
-            padding: 8px 20px;
-            border-radius: 5px;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .btn-reserve:hover {
-            background-color: #218838;
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .btn-reserve.disabled {
-            background-color: #6c757d;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-    </style>
+    <!-- En-tête avec image de couverture -->
+    <div class="container-fluid page-header mb-5 p-0" style="background-image: url({{ asset('img/chambre-banner.jpg') }}); background-size: cover; background-position: center;">
+        <div class="container-fluid page-header-inner py-5">
+            <div class="container text-center pb-5">
+                <h1 class="display-3 text-white mb-3 animated slideInDown">Nos Chambres</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center text-uppercase">
+                        <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+                        <li class="breadcrumb-item"><a href="{{ path('app_hebergements') }}">Hébergements</a></li>
+                        <li class="breadcrumb-item text-white active" aria-current="page">{{ hebergement.nom }}</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
 
     <div class="container-xxl py-5">
         <div class="container">
             <div class="text-center wow fadeInUp mb-4" data-wow-delay="0.1s">
-                <h6 class="section-title text-primary text-uppercase">Chambres associées</h6>
+                <h6 class="section-title text-primary text-uppercase">Chambres disponibles</h6>
                 <h2 class="mb-3">Hébergement: <span class="text-primary">{{ hebergement.nom }}</span></h2>
+                <p class="mb-4">{{ hebergement.description }}</p>
                 <a href="{{ path('app_hebergements') }}" class="btn btn-secondary mt-3">
                     <i class="fas fa-arrow-left me-2"></i>Retour aux hébergements
                 </a>
             </div>
 
             {% if chambres is empty %}
-                <div class="alert alert-info text-center">Aucune chambre disponible pour cet hébergement.</div>
+                <div class="col-12 text-center py-5">
+                    <div class="no-offers wow fadeIn" data-wow-delay="0.1s">
+                        <i class="fas fa-exclamation-circle fa-4x text-muted mb-4"></i>
+                        <h3 class="mb-3">Aucune chambre disponible pour cet hébergement</h3>
+                        <p class="text-muted">Veuillez consulter nos autres hébergements</p>
+                    </div>
+                </div>
             {% else %}
                 <div class="row g-4">
                     {% for chambre in chambres %}
-                        <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
-                            <div class="room-item shadow rounded overflow-hidden">
+                        <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.{{ loop.index }}s">
+                            <div class="room-item shadow rounded overflow-hidden h-100" style="min-width: 350px;">
+                                <!-- Carrousel des images -->
                                 <div class="position-relative">
                                     {% if chambre.images|length > 0 %}
                                         <div id="carousel-{{ chambre.id }}" class="carousel slide" data-bs-ride="carousel">
                                             <div class="carousel-inner">
                                                 {% for image in chambre.images %}
                                                     <div class="carousel-item {{ loop.first ? 'active' : '' }}">
-                                                        <img class="img-fluid w-100" src="{{ asset(image.urlImage) }}" alt="Image Chambre" style="height: 250px; object-fit: cover;">
+                                                        <img class="img-fluid w-100" 
+                                                             src="{{ asset(image.urlImage) }}" 
+                                                             alt="Chambre {{ chambre.numero }}"
+                                                             style="height: 250px; object-fit: cover;"
+                                                             onerror="this.src='{{ asset('img/chambre-default.jpg') }}'">
                                                     </div>
                                                 {% endfor %}
                                             </div>
                                             {% if chambre.images|length > 1 %}
                                                 <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ chambre.id }}" data-bs-slide="prev">
                                                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                    <span class="visually-hidden">Précédent</span>
                                                 </button>
                                                 <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ chambre.id }}" data-bs-slide="next">
                                                     <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                    <span class="visually-hidden">Suivant</span>
                                                 </button>
                                             {% endif %}
                                         </div>
@@ -107,6 +81,7 @@
                                     </small>
                                 </div>
 
+                                <!-- Contenu de la carte -->
                                 <div class="p-4 mt-2">
                                     <div class="d-flex justify-content-between mb-3">
                                         <h5 class="mb-0">Chambre {{ chambre.numero }}</h5>
@@ -115,33 +90,36 @@
                                         </span>
                                     </div>
 
-                                    <div class="d-flex mb-3">
-                                        <small class="border-end me-3 pe-3"><i class="fa fa-user text-primary me-2"></i>{{ chambre.capacite }} Pers.</small>
-                                        <small class="border-end me-3 pe-3"><i class="fa fa-ruler-combined text-warning me-2"></i>{{ chambre.taille }} m²</small>
-                                        <small><i class="fa fa-eye text-secondary me-2"></i>{{ chambre.vue ?? '—' }}</small>
+                                    <div class="d-flex flex-column gap-2 mb-3">
+                                        <div>
+                                            <i class="fa fa-user text-primary me-2"></i>
+                                            <small>Capacité: {{ chambre.capacite }} Personne{{ chambre.capacite > 1 ? 's' : '' }}</small>
+                                        </div>
+                                        <div>
+                                            <i class="fa fa-ruler-combined text-primary me-2"></i>
+                                            <small>Superficie: {{ chambre.taille }} m²</small>
+                                        </div>
+                                        <div>
+                                            <i class="fa fa-eye text-primary me-2"></i>
+                                            <small>Vue: {{ chambre.vue ?? 'Non spécifiée' }}</small>
+                                        </div>
+                                        <div>
+                                            <i class="fa fa-wifi text-primary me-2"></i>
+                                            <small>Équipements: {{ chambre.equipements|default('Non spécifiés') }}</small>
+                                        </div>
                                     </div>
 
-                                    <p class="text-body mb-3">Équipements : {{ chambre.equipements|default('Non spécifié') }}</p>
+                                    <p class="text-body mb-3">{{ chambre.description|length > 100 ? chambre.description|slice(0, 100) ~ '...' : chambre.description }}</p>
 
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <a href="{{ path('app_chambre_show', {'id': chambre.id}) }}"
-                                           class="btn-icon btn-detail animate-btn"
-                                           title="Voir détails">
-                                            <i class="fas fa-eye"></i>
+                                    <div class="d-flex justify-content-between">
+                                        <a href="{{ path('app_chambre_show', {'id': chambre.id}) }}" class="btn btn-sm btn-primary rounded-pill py-2 px-4 voyage-btn">
+                                            <i class="fas fa-info-circle me-2"></i>Détails
                                         </a>
-                                        {% if app.user %}
-                                            {% if app.user.role == 'AGENCE' %}
-                                                <a href="{{ path('app_chambre_edit', {'id': chambre.id}) }}"
-                                                   class="btn-icon btn-edit animate-btn"
-                                                   title="Modifier">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                            {% elseif app.user.role == 'CLIENT' %}
-                                                <button class="btn btn-reserve {% if not chambre.disponibilite %}disabled{% endif %}"
-                                                        {% if chambre.disponibilite %}onclick="alert('Fonctionnalité de réservation à venir')"{% endif %}>
-                                                    <i class="fas fa-calendar-check me-2"></i>Réserver
-                                                </button>
-                                            {% endif %}
+                                        {% if app.user and app.user.role == 'CLIENT' %}
+                                            <button class="btn btn-sm btn-dark rounded-pill py-2 px-4 voyage-btn {% if not chambre.disponibilite %}disabled{% endif %}"
+                                                    {% if chambre.disponibilite %}onclick="alert('Fonctionnalité de réservation à venir')"{% endif %}>
+                                                <i class="fas fa-calendar-check me-2"></i>Réserver
+                                            </button>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -152,4 +130,51 @@
             {% endif %}
         </div>
     </div>
-{% endblock %}
+
+    <style>
+        /* Animation et effets de survol pour les cartes */
+        .room-item {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .room-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        /* Style pour les boutons */
+        .voyage-btn {
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .voyage-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Styles pour le carrousel */
+        .carousel-control-prev, .carousel-control-next {
+            width: 10%;
+            opacity: 0.7;
+        }
+
+        .carousel-control-prev:hover, .carousel-control-next:hover {
+            opacity: 1;
+        }
+
+        /* Styles responsive */
+        @media (max-width: 768px) {
+            .room-item {
+                min-width: auto !important;
+            }
+        }
+
+        /* Style pour les badges */
+        .badge {
+            font-weight: 500;
+            padding: 0.35em 0.65em;
+        }
+    </style>
+{% endblock %} 
