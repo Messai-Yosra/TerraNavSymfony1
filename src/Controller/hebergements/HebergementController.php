@@ -30,11 +30,20 @@ final class HebergementController extends AbstractController
     #[Route('/new', name: 'app_hebergement_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
+        $user = $this->security->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
         $hebergement = new Hebergement();
         $form = $this->createForm(Hebergement1Type::class, $hebergement);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Associer l'utilisateur connecté à l'hébergement
+            if ($user instanceof Utilisateur) {
+                $hebergement->setIdUser($user);
+            }
             $entityManager->persist($hebergement);
             $entityManager->flush();
 
@@ -53,17 +62,17 @@ final class HebergementController extends AbstractController
     public function addHebergement(Request $request, EntityManagerInterface $entityManager): Response
     {
         $hebergement = new Hebergement();
-        
+
         // Définir des valeurs par défaut
         $hebergement->setNoteMoyenne(0.0);
         $hebergement->setNbChambres(0);
-        
+
         // Associer l'utilisateur connecté à l'hébergement
         $user = $this->security->getUser();
         if ($user instanceof Utilisateur) {
             $hebergement->setIdUser($user);
         }
-        
+
         $form = $this->createForm(Hebergement1Type::class, $hebergement);
         $form->handleRequest($request);
 
@@ -76,7 +85,7 @@ final class HebergementController extends AbstractController
                     }
                     $entityManager->persist($hebergement);
                     $entityManager->flush();
-                    
+
                     $this->addFlash('success', 'Hébergement ajouté avec succès!');
                     return $this->redirectToRoute('app_hebergement_show', ['id' => $hebergement->getId()]);
                 } catch (\Exception $e) {
@@ -126,7 +135,7 @@ final class HebergementController extends AbstractController
                 }
                 $hebergementImages[$hebergement->getId()] = $firstImage;
             }
-          
+
             return $this->render('hebergements/hebergement/index.html.twig', [
                 'hebergements' => $hebergements,
                 'hebergementImages' => $hebergementImages,
@@ -364,7 +373,7 @@ public function searchClient(Request $request, EntityManagerInterface $entityMan
             $this->addFlash('error', 'Hébergement non trouvé');
             return $this->redirectToRoute('app_hebergement_index');
         }
-        
+
         return $this->render('hebergements/hebergement/show.html.twig', [
             'hebergement' => $hebergement,
         ]);
@@ -375,12 +384,17 @@ public function searchClient(Request $request, EntityManagerInterface $entityMan
     #[Route('/{id}/edit', name: 'app_hebergement_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Hebergement $hebergement, EntityManagerInterface $entityManager): Response
     {
-        // Supprimer cette vérification qui bloque l'accès aux non-administrateurs
-        // if (!$this->isGranted('ROLE_ADMIN')) {
-        //     $this->addFlash('error', 'Vous n\'avez pas les droits nécessaires pour modifier cet hébergement.');
-        //     return $this->redirectToRoute('app_hebergement_index');
-        // }
-        
+        $user = $this->security->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        // Vérifier si l'utilisateur est le propriétaire de l'hébergement
+        if ($user instanceof Utilisateur && $hebergement->getIdUser() !== $user) {
+            $this->addFlash('error', 'Vous n\'avez pas les droits pour modifier cet hébergement.');
+            return $this->redirectToRoute('app_hebergement_index');
+        }
+
         $form = $this->createForm(Hebergement1Type::class, $hebergement);
         $form->handleRequest($request);
 
@@ -388,7 +402,7 @@ public function searchClient(Request $request, EntityManagerInterface $entityMan
             try {
                 $entityManager->flush();
                 $this->addFlash('success', 'Hébergement modifié avec succès!');
-                
+
                 return $this->redirectToRoute('app_hebergement_show', ['id' => $hebergement->getId()]);
             } catch (\Exception $e) {
                 $this->addFlash('error', 'Erreur lors de la modification: ' . $e->getMessage());
@@ -404,6 +418,17 @@ public function searchClient(Request $request, EntityManagerInterface $entityMan
     #[Route('/{id}/delete', name: 'app_hebergement_delete', methods: ['POST'])]
     public function delete(Request $request, Hebergement $hebergement, EntityManagerInterface $entityManager): Response
     {
+        $user = $this->security->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        // Vérifier si l'utilisateur est le propriétaire de l'hébergement
+        if ($user instanceof Utilisateur && $hebergement->getIdUser() !== $user) {
+            $this->addFlash('error', 'Vous n\'avez pas les droits pour supprimer cet hébergement.');
+            return $this->redirectToRoute('app_hebergement_index');
+        }
+
         if ($this->isCsrfTokenValid('delete'.$hebergement->getId(), $request->request->get('_token'))) {
             $entityManager->remove($hebergement);
             $entityManager->flush();
