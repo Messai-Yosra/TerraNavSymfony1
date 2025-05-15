@@ -107,7 +107,7 @@ class ModifierVoyage extends AbstractController
                     }
 
                     if (!empty($imagePaths)) {
-                        $voyage->setPathImages(implode('***', $imagePaths));
+                        $voyage->setPathImages(pathImages: implode('***', $imagePaths));
                     }
                 } elseif (!empty($existingImages)) {
                     $voyage->setPathImages(implode('***', $existingImages));

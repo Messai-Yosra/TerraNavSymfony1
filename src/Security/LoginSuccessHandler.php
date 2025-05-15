@@ -59,11 +59,11 @@ class LoginSuccessHandler implements AuthenticationSuccessHandlerInterface
         if ($user->getRole() === 'admin') {
             // Redirection vers le dashboard admin
             return new RedirectResponse($this->urlGenerator->generate('admin_dashboard'));
-        }if ($user->getRole() === 'AGENCE' & $user->getTypeAgence() === 'VOYAGE' ) {
+        }if ($user->getRole() === 'Agence' & $user->getTypeAgence() === 'VOYAGE' ) {
         // Redirection vers le dashboard admin
         return new RedirectResponse($this->urlGenerator->generate('app_voyages_agence'));
     }
-        if ($user->getRole() === 'AGENCE' & $user->getTypeAgence() === 'TRANSPORT' ) {
+        if ($user->getRole() === 'Agence' & $user->getTypeAgence() === 'TRANSPORT' ) {
             // Redirection vers le dashboard admin
             return new RedirectResponse($this->urlGenerator->generate('client_transports_list'));
         }
